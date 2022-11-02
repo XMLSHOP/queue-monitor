@@ -46,9 +46,6 @@
         "test": "vendor/bin/phpunit"
     },
     "extra": {
-        "branch-alias": {
-            "dev-master": "master"
-        },
         "laravel": {
             "providers": [
                 "xmlshop\\QueueMonitor\\Providers\\QueueMonitorProvider"
