@@ -1,6 +1,6 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Providers;
+namespace xmlshop\QueueMonitor\Providers;
 
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
@@ -9,9 +9,9 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use romanzipp\QueueMonitor\Models\Monitor;
-use romanzipp\QueueMonitor\Routes\QueueMonitorRoutes;
-use romanzipp\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
+use xmlshop\QueueMonitor\Services\QueueMonitor;
 
 class QueueMonitorProvider extends ServiceProvider
 {

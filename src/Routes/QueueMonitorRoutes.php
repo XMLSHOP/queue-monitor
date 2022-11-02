@@ -1,6 +1,6 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Routes;
+namespace xmlshop\QueueMonitor\Routes;
 
 use Closure;
 
@@ -15,14 +15,14 @@ class QueueMonitorRoutes
     {
         return function (array $options = []) {
             /** @var \Illuminate\Routing\Router $this */
-            $this->get('', '\romanzipp\QueueMonitor\Controllers\ShowQueueMonitorController')->name('queue-monitor::index');
+            $this->get('', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')->name('queue-monitor::index');
 
             if (config('queue-monitor.ui.allow_deletion')) {
-                $this->delete('monitors/{monitor}', '\romanzipp\QueueMonitor\Controllers\DeleteMonitorController')->name('queue-monitor::destroy');
+                $this->delete('monitors/{monitor}', '\xmlshop\QueueMonitor\Controllers\DeleteMonitorController')->name('queue-monitor::destroy');
             }
 
             if (config('queue-monitor.ui.allow_purge')) {
-                $this->delete('purge', '\romanzipp\QueueMonitor\Controllers\PurgeMonitorsController')->name('queue-monitor::purge');
+                $this->delete('purge', '\xmlshop\QueueMonitor\Controllers\PurgeMonitorsController')->name('queue-monitor::purge');
             }
         };
     }

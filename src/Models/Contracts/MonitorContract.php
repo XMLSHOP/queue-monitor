@@ -1,9 +1,9 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Models\Contracts;
+namespace xmlshop\QueueMonitor\Models\Contracts;
 
 /**
- * @mixin \romanzipp\QueueMonitor\Models\Monitor
+ * @mixin \xmlshop\QueueMonitor\Models\Monitor
  */
 interface MonitorContract
 {

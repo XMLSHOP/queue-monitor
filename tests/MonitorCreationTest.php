@@ -1,15 +1,15 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Tests;
+namespace xmlshop\QueueMonitor\Tests;
 
-use romanzipp\QueueMonitor\Models\Monitor;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredBroadcastingJob;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredExtendingJob;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJob;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithArguments;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredPartiallyKeptFailingJob;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredPartiallyKeptJob;
-use romanzipp\QueueMonitor\Tests\Support\UnmonitoredJob;
+use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredBroadcastingJob;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredExtendingJob;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJob;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithArguments;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredPartiallyKeptFailingJob;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredPartiallyKeptJob;
+use xmlshop\QueueMonitor\Tests\Support\UnmonitoredJob;
 
 class MonitorCreationTest extends TestCase
 {

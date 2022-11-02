@@ -1,14 +1,14 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Tests;
+namespace xmlshop\QueueMonitor\Tests;
 
-use romanzipp\QueueMonitor\Models\Monitor;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithData;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithMergedData;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithMergedDataConflicting;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithProgress;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithProgressCooldown;
-use romanzipp\QueueMonitor\Tests\Support\MonitoredJobWithProgressCooldownMockingTime;
+use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithData;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithMergedData;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithMergedDataConflicting;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithProgress;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithProgressCooldown;
+use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithProgressCooldownMockingTime;
 
 class MonitorAttributesTest extends TestCase
 {

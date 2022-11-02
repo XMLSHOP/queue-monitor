@@ -1,16 +1,16 @@
 <?php
 
-namespace romanzipp\QueueMonitor\Controllers;
+namespace xmlshop\QueueMonitor\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use romanzipp\QueueMonitor\Controllers\Payloads\Metric;
-use romanzipp\QueueMonitor\Controllers\Payloads\Metrics;
-use romanzipp\QueueMonitor\Models\Contracts\MonitorContract;
-use romanzipp\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
+use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
+use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
+use xmlshop\QueueMonitor\Services\QueueMonitor;
 
 class ShowQueueMonitorController
 {

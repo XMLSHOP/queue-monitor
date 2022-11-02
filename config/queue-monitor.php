@@ -13,7 +13,7 @@ return [
      *   romanzipp\QueueMonitor\Models\Contracts\MonitorContract
      * interface or extend the base model.
      */
-    'model' => \romanzipp\QueueMonitor\Models\Monitor::class,
+    'model' => \xmlshop\QueueMonitor\Models\Monitor::class,
 
     /*
      * Specify the max character length to use for storing exception backtraces.
