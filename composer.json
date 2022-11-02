@@ -1,5 +1,5 @@
 {
-    "name": "romanzipp/laravel-queue-monitor",
+    "name": "xmlshop/laravel-queue-monitor",
     "description": "Queue Monitoring for Laravel Database Job Queue",
     "type": "library",
     "license": "MIT",
@@ -8,10 +8,14 @@
             "name": "romanzipp",
             "email": "ich@ich.wtf",
             "homepage": "https://ich.wtf"
+        },
+        {
+            "name": "Artem Negri",
+            "email": "artemnegri@xmlshop.com"
         }
     ],
     "require": {
-        "php": "^7.2|^8.0",
+        "php": "^8.0",
         "ext-json": "*",
         "ext-mbstring": "*",
         "illuminate/database": "^5.5|^6.0|^7.0|^8.0|^9.0",
@@ -30,12 +34,12 @@
     },
     "autoload": {
         "psr-4": {
-            "romanzipp\\QueueMonitor\\": "src"
+            "xmlshop\\QueueMonitor\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "romanzipp\\QueueMonitor\\Tests\\": "tests"
+            "xmlshop\\QueueMonitor\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -47,13 +51,12 @@
         },
         "laravel": {
             "providers": [
-                "romanzipp\\QueueMonitor\\Providers\\QueueMonitorProvider"
+                "xmlshop\\QueueMonitor\\Providers\\QueueMonitorProvider"
             ]
         }
     },
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "dev",
-    "prefer-stable": false
+    "minimum-stability": "dev"
 }
