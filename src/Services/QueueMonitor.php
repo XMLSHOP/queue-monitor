@@ -3,10 +3,12 @@
 namespace xmlshop\QueueMonitor\Services;
 
 use Illuminate\Contracts\Queue\Job as JobContract;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
@@ -33,6 +35,19 @@ class QueueMonitor
     public static function getModel(): MonitorContract
     {
         return new self::$model();
+    }
+
+    /**
+     * Handle Job Queued.
+     *
+     * @param \Illuminate\Queue\Events\JobQueued $event
+     *
+     * @return void
+     * @throws \ReflectionException
+     */
+    public static function handleJobQueued(JobQueued $event): void
+    {
+        self::jobQueued($event->id, $event->connectionName, $event->job);
     }
 
     /**
@@ -65,6 +80,7 @@ class QueueMonitor
      * @param \Illuminate\Queue\Events\JobFailed $event
      *
      * @return void
+     * @throws \ReflectionException
      */
     public static function handleJobFailed(JobFailed $event): void
     {
@@ -77,6 +93,7 @@ class QueueMonitor
      * @param \Illuminate\Queue\Events\JobExceptionOccurred $event
      *
      * @return void
+     * @throws \ReflectionException
      */
     public static function handleJobExceptionOccurred(JobExceptionOccurred $event): void
     {
@@ -102,27 +119,41 @@ class QueueMonitor
     /**
      * Pending Queue Monitoring for Job.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
+     * @param int|string $jobId
+     * @param string|null $jobConnection
+     * @param \Closure|ShouldQueue|string $job
+     *
+     * @throws \ReflectionException
      *
      * @return void
      */
-    protected static function jobQueued(JobContract $job): void
+    protected static function jobQueued(mixed $jobId, ?string $jobConnection, \Closure|ShouldQueue|string $job): void
     {
-        if ( ! self::shouldBeMonitored($job)) {
+        $jobClass = get_class($job);
+        if ($job instanceof \Illuminate\Events\CallQueuedListener && property_exists($job, 'class')) {
+            $jobClass = $job->class;
+        }
+
+        if ( ! self::shouldBeMonitored($jobClass)) {
             return;
         }
+
+        $jobClass = is_string($job) ? $job : get_class($job);
+        /** @var string $jobQueue */
+        $jobQueue = $job?->queue ?? trim(\Illuminate\Support\Facades\Queue::connection($jobConnection)->getQueue(null), '/');
+//        $jobsChain = array_map(function ($item) {return get_class(unserialize($item));}, $job?->chained ?? []);
 
         $now = Carbon::now();
 
         $model = self::getModel();
 
         $model::query()->create([
-            'job_id' => self::getJobId($job),
-            'name' => $job->resolveName(),
-            'queue' => $job->getQueue(),
+            'job_id' => $jobId,
+            'name' => $jobClass,
+            'queue' => $jobQueue,
             'queued_at' => $now,
             'queued_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
-            'attempt' => $job->attempts(),
+            'attempt' => 0,
         ]);
     }
 
@@ -130,6 +161,8 @@ class QueueMonitor
      * Start Queue Monitoring for Job.
      *
      * @param \Illuminate\Contracts\Queue\Job $job
+     *
+     * @throws \ReflectionException
      *
      * @return void
      */
@@ -147,12 +180,12 @@ class QueueMonitor
             ->orderByDesc('queued_at')
             ->updateOrCreate([
                 'job_id' => self::getJobId($job),
-                'attempt'=> $job->attempts()
+                'attempt' => $job->attempts(),
             ], [
                 'name' => $job->resolveName(),
                 'queue' => $job->getQueue(),
                 'started_at' => $now,
-                'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT)
+                'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
             ]);
     }
 
@@ -162,6 +195,8 @@ class QueueMonitor
      * @param \Illuminate\Contracts\Queue\Job $job
      * @param bool $failed
      * @param \Throwable|null $exception
+     *
+     * @throws \ReflectionException
      *
      * @return void
      */
@@ -219,14 +254,20 @@ class QueueMonitor
     /**
      * Determine weather the Job should be monitored, default true.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
+     * @param JobContract|string $job
+     *
+     * @throws \ReflectionException
      *
      * @return bool
      */
-    public static function shouldBeMonitored(JobContract $job): bool
+    public static function shouldBeMonitored(JobContract|string $job): bool
     {
-        return array_key_exists(IsMonitored::class, ClassUses::classUsesRecursive(
-            $job->resolveName()
-        ));
+        return
+            is_string($job) && in_array(IsMonitored::class,
+                array_keys((new \ReflectionClass($job))->getTraits())
+            )
+            || array_key_exists(IsMonitored::class, ClassUses::classUsesRecursive(
+                $job->resolveName()
+            ));
     }
 }

@@ -6,7 +6,9 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\QueueManager;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Models\Monitor;
@@ -67,6 +69,13 @@ class QueueMonitorProvider extends ServiceProvider
 
         $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
             QueueMonitor::handleJobExceptionOccurred($event);
+        });
+
+        Event::listen([
+            JobQueued::class,
+        ], function (JobQueued $event) {
+            // Event happens when we do Job::dispatch(...)
+            QueueMonitor::handleJobQueued($event);
         });
     }
 
