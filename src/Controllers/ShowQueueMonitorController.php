@@ -35,8 +35,12 @@ class ShowQueueMonitorController
             ->newQuery()
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
+                    case 'pending':
+                        $builder->whereNotNull('queued_at')->whereNull(['started_at', 'finished_at']);
+                        break;
+
                     case 'running':
-                        $builder->whereNull('finished_at');
+                        $builder->whereNotNull('started_at')->whereNull('finished_at');
                         break;
 
                     case 'failed':

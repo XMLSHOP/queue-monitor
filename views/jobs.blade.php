@@ -50,6 +50,7 @@
                     </label>
                     <select name="type" id="filter_show" class="w-full p-2 bg-gray-200 border-2 border-gray-300 rounded">
                         <option @if($filters['type'] === 'all') selected @endif value="all">@lang('All')</option>
+                        <option @if($filters['type'] === 'pending') selected @endif value="pending">@lang('Pending')</option>
                         <option @if($filters['type'] === 'running') selected @endif value="running">@lang('Running')</option>
                         <option @if($filters['type'] === 'failed') selected @endif value="failed">@lang('Failed')</option>
                         <option @if($filters['type'] === 'succeeded') selected @endif value="succeeded">@lang('Succeeded')</option>
@@ -119,9 +120,15 @@
 
                         <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
-                            @if(!$job->isFinished())
+                            @if($job->isPending())
 
-                                <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-blue-200 text-blue-800">
+                                <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-cyan-200 text-blue-800">
+                                    @lang('Pending')
+                                </div>
+
+                            @elseif(!$job->isFinished())
+
+                            <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-blue-200 text-blue-800">
                                     @lang('Running')
                                 </div>
 

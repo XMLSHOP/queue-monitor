@@ -16,6 +16,8 @@ use Throwable;
  * @property string $job_id
  * @property string|null $name
  * @property string|null $queue
+ * @property \Illuminate\Support\Carbon|null $queued_at
+ * @property string|null $queued_at_exact
  * @property \Illuminate\Support\Carbon|null $started_at
  * @property string|null $started_at_exact
  * @property \Illuminate\Support\Carbon|null $finished_at
@@ -244,6 +246,19 @@ class Monitor extends Model implements MonitorContract
         }
 
         return Arr::last(explode('\\', $this->name));
+    }
+
+    /**
+     * Check if the job is pending.
+     *
+     * @return bool
+     */
+    public function isPending(): bool
+    {
+        return !$this->hasFailed()
+            && $this->queued_at !== null
+            && $this->started_at === null
+            && $this->finished_at === null;
     }
 
     /**

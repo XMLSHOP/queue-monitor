@@ -15,6 +15,9 @@ class CreateQueueMonitorTable extends Migration
             $table->string('name')->nullable();
             $table->string('queue')->nullable();
 
+            $table->timestamp('queued_at')->nullable()->index();
+            $table->string('queued_at_exact')->nullable();
+
             $table->timestamp('started_at')->nullable()->index();
             $table->string('started_at_exact')->nullable();
 
