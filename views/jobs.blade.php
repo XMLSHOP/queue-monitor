@@ -102,6 +102,7 @@
 
                     <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
                     <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>
+                    <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>
                     <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>
                     <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Error')</th>
 
@@ -212,7 +213,11 @@
                         </td>
 
                         <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                            {{ $job->started_at->diffForHumans() }}
+                            {{ $job->queued_at?->diffForHumans() }}
+                        </td>
+
+                        <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
+                            {{ $job->started_at?->diffForHumans() }}
                         </td>
 
                         <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
