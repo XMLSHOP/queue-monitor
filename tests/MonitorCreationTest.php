@@ -17,11 +17,18 @@ class MonitorCreationTest extends TestCase
     {
         $this
             ->dispatch(new MonitoredJob())
-            ->assertDispatched(MonitoredJob::class)
-            ->workQueue();
+            ->assertDispatched(MonitoredJob::class);
+
+        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertNotNull($monitor->queued_at);
+        $this->assertNull($monitor->started_at);
+        $this->workQueue();
 
         $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
         $this->assertEquals(MonitoredJob::class, $monitor->name);
+        $this->assertNotNull($monitor->queued_at);
+        $this->assertNotNull($monitor->started_at);
+        $this->assertNotNull($monitor->finished_at);
     }
 
     public function testCreateMonitorFromExtending()
