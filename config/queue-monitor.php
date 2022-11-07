@@ -5,7 +5,7 @@ return [
      * Set the table to be used for monitoring data.
      */
     'table' => 'queue_monitor',
-    'connection' => null,
+    'connection' => null,//'logs'
 
     /*
      * Set the model used for monitoring.

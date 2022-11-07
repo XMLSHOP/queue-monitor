@@ -52,6 +52,13 @@ class QueueMonitorProvider extends ServiceProvider
         /** @phpstan-ignore-next-line */
         Route::mixin(new QueueMonitorRoutes());
 
+        Event::listen([
+            JobQueued::class,
+        ], function (JobQueued $event) {
+            // Event happens when we do Job::dispatch(...)
+            QueueMonitor::handleJobQueued($event);
+        });
+
         /** @var QueueManager $manager */
         $manager = app(QueueManager::class);
 
@@ -69,13 +76,6 @@ class QueueMonitorProvider extends ServiceProvider
 
         $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
             QueueMonitor::handleJobExceptionOccurred($event);
-        });
-
-        Event::listen([
-            JobQueued::class,
-        ], function (JobQueued $event) {
-            // Event happens when we do Job::dispatch(...)
-            QueueMonitor::handleJobQueued($event);
         });
     }
 

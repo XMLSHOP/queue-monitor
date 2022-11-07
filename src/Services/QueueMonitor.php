@@ -44,6 +44,7 @@ class QueueMonitor
      *
      * @return void
      * @throws \ReflectionException
+     *
      */
     public static function handleJobQueued(JobQueued $event): void
     {
@@ -68,6 +69,7 @@ class QueueMonitor
      * @param \Illuminate\Queue\Events\JobProcessed $event
      *
      * @return void
+     * @throws \ReflectionException
      */
     public static function handleJobProcessed(JobProcessed $event): void
     {
@@ -81,6 +83,7 @@ class QueueMonitor
      *
      * @return void
      * @throws \ReflectionException
+     *
      */
     public static function handleJobFailed(JobFailed $event): void
     {
@@ -94,6 +97,7 @@ class QueueMonitor
      *
      * @return void
      * @throws \ReflectionException
+     *
      */
     public static function handleJobExceptionOccurred(JobExceptionOccurred $event): void
     {
@@ -123,18 +127,16 @@ class QueueMonitor
      * @param string|null $jobConnection
      * @param \Closure|ShouldQueue|string $job
      *
+     * @return void
      * @throws \ReflectionException
      *
-     * @return void
      */
     protected static function jobQueued(mixed $jobId, ?string $jobConnection, \Closure|ShouldQueue|string $job): void
     {
         $jobClass = get_class($job);
-        if ($job instanceof \Illuminate\Events\CallQueuedListener && property_exists($job, 'class')) {
-            $jobClass = $job->class;
-        }
 
-        if ( ! self::shouldBeMonitored($jobClass)) {
+        if (!self::shouldBeMonitored($jobClass)
+            || $job instanceof \Illuminate\Events\CallQueuedListener) {
             return;
         }
 
@@ -162,13 +164,13 @@ class QueueMonitor
      *
      * @param \Illuminate\Contracts\Queue\Job $job
      *
+     * @return void
      * @throws \ReflectionException
      *
-     * @return void
      */
     protected static function jobStarted(JobContract $job): void
     {
-        if ( ! self::shouldBeMonitored($job)) {
+        if (!self::shouldBeMonitored($job)) {
             return;
         }
 
@@ -180,7 +182,7 @@ class QueueMonitor
             ->orderByDesc('queued_at')
             ->updateOrCreate([
                 'job_id' => self::getJobId($job),
-                'attempt' => $job->attempts(),
+//                'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
             ], [
                 'name' => $job->resolveName(),
                 'queue' => $job->getQueue(),
@@ -196,13 +198,13 @@ class QueueMonitor
      * @param bool $failed
      * @param \Throwable|null $exception
      *
+     * @return void
      * @throws \ReflectionException
      *
-     * @return void
      */
     protected static function jobFinished(JobContract $job, bool $failed = false, ?\Throwable $exception = null): void
     {
-        if ( ! self::shouldBeMonitored($job)) {
+        if (!self::shouldBeMonitored($job)) {
             return;
         }
 
@@ -210,7 +212,7 @@ class QueueMonitor
 
         $monitor = $model::query()
             ->where('job_id', self::getJobId($job))
-            ->where('attempt', $job->attempts())
+//            ->where('attempt', $job->attempts())
             ->orderByDesc('started_at')
             ->first();
 
@@ -222,7 +224,7 @@ class QueueMonitor
         $now = Carbon::now();
 
         if ($startedAt = $monitor->getStartedAtExact()) {
-            $timeElapsed = (float) $startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
+            $timeElapsed = (float)$startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
         }
 
         $resolvedJob = $job->resolveName();
@@ -242,7 +244,7 @@ class QueueMonitor
 
         if (null !== $exception) {
             $attributes += [
-                'exception' => mb_strcut((string) $exception, 0, config('queue-monitor.db_max_length_exception', 4294967295)),
+                'exception' => mb_strcut((string)$exception, 0, config('queue-monitor.db_max_length_exception', 4294967295)),
                 'exception_class' => get_class($exception),
                 'exception_message' => mb_strcut($exception->getMessage(), 0, config('queue-monitor.db_max_length_exception_message', 65535)),
             ];
@@ -256,18 +258,19 @@ class QueueMonitor
      *
      * @param JobContract|string $job
      *
+     * @return bool
      * @throws \ReflectionException
      *
-     * @return bool
      */
     public static function shouldBeMonitored(JobContract|string $job): bool
     {
-        return
-            is_string($job) && in_array(IsMonitored::class,
+        return match (true) {
+            is_string($job) => in_array(IsMonitored::class,
                 array_keys((new \ReflectionClass($job))->getTraits())
-            )
-            || array_key_exists(IsMonitored::class, ClassUses::classUsesRecursive(
+            ),
+            default => array_key_exists(IsMonitored::class, ClassUses::classUsesRecursive(
                 $job->resolveName()
-            ));
+            ))
+        };
     }
 }

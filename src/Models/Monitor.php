@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
-use Throwable;
 
 /**
  * @property int $id
@@ -53,6 +52,7 @@ class Monitor extends Model implements MonitorContract
      * @var string[]
      */
     protected $dates = [
+        'queued_at',
         'started_at',
         'finished_at',
     ];
@@ -217,7 +217,7 @@ class Monitor extends Model implements MonitorContract
      *
      * @return \Throwable|null
      */
-    public function getException(bool $rescue = true): ?Throwable
+    public function getException(bool $rescue = true): ?\Throwable
     {
         if (null === $this->exception_class) {
             return null;
@@ -229,7 +229,7 @@ class Monitor extends Model implements MonitorContract
 
         try {
             return new $this->exception_class($this->exception_message);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return null;
         }
     }
@@ -255,10 +255,10 @@ class Monitor extends Model implements MonitorContract
      */
     public function isPending(): bool
     {
-        return !$this->hasFailed()
-            && $this->queued_at !== null
-            && $this->started_at === null
-            && $this->finished_at === null;
+        return ! $this->hasFailed()
+            && null !== $this->queued_at
+            && null === $this->started_at
+            && null === $this->finished_at;
     }
 
     /**

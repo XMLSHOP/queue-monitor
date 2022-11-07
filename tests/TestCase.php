@@ -17,18 +17,25 @@ class TestCase extends BaseTestCase
     public function setUp(): void
     {
         QueueMonitor::$loadMigrations = true;
-
+//        parent::tearDown();
         parent::setUp();
 
         $this->withoutMockingConsoleOutput();
-        $this->withoutExceptionHandling();
+//        $this->withoutExceptionHandling();
+        $this->withExceptionHandling();
 
         try {
-            $this->artisan('queue:table');
+//            $this->artisan('queue:table');
             $this->artisan('migrate');
         } catch (InvalidArgumentException $e) {
             // TODO: this command fails locally but is required for travis ci
         }
+    }
+
+    public function tearDown(): void
+    {
+//        parent::tearDown();
+        return;
     }
 
     protected function dispatch(BaseJob $job): self
