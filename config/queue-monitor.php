@@ -8,14 +8,6 @@ return [
     'connection' => null,//'logs'
 
     /*
-     * Set the model used for monitoring.
-     * If using a custom model, be sure to implement the
-     *   romanzipp\QueueMonitor\Models\Contracts\MonitorContract
-     * interface or extend the base model.
-     */
-    'model' => \xmlshop\QueueMonitor\Models\Monitor::class,
-
-    /*
      * Specify the max character length to use for storing exception backtraces.
      */
     'db_max_length_exception' => 4294967295,

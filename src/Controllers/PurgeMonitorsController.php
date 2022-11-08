@@ -4,16 +4,16 @@ namespace xmlshop\QueueMonitor\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
-use xmlshop\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class PurgeMonitorsController
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        $model = QueueMonitor::getModel();
+        $model = QueueMonitorService::getModel();
 
-        $model->newQuery()->each(function (MonitorContract $monitor) {
+        $model->newQuery()->each(function (QueueMonitorModel $monitor) {
             $monitor->delete();
         }, 200);
 

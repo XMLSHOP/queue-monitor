@@ -16,15 +16,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $created_at
  *
- * @method static Builder|Job newModelQuery()
- * @method static Builder|Job newQuery()
- * @method static Builder|Job query()
- * @method static Builder|Job select()
- * @method static Builder|Job whereNameWithNamespace()
- * @method static Builder|Job whereName()
+ * @method static Builder|QueueMonitorJobModel newModelQuery()
+ * @method static Builder|QueueMonitorJobModel newQuery()
+ * @method static Builder|QueueMonitorJobModel query()
+ * @method static Builder|QueueMonitorJobModel select()
+ * @method static Builder|QueueMonitorJobModel whereNameWithNamespace()
+ * @method static Builder|QueueMonitorJobModel whereName()
  * @method static integer insert(array)
  */
-class Job extends Model
+class QueueMonitorJobModel extends Model
 {
     protected $connection = 'logs';
     protected $guarded = ['id'];
@@ -38,7 +38,7 @@ class Job extends Model
 
     public function assignedQueueMonitor(): HasMany
     {
-        return $this->hasMany(Monitor::class, 'name', 'name_with_namespace');
+        return $this->hasMany(QueueMonitorModel::class, 'name', 'name_with_namespace');
     }
 
     /* ************************ ACCESSOR ************************* */

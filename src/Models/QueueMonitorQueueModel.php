@@ -11,14 +11,14 @@ use Illuminate\Support\Carbon;
  * @property string $queue_name
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @method static Builder|Queue newModelQuery()
- * @method static Builder|Queue newQuery()
- * @method static Builder|Queue query()
- * @method static Builder|Queue select()
- * @method static Builder|Queue whereQueueName()
+ * @method static Builder|QueueMonitorQueueModel newModelQuery()
+ * @method static Builder|QueueMonitorQueueModel newQuery()
+ * @method static Builder|QueueMonitorQueueModel query()
+ * @method static Builder|QueueMonitorQueueModel select()
+ * @method static Builder|QueueMonitorQueueModel whereQueueName()
  * @method static integer insert()
  */
-class Queue extends Model
+class QueueMonitorQueueModel extends Model
 {
     protected $connection = 'logs';
 

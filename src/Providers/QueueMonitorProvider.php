@@ -11,9 +11,8 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use xmlshop\QueueMonitor\Models\Monitor;
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
-use xmlshop\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class QueueMonitorProvider extends ServiceProvider
 {
@@ -24,8 +23,9 @@ class QueueMonitorProvider extends ServiceProvider
      */
     public function boot()
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         if ($this->app->runningInConsole()) {
-            if (QueueMonitor::$loadMigrations) {
+            if (QueueMonitorService::$loadMigrations) {
                 $this->loadMigrationsFrom(
                     __DIR__ . '/../../migrations'
                 );
@@ -56,26 +56,29 @@ class QueueMonitorProvider extends ServiceProvider
             JobQueued::class,
         ], function (JobQueued $event) {
             // Event happens when we do Job::dispatch(...)
-            QueueMonitor::handleJobQueued($event);
+            QueueMonitorService::handleJobQueued($event);
         });
 
         /** @var QueueManager $manager */
         $manager = app(QueueManager::class);
 
         $manager->before(static function (JobProcessing $event) {
-            QueueMonitor::handleJobProcessing($event);
+            QueueMonitorService::handleJobProcessing($event);
         });
 
         $manager->after(static function (JobProcessed $event) {
-            QueueMonitor::handleJobProcessed($event);
+//            dd('1123');
+            QueueMonitorService::handleJobProcessed($event);
         });
 
         $manager->failing(static function (JobFailed $event) {
-            QueueMonitor::handleJobFailed($event);
+//            dd('1132');
+            QueueMonitorService::handleJobFailed($event);
         });
 
         $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
-            QueueMonitor::handleJobExceptionOccurred($event);
+//            dd('1133');
+            QueueMonitorService::handleJobExceptionOccurred($event);
         });
     }
 
@@ -94,6 +97,6 @@ class QueueMonitorProvider extends ServiceProvider
             );
         }
 
-        QueueMonitor::$model = config('queue-monitor.model') ?: Monitor::class;
+        QueueMonitorService::$model = \xmlshop\QueueMonitor\Models\QueueMonitorModel::class;
     }
 }

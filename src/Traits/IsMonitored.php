@@ -2,8 +2,8 @@
 
 namespace xmlshop\QueueMonitor\Traits;
 
-use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
-use xmlshop\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 /**
  * @mixin \Illuminate\Queue\InteractsWithQueue
@@ -126,9 +126,9 @@ trait IsMonitored
     /**
      * Return Queue Monitor Model.
      *
-     * @return MonitorContract|null
+     * @return QueueMonitorModel|null
      */
-    protected function getQueueMonitor(): ?MonitorContract
+    protected function getQueueMonitor(): ?QueueMonitorModel
     {
         if ( ! property_exists($this, 'job')) {
             return null;
@@ -138,12 +138,13 @@ trait IsMonitored
             return null;
         }
 
-        if ( ! $jobId = QueueMonitor::getJobId($this->job)) {
+        if ( ! $jobId = QueueMonitorService::getJobId($this->job)) {
             return null;
         }
 
-        $model = QueueMonitor::getModel();
+        $model = QueueMonitorService::getModel();
 
+        /** @noinspection UnknownColumnInspection */
         return $model::whereJob($jobId)
             ->orderBy('started_at', 'desc')
             ->first();

@@ -2,7 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Tests;
 
-use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredBroadcastingJob;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredExtendingJob;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredJob;
@@ -19,13 +19,14 @@ class MonitorCreationTest extends TestCase
             ->dispatch(new MonitoredJob())
             ->assertDispatched(MonitoredJob::class);
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertNotNull($monitor->queued_at);
         $this->assertNull($monitor->started_at);
         $this->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredJob::class, $monitor->name);
+
         $this->assertNotNull($monitor->queued_at);
         $this->assertNotNull($monitor->started_at);
         $this->assertNotNull($monitor->finished_at);
@@ -38,7 +39,7 @@ class MonitorCreationTest extends TestCase
             ->assertDispatched(MonitoredExtendingJob::class)
             ->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredExtendingJob::class, $monitor->name);
     }
 
@@ -49,7 +50,7 @@ class MonitorCreationTest extends TestCase
             ->assertDispatched(UnmonitoredJob::class)
             ->workQueue();
 
-        $this->assertCount(0, Monitor::all());
+        $this->assertCount(0, QueueMonitorModel::all());
     }
 
     public function testDontKeepSuccessfulMonitor()
@@ -59,7 +60,7 @@ class MonitorCreationTest extends TestCase
             ->assertDispatched(MonitoredPartiallyKeptJob::class)
             ->workQueue();
 
-        $this->assertCount(0, Monitor::all());
+        $this->assertCount(0, QueueMonitorModel::all());
     }
 
     public function testDontKeepSuccessfulMonitorFailing()
@@ -69,7 +70,7 @@ class MonitorCreationTest extends TestCase
             ->assertDispatched(MonitoredPartiallyKeptFailingJob::class)
             ->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredPartiallyKeptFailingJob::class, $monitor->name);
     }
 
@@ -80,7 +81,7 @@ class MonitorCreationTest extends TestCase
             ->assertDispatched(MonitoredBroadcastingJob::class)
             ->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredBroadcastingJob::class, $monitor->name);
     }
 
@@ -91,7 +92,7 @@ class MonitorCreationTest extends TestCase
         $this->assertDispatched(MonitoredJob::class);
         $this->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredJob::class, $monitor->name);
     }
 
@@ -102,7 +103,7 @@ class MonitorCreationTest extends TestCase
         $this->assertDispatched(MonitoredJobWithArguments::class);
         $this->workQueue();
 
-        $this->assertInstanceOf(Monitor::class, $monitor = Monitor::query()->first());
+        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
         $this->assertEquals(MonitoredJobWithArguments::class, $monitor->name);
     }
 }

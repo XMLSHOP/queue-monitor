@@ -2,6 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Repository;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -130,7 +131,6 @@ abstract class BaseRepository
     }
 
 
-
     /** @inheritdoc */
     public function count(): int
     {
@@ -160,7 +160,7 @@ abstract class BaseRepository
      * Throw repository internal exception
      *
      * @param string $message
-     * @param int    $code
+     * @param int $code
      *
      * @throws \Exception
      */
@@ -170,10 +170,25 @@ abstract class BaseRepository
     }
 
     /**
+     * @param mixed $id
+     * @param array $columns
+     * @param string $orderBy
+     * @param string $orderDirection
+     * @return Builder|Model|object|null
+     */
+    public function findByIdOrderBy($id, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC')
+    {
+        return $this->model::query()
+            ->orderBy($orderBy, strtoupper($orderDirection) == 'ASC' ? 'ASC' : 'DESC')
+            ->where('id', '=', $id)
+            ->first();
+    }
+
+    /**
      * Find records by attribute.
      *
-     * @param  string $name
-     * @param  array  $arguments
+     * @param string $name
+     * @param array $arguments
      *
      * @return mixed
      */

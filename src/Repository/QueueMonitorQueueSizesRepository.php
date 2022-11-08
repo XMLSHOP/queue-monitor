@@ -5,14 +5,14 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use xmlshop\QueueMonitor\Models\Queue;
+use xmlshop\QueueMonitor\Models\QueueMonitorQueueModel;
 
-class QueueRepository extends BaseRepository
+class QueueMonitorQueueSizesRepository extends BaseRepository
 {
 
     public function getModelName(): string
     {
-        return Queue::class;
+        return QueueMonitorQueueModel::class;
     }
 
     /**

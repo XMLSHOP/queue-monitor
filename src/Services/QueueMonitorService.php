@@ -2,7 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Services;
 
-use Illuminate\Contracts\Queue\Job as JobContract;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
@@ -10,10 +10,12 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Carbon;
-use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
+use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
 
-class QueueMonitor
+class QueueMonitorService
 {
     private const TIMESTAMP_EXACT_FORMAT = 'Y-m-d H:i:s.u';
 
@@ -23,18 +25,30 @@ class QueueMonitor
     public static $loadMigrations = false;
 
     /**
-     * @var \xmlshop\QueueMonitor\Models\Contracts\MonitorContract
+     * @var \xmlshop\QueueMonitor\Models\QueueMonitorModel
      */
     public static $model;
 
     /**
      * Get the model used to store the monitoring data.
      *
-     * @return \xmlshop\QueueMonitor\Models\Contracts\MonitorContract
+     * @return \xmlshop\QueueMonitor\Models\QueueMonitorModel
      */
-    public static function getModel(): MonitorContract
+    public static function getModel(): QueueMonitorModel
     {
         return new self::$model();
+    }
+
+    private static $repository = QueueMonitorRepository::class;
+
+    /**
+     * Get the model used to store the monitoring data.
+     *
+     * @return QueueMonitorRepositoryContract
+     */
+    public static function getRepository(): QueueMonitorRepositoryContract
+    {
+        return new self::$repository();
     }
 
     /**
@@ -57,6 +71,7 @@ class QueueMonitor
      * @param \Illuminate\Queue\Events\JobProcessing $event
      *
      * @return void
+     * @throws \ReflectionException
      */
     public static function handleJobProcessing(JobProcessing $event): void
     {
@@ -111,12 +126,14 @@ class QueueMonitor
      *
      * @return string|int
      */
-    public static function getJobId(JobContract $job)
+    public static function getJobId(Job $job)
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         if ($jobId = $job->getJobId()) {
             return $jobId;
         }
 
+        /** @noinspection PhpUndefinedMethodInspection */
         return sha1($job->getRawBody());
     }
 
@@ -147,9 +164,8 @@ class QueueMonitor
 
         $now = Carbon::now();
 
-        $model = self::getModel();
-
-        $model::query()->create([
+        $repository = self::getRepository();
+        $repository->create([
             'job_id' => $jobId,
             'name' => $jobClass,
             'queue' => $jobQueue,
@@ -168,27 +184,24 @@ class QueueMonitor
      * @throws \ReflectionException
      *
      */
-    protected static function jobStarted(JobContract $job): void
+    protected static function jobStarted(Job $job): void
     {
         if (!self::shouldBeMonitored($job)) {
             return;
         }
-
         $now = Carbon::now();
 
-        $model = self::getModel();
+        $repository = self::getRepository();
 
-        $model::query()
-            ->orderByDesc('queued_at')
-            ->updateOrCreate([
-                'job_id' => self::getJobId($job),
-//                'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
-            ], [
-                'name' => $job->resolveName(),
-                'queue' => $job->getQueue(),
-                'started_at' => $now,
-                'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
-            ]);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $repository->updateOrCreateStarted([
+            'job_id' => self::getJobId($job),
+            'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
+            'name' => $job->resolveName(),
+            'queue' => $job->getQueue(),
+            'started_at' => $now,
+            'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
+        ]);
     }
 
     /**
@@ -202,35 +215,34 @@ class QueueMonitor
      * @throws \ReflectionException
      *
      */
-    protected static function jobFinished(JobContract $job, bool $failed = false, ?\Throwable $exception = null): void
+    protected static function jobFinished(Job $job, bool $failed = false, ?\Throwable $exception = null): void
     {
+
         if (!self::shouldBeMonitored($job)) {
             return;
         }
 
-        $model = self::getModel();
+        $repository = self::getRepository();
 
-        $monitor = $model::query()
-            ->where('job_id', self::getJobId($job))
-//            ->where('attempt', $job->attempts())
-            ->orderByDesc('started_at')
-            ->first();
+        /** @var QueueMonitorModel $monitor */
+        $monitor = $repository->findByIdOrderBy(self::getJobId($job), ['*'], 'started_at');
 
         if (null === $monitor) {
             return;
         }
 
-        /** @var MonitorContract $monitor */
         $now = Carbon::now();
 
         if ($startedAt = $monitor->getStartedAtExact()) {
             $timeElapsed = (float)$startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
         }
 
+        /** @noinspection PhpUndefinedMethodInspection */
         $resolvedJob = $job->resolveName();
 
+        /** @noinspection PhpUndefinedMethodInspection */
         if (null === $exception && false === $resolvedJob::keepMonitorOnSuccess()) {
-            $monitor->delete();
+            $repository->deleteOne($monitor);
 
             return;
         }
@@ -250,20 +262,21 @@ class QueueMonitor
             ];
         }
 
-        $monitor->update($attributes);
+        $repository->updateFinished($monitor, $attributes);
     }
 
     /**
      * Determine weather the Job should be monitored, default true.
      *
-     * @param JobContract|string $job
+     * @param Job|string $job
      *
      * @return bool
      * @throws \ReflectionException
      *
      */
-    public static function shouldBeMonitored(JobContract|string $job): bool
+    public static function shouldBeMonitored(Job|string $job): bool
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return match (true) {
             is_string($job) => in_array(IsMonitored::class,
                 array_keys((new \ReflectionClass($job))->getTraits())

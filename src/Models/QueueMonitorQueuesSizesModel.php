@@ -12,13 +12,13 @@ use Illuminate\Support\Carbon;
  * @property int $queue_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @method static Builder|QueuesSize newModelQuery()
- * @method static Builder|QueuesSize newQuery()
- * @method static Builder|QueuesSize query()
- * @method static Builder|QueuesSize select()
+ * @method static Builder|QueueMonitorQueuesSizesModel newModelQuery()
+ * @method static Builder|QueueMonitorQueuesSizesModel newQuery()
+ * @method static Builder|QueueMonitorQueuesSizesModel query()
+ * @method static Builder|QueueMonitorQueuesSizesModel select()
  * @method static integer insert(array)
  */
-class QueuesSize extends Model
+class QueueMonitorQueuesSizesModel extends Model
 {
     protected $connection = 'logs';
 
@@ -31,7 +31,7 @@ class QueuesSize extends Model
 
     public function queues(): BelongsTo
     {
-        return $this->belongsTo(Queue::class);
+        return $this->belongsTo(QueueMonitorQueueModel::class);
     }
 
     /* ************************ ACCESSOR ************************* */

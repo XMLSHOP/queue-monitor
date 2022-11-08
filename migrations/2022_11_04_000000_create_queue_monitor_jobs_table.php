@@ -28,12 +28,12 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->timestamps();
             });
 
-//        Schema::create('queues_sizes', function (Blueprint $table) {
-//                $table->id();
-//                $table->unsignedSmallInteger('queue_id');
-//                $table->unsignedInteger('size');
-//                $table->timestamp('created_at');
-//            });
+        Schema::create('queue_monitor_queues_sizes', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedSmallInteger('queue_id');
+                $table->unsignedInteger('size');
+                $table->timestamp('created_at');
+            });
     }
 
     /**
@@ -45,6 +45,6 @@ class CreateQueueMonitorJobsTable extends Migration
     {
         Schema::dropIfExists('queue_monitor_jobs');
         Schema::dropIfExists('queue_monitor_queues');
-//        Schema::dropIfExists('queue_monitor_queues_sizes');
+        Schema::dropIfExists('queue_monitor_queues_sizes');
     }
 }

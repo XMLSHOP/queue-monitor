@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
-use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
-use xmlshop\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class ShowQueueMonitorController
 {
@@ -31,28 +31,33 @@ class ShowQueueMonitorController
             'queue' => $data['queue'] ?? 'all',
         ];
 
-        $jobs = QueueMonitor::getModel()
+        $jobs = QueueMonitorService::getModel()
             ->newQuery()
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
                     case 'pending':
+                        /** @noinspection UnknownColumnInspection */
                         $builder->whereNotNull('queued_at')->whereNull(['started_at', 'finished_at']);
                         break;
 
                     case 'running':
+                        /** @noinspection UnknownColumnInspection */
                         $builder->whereNotNull('started_at')->whereNull('finished_at');
                         break;
 
                     case 'failed':
+                        /** @noinspection UnknownColumnInspection */
                         $builder->where('failed', 1)->whereNotNull('finished_at');
                         break;
 
                     case 'succeeded':
+                        /** @noinspection UnknownColumnInspection */
                         $builder->where('failed', 0)->whereNotNull('finished_at');
                         break;
                 }
             })
             ->when(($queue = $filters['queue']) && 'all' !== $queue, static function (Builder $builder) use ($queue) {
+                /** @noinspection UnknownColumnInspection */
                 $builder->where('queue', $queue);
             })
             ->ordered()
@@ -63,12 +68,13 @@ class ShowQueueMonitorController
                 $request->all()
             );
 
-        $queues = QueueMonitor::getModel()
+        /** @noinspection UnknownColumnInspection */
+        $queues = QueueMonitorService::getModel()
             ->newQuery()
             ->select('queue')
             ->groupBy('queue')
             ->get()
-            ->map(function (MonitorContract $monitor) {
+            ->map(function (QueueMonitorModel $monitor) {
                 return $monitor->queue;
             })
             ->toArray();
@@ -99,13 +105,15 @@ class ShowQueueMonitorController
             DB::raw('AVG(time_elapsed) as average_time_elapsed'),
         ];
 
-        $aggregatedInfo = QueueMonitor::getModel()
+        /** @noinspection UnknownColumnInspection */
+        $aggregatedInfo = QueueMonitorService::getModel()
             ->newQuery()
             ->select($aggregationColumns)
             ->where('started_at', '>=', Carbon::now()->subDays($timeFrame))
             ->first();
 
-        $aggregatedComparisonInfo = QueueMonitor::getModel()
+        /** @noinspection UnknownColumnInspection */
+        $aggregatedComparisonInfo = QueueMonitorService::getModel()
             ->newQuery()
             ->select($aggregationColumns)
             ->where('started_at', '>=', Carbon::now()->subDays($timeFrame * 2))

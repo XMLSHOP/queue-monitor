@@ -3,12 +3,10 @@
 namespace xmlshop\QueueMonitor\Models;
 
 use Carbon\CarbonInterval;
-use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
 
 /**
  * @property int $id
@@ -30,14 +28,14 @@ use xmlshop\QueueMonitor\Models\Contracts\MonitorContract;
  * @property string|null $exception_message
  * @property string|null $data
  *
- * @method static Builder|Monitor whereJob()
- * @method static Builder|Monitor ordered()
- * @method static Builder|Monitor lastHour()
- * @method static Builder|Monitor today()
- * @method static Builder|Monitor failed()
- * @method static Builder|Monitor succeeded()
+ * @method static Builder|QueueMonitorModel whereJob()
+ * @method static Builder|QueueMonitorModel ordered()
+ * @method static Builder|QueueMonitorModel lastHour()
+ * @method static Builder|QueueMonitorModel today()
+ * @method static Builder|QueueMonitorModel failed()
+ * @method static Builder|QueueMonitorModel succeeded()
  */
-class Monitor extends Model implements MonitorContract
+class QueueMonitorModel extends Model
 {
     protected $guarded = [];
 
@@ -88,11 +86,13 @@ class Monitor extends Model implements MonitorContract
      */
     public function scopeWhereJob(Builder $query, $jobId): void
     {
+        /** @noinspection UnknownColumnInspection */
         $query->where('job_id', $jobId);
     }
 
     public function scopeOrdered(Builder $query): void
     {
+        /** @noinspection UnknownColumnInspection */
         $query
             ->orderBy('started_at', 'desc')
             ->orderBy('started_at_exact', 'desc');
@@ -100,6 +100,7 @@ class Monitor extends Model implements MonitorContract
 
     public function scopeLastHour(Builder $query): void
     {
+        /** @noinspection UnknownColumnInspection */
         $query->where('started_at', '>', Carbon::now()->subHours(1));
     }
 
@@ -110,11 +111,13 @@ class Monitor extends Model implements MonitorContract
 
     public function scopeFailed(Builder $query): void
     {
+        /** @noinspection UnknownColumnInspection */
         $query->where('failed', true);
     }
 
     public function scopeSucceeded(Builder $query): void
     {
+        /** @noinspection UnknownColumnInspection */
         $query->where('failed', false);
     }
 

@@ -220,9 +220,9 @@ class FrequentSucceedingJob implements ShouldQueue
 ### Retrieve processed Jobs
 
 ```php
-use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 
-$job = Monitor::query()->first();
+$job = QueueMonitorModel::query()->first();
 
 // Check the current state of a job
 $job->isFinished();
@@ -248,16 +248,16 @@ $job->getBasename();
 ### Model Scopes
 
 ```php
-use xmlshop\QueueMonitor\Models\Monitor;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 
 // Filter by Status
-Monitor::failed();
-Monitor::succeeded();
+QueueMonitorModel::failed();
+QueueMonitorModel::succeeded();
 
 // Filter by Date
-Monitor::lastHour();
-Monitor::today();
+QueueMonitorModel::lastHour();
+QueueMonitorModel::today();
 
 // Chain Scopes
-Monitor::today()->failed();
+QueueMonitorModel::today()->failed();
 ```

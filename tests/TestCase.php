@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use xmlshop\QueueMonitor\Providers\QueueMonitorProvider;
-use xmlshop\QueueMonitor\Services\QueueMonitor;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 use xmlshop\QueueMonitor\Tests\Support\BaseJob;
 
 class TestCase extends BaseTestCase
@@ -16,8 +16,8 @@ class TestCase extends BaseTestCase
 
     public function setUp(): void
     {
-        QueueMonitor::$loadMigrations = true;
-//        parent::tearDown();
+        QueueMonitorService::$loadMigrations = true;
+        parent::tearDown();
         parent::setUp();
 
         $this->withoutMockingConsoleOutput();
@@ -47,6 +47,7 @@ class TestCase extends BaseTestCase
 
     protected function assertDispatched(string $jobClass): self
     {
+
         $rows = DB::select('SELECT * FROM jobs');
 
         $this->assertCount(1, $rows);
