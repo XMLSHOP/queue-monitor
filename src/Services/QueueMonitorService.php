@@ -12,6 +12,7 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
+use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
 
@@ -164,10 +165,11 @@ class QueueMonitorService
 
         $now = Carbon::now();
 
+        $jobsRepository = app(QueueMonitorJobsRepository::class);
         $repository = self::getRepository();
         $repository->create([
             'job_id' => $jobId,
-            'name' => $jobClass,
+            'queue_monitor_job_id' => $jobsRepository->firstOrCreate($jobClass),
             'queue' => $jobQueue,
             'queued_at' => $now,
             'queued_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
@@ -191,13 +193,14 @@ class QueueMonitorService
         }
         $now = Carbon::now();
 
+        $jobsRepository = app(QueueMonitorJobsRepository::class);
         $repository = self::getRepository();
 
         /** @noinspection PhpUndefinedMethodInspection */
         $repository->updateOrCreateStarted([
             'job_id' => self::getJobId($job),
             'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
-            'name' => $job->resolveName(),
+            'queue_monitor_job_id' => $jobsRepository->firstOrCreate($job->resolveName()),
             'queue' => $job->getQueue(),
             'started_at' => $now,
             'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),

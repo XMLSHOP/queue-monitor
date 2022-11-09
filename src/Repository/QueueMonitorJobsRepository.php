@@ -6,14 +6,32 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 
 class QueueMonitorJobsRepository extends BaseRepository
 {
 
     public function getModelName(): string
     {
-        return QueueMonitorModel::class;
+        return QueueMonitorJobModel::class;
+    }
+
+    /**
+     * @param string $name_with_namespace
+     * @return void
+     */
+    public function firstOrCreate(string $name_with_namespace)
+    {
+        return $this->model::query()
+            ->firstOrCreate(
+                [
+                    'name_with_namespace' => $name_with_namespace,
+                ],
+                [
+                    'name' => QueueMonitorJobModel::getBasename($name_with_namespace),
+                    'name_with_namespace' => $name_with_namespace
+                ],
+            )->id;
+
     }
 
     /**

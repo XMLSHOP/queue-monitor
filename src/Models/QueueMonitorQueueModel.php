@@ -20,11 +20,22 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorQueueModel extends Model
 {
-    protected $connection = 'logs';
+    protected $table = 'queue_monitor_queues';
 
     protected $guarded = ['id'];
 
     public $timestamps = true;
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        if ($connection = config('queue-monitor.connection')) {
+            $this->setConnection($connection);
+        }
+    }
     
     protected $appends = ['resource_url'];
 

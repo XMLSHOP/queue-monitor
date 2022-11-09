@@ -80,6 +80,7 @@ class MonitorTimeCalculationTest extends TestCase
         /** @var QueueMonitorModel $monitor */
         $monitor = QueueMonitorModel::query()->create([
             'job_id' => sha1(Str::random()),
+            'queue_monitor_job_id' => rand(0, 10000),
             'started_at' => $startedAt,
             'started_at_exact' => $startedAt,
             'progress' => $progress,

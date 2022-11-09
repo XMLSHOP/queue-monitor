@@ -5,13 +5,12 @@ namespace xmlshop\QueueMonitor\Models;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $job_id
- * @property string|null $name
+ * @property int $queue_monitor_job_id
  * @property string|null $queue
  * @property \Illuminate\Support\Carbon|null $queued_at
  * @property string|null $queued_at_exact
@@ -37,6 +36,8 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorModel extends Model
 {
+    protected $table = 'queue_monitor';
+
     protected $guarded = [];
 
     /**
@@ -66,8 +67,6 @@ class QueueMonitorModel extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-
-        $this->setTable(config('queue-monitor.table'));
 
         if ($connection = config('queue-monitor.connection')) {
             $this->setConnection($connection);
@@ -163,7 +162,7 @@ class QueueMonitorModel extends Model
             $now = Carbon::now();
         }
 
-        if ( ! $this->progress || null === $this->started_at || $this->isFinished()) {
+        if (!$this->progress || null === $this->started_at || $this->isFinished()) {
             return CarbonInterval::seconds(0);
         }
 
@@ -226,7 +225,7 @@ class QueueMonitorModel extends Model
             return null;
         }
 
-        if ( ! $rescue) {
+        if (!$rescue) {
             return new $this->exception_class($this->exception_message);
         }
 
@@ -238,27 +237,13 @@ class QueueMonitorModel extends Model
     }
 
     /**
-     * Get the base class name of the job.
-     *
-     * @return string|null
-     */
-    public function getBasename(): ?string
-    {
-        if (null === $this->name) {
-            return null;
-        }
-
-        return Arr::last(explode('\\', $this->name));
-    }
-
-    /**
      * Check if the job is pending.
      *
      * @return bool
      */
     public function isPending(): bool
     {
-        return ! $this->hasFailed()
+        return !$this->hasFailed()
             && null !== $this->queued_at
             && null === $this->started_at
             && null === $this->finished_at;
@@ -295,10 +280,10 @@ class QueueMonitorModel extends Model
      */
     public function hasSucceeded(): bool
     {
-        if ( ! $this->isFinished()) {
+        if (!$this->isFinished()) {
             return false;
         }
 
-        return ! $this->hasFailed();
+        return !$this->hasFailed();
     }
 }

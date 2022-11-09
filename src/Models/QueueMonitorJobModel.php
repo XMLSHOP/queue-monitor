@@ -5,6 +5,7 @@ namespace xmlshop\QueueMonitor\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 /**
@@ -26,7 +27,8 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorJobModel extends Model
 {
-    protected $connection = 'logs';
+    protected $table = 'queue_monitor_jobs';
+
     protected $guarded = ['id'];
 
     protected $dates = [
@@ -34,11 +36,47 @@ class QueueMonitorJobModel extends Model
         'updated_at',
     ];
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        if ($connection = config('queue-monitor.connection')) {
+            $this->setConnection($connection);
+        }
+    }
+
+    /**
+     * Get the base class name of the job.
+     *
+     * @return string|null
+     */
+    public function getBasenameJob(): ?string
+    {
+        if (null === $this->name) {
+            return null;
+        }
+
+        return self::getBasename($this->name);
+    }
+
+    /**
+     * Get the base class name, without namespace
+     *
+     * @param string $name
+     * @return string|null
+     */
+    public static function getBasename(string $name): ?string
+    {
+        return Arr::last(explode('\\', $name));
+    }
+
     protected $appends = ['resource_url'];
 
     public function assignedQueueMonitor(): HasMany
     {
-        return $this->hasMany(QueueMonitorModel::class, 'name', 'name_with_namespace');
+        return $this->hasMany(QueueMonitorModel::class, 'queue_monitor_job_id');
     }
 
     /* ************************ ACCESSOR ************************* */

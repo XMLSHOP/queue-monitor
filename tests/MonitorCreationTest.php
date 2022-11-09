@@ -2,6 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Tests;
 
+use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredBroadcastingJob;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredExtendingJob;
@@ -25,7 +26,12 @@ class MonitorCreationTest extends TestCase
         $this->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredJob::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredJob::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
 
         $this->assertNotNull($monitor->queued_at);
         $this->assertNotNull($monitor->started_at);
@@ -40,7 +46,12 @@ class MonitorCreationTest extends TestCase
             ->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredExtendingJob::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredExtendingJob::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
     }
 
     public function testDontCreateMonitor()
@@ -71,7 +82,13 @@ class MonitorCreationTest extends TestCase
             ->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredPartiallyKeptFailingJob::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredPartiallyKeptFailingJob::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
+
     }
 
     public function testBroadcastingJob()
@@ -82,7 +99,12 @@ class MonitorCreationTest extends TestCase
             ->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredBroadcastingJob::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredBroadcastingJob::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
     }
 
     public function testDispatchingJobViaDispatchableTrait()
@@ -93,7 +115,12 @@ class MonitorCreationTest extends TestCase
         $this->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredJob::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredJob::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
     }
 
     public function testDispatchingJobViaDispatchableTraitWithArguments()
@@ -104,6 +131,11 @@ class MonitorCreationTest extends TestCase
         $this->workQueue();
 
         $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
-        $this->assertEquals(MonitoredJobWithArguments::class, $monitor->name);
+        /** @noinspection UnknownColumnInspection */
+        $this->assertEquals(
+            QueueMonitorJobModel::query()
+                ->where('name_with_namespace', '=', MonitoredJobWithArguments::class)
+                ->first(['id'])->id,
+            $monitor->queue_monitor_job_id);
     }
 }
