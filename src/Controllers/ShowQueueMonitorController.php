@@ -4,13 +4,15 @@ namespace xmlshop\QueueMonitor\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
+use xmlshop\QueueMonitor\Services\QueueMonitorService;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
-use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class ShowQueueMonitorController
 {
@@ -19,19 +21,22 @@ class ShowQueueMonitorController
      *
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository)
     {
         $data = $request->validate([
-            'type' => ['nullable', 'string', Rule::in(['all', 'running', 'failed', 'succeeded'])],
+            'type' => ['nullable', 'string', Rule::in(['all', 'pending', 'running', 'failed', 'succeeded'])],
             'queue' => ['nullable', 'string'],
+            'job'  => ['nullable', 'integer'],
         ]);
 
         $filters = [
             'type' => $data['type'] ?? 'all',
             'queue' => $data['queue'] ?? 'all',
+            'job' => $data['job'] ?? 'all',
         ];
 
         $jobs = QueueMonitorService::getModel()
+            ->setConnection(config('queue-monitor.connection'))
             ->newQuery()
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
@@ -60,6 +65,14 @@ class ShowQueueMonitorController
                 /** @noinspection UnknownColumnInspection */
                 $builder->where('queue', $queue);
             })
+            ->when(($monitor_job_id = $filters['job']) && 'all' !== $monitor_job_id, static function (Builder $builder) use ($monitor_job_id) {
+                /** @noinspection UnknownColumnInspection */
+                $builder->where('queue_monitor_job_id', $monitor_job_id);
+            })
+            ->join(config('queue-monitor.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
+                ->on(config('queue-monitor.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
+            )
+            ->select([config('queue-monitor.table.monitor') . '.*', 'mj.name_with_namespace as name'])
             ->ordered()
             ->paginate(
                 config('queue-monitor.ui.per_page')
@@ -79,6 +92,9 @@ class ShowQueueMonitorController
             })
             ->toArray();
 
+        /** @var \Illuminate\Database\Eloquent\Collection $jobs_list */
+        $jobs_list = $jobsRepository->getCollection(['id', 'name'])->toArray();
+
         $metrics = null;
 
         if (config('queue-monitor.ui.show_metrics')) {
@@ -87,6 +103,7 @@ class ShowQueueMonitorController
 
         return view('queue-monitor::jobs', [
             'jobs' => $jobs,
+            'jobs_list' => $jobs_list,
             'filters' => $filters,
             'queues' => $queues,
             'metrics' => $metrics,

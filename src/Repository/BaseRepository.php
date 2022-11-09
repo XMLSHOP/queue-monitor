@@ -170,17 +170,18 @@ abstract class BaseRepository
     }
 
     /**
-     * @param mixed $id
+     * @param string $field
+     * @param mixed $value
      * @param array $columns
      * @param string $orderBy
      * @param string $orderDirection
      * @return Builder|Model|object|null
      */
-    public function findByIdOrderBy($id, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC')
+    public function findByOrderBy(string $field, mixed $value, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC')
     {
         return $this->model::query()
             ->orderBy($orderBy, strtoupper($orderDirection) == 'ASC' ? 'ASC' : 'DESC')
-            ->where('id', '=', $id)
+            ->where($field, '=', $value)
             ->first();
     }
 

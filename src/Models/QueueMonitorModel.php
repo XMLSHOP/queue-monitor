@@ -36,8 +36,6 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorModel extends Model
 {
-    protected $table = 'queue_monitor';
-
     protected $guarded = [];
 
     /**
@@ -67,6 +65,8 @@ class QueueMonitorModel extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
+
+        $this->setTable(config('queue-monitor.table.monitor'));
 
         if ($connection = config('queue-monitor.connection')) {
             $this->setConnection($connection);

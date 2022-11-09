@@ -14,7 +14,7 @@
 
 <body class="font-sans p-6 pb-64 bg-gray-100">
 
-@include('jobs.content');
+@include('queue-monitor::jobs-content')
 
 </body>
 

@@ -67,17 +67,14 @@ class QueueMonitorProvider extends ServiceProvider
         });
 
         $manager->after(static function (JobProcessed $event) {
-//            dd('1123');
             QueueMonitorService::handleJobProcessed($event);
         });
 
         $manager->failing(static function (JobFailed $event) {
-//            dd('1132');
             QueueMonitorService::handleJobFailed($event);
         });
 
         $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
-//            dd('1133');
             QueueMonitorService::handleJobExceptionOccurred($event);
         });
     }
@@ -96,7 +93,5 @@ class QueueMonitorProvider extends ServiceProvider
                 'queue-monitor'
             );
         }
-
-        QueueMonitorService::$model = \xmlshop\QueueMonitor\Models\QueueMonitorModel::class;
     }
 }

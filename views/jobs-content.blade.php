@@ -30,7 +30,7 @@
 
             <div class="px-2 w-1/4">
                 <label for="filter_show" class="block mb-1 text-xs uppercase font-semibold text-gray-600">
-                    @lang('Show status')
+                    @lang('Status')
                 </label>
                 <select name="type" id="filter_show"
                         class="w-full p-2 bg-gray-200 border-2 border-gray-300 rounded">
@@ -56,6 +56,21 @@
                     @foreach($queues as $queue)
                         <option @if($filters['queue'] === $queue) selected @endif value="{{ $queue }}">
                             {{ __($queue) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="px-2 w-1/4">
+                <label for="filter_jobs" class="block mb-1 text-xs uppercase font-semibold text-gray-600">
+                    @lang('Jobs')
+                </label>
+                <select name="job" id="filter_queues"
+                        class="w-full p-2 bg-gray-200 border-2 border-gray-300 rounded">
+                    <option value="all">All</option>
+                    @foreach($jobs_list as $job)
+                        <option @if((int)$filters['job'] == $job['id']) selected @endif value="{{ $job['id'] }}">
+                            {{ $job['name'] }}
                         </option>
                     @endforeach
                 </select>
@@ -91,7 +106,10 @@
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Custom Data')</th>
             @endif
 
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
+            @if(config('queue-monitor.ui.show_progress_column'))
+                <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
+            @endif
+
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>
@@ -138,7 +156,7 @@
 
                 <td class="p-4 text-gray-800 text-sm leading-5 font-medium border-b border-gray-200">
 
-                    {{ $job->getBaseName() }}
+                    {{ \xmlshop\QueueMonitor\Models\QueueMonitorJobModel::getBaseName($job->name) }}
 
                     <div class="ml-1 text-xs text-gray-600">
                         #{{ $job->job_id }}
@@ -180,27 +198,29 @@
 
                 @endif
 
-                <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
+                @if(config('queue-monitor.ui.show_progress_column'))
+                    <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
-                    @if($job->progress !== null)
+                        @if($job->progress !== null)
 
-                        <div class="w-32">
+                            <div class="w-32">
 
-                            <div class="flex items-stretch h-3 rounded-full bg-gray-300 overflow-hidden">
-                                <div class="h-full bg-green-500" style="width: {{ $job->progress }}%"></div>
+                                <div class="flex items-stretch h-3 rounded-full bg-gray-300 overflow-hidden">
+                                    <div class="h-full bg-green-500" style="width: {{ $job->progress }}%"></div>
+                                </div>
+
+                                <div class="flex justify-center mt-1 text-xs text-gray-800 font-semibold">
+                                    {{ $job->progress }}%
+                                </div>
+
                             </div>
 
-                            <div class="flex justify-center mt-1 text-xs text-gray-800 font-semibold">
-                                {{ $job->progress }}%
-                            </div>
+                        @else
+                            -
+                        @endif
 
-                        </div>
-
-                    @else
-                        -
-                    @endif
-
-                </td>
+                    </td>
+                @endif
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
                     {{ $job->getElapsedInterval()->format('%H:%I:%S') }}

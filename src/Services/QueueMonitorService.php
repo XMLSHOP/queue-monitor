@@ -26,9 +26,9 @@ class QueueMonitorService
     public static $loadMigrations = false;
 
     /**
-     * @var \xmlshop\QueueMonitor\Models\QueueMonitorModel
+     * @var string
      */
-    public static $model;
+    public static $model = \xmlshop\QueueMonitor\Models\QueueMonitorModel::class;
 
     /**
      * Get the model used to store the monitoring data.
@@ -228,8 +228,7 @@ class QueueMonitorService
         $repository = self::getRepository();
 
         /** @var QueueMonitorModel $monitor */
-        $monitor = $repository->findByIdOrderBy(self::getJobId($job), ['*'], 'started_at');
-
+        $monitor = $repository->findByOrderBy('job_id', self::getJobId($job), ['*'], 'started_at');
         if (null === $monitor) {
             return;
         }

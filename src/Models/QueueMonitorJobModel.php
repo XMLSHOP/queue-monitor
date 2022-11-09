@@ -27,8 +27,6 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorJobModel extends Model
 {
-    protected $table = 'queue_monitor_jobs';
-
     protected $guarded = ['id'];
 
     protected $dates = [
@@ -42,6 +40,9 @@ class QueueMonitorJobModel extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
+
+        $this->setTable(config('queue-monitor.table.monitor_jobs'));
+
         if ($connection = config('queue-monitor.connection')) {
             $this->setConnection($connection);
         }

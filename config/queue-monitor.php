@@ -4,7 +4,14 @@ return [
     /*
      * Set the table to be used for monitoring data.
      */
-    'connection' => null,//'logs'
+    'connection' => null,
+
+    'table' => [
+        'monitor' => 'x_queue_monitor',
+        'monitor_jobs' => 'x_queue_monitor_jobs',
+        'monitor_queues' => 'x_queue_monitor_queues',
+        'monitor_queues_sizes' => 'x_queue_monitor_queues_sizes',
+    ],
 
     /*
      * Specify the max character length to use for storing exception backtraces.

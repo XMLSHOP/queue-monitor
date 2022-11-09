@@ -20,13 +20,14 @@ interface QueueMonitorRepositoryContract
     public function updateOrCreateStarted(array $data): void;
 
     /**
-     * @param int $id
+     * @param string $field
+     * @param mixed $value
      * @param array $columns
      * @param string $orderBy
      * @param string $orderDirection
      * @return mixed
      */
-    public function findByIdOrderBy(int $id, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC');
+    public function findByOrderBy(string $field, mixed $value, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC');
 
     /**
      * @param Model $model

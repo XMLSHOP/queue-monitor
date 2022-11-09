@@ -20,11 +20,10 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorQueuesSizesModel extends Model
 {
-    protected $table = 'queue_monitor_queues_sizes';
-
     protected $guarded = ['id'];
 
     protected $dates = [];
+
     public $timestamps = false;
 
     /**
@@ -33,6 +32,9 @@ class QueueMonitorQueuesSizesModel extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
+
+        $this->setTable(config('queue-monitor.table.monitor_queues_sizes'));
+
         if ($connection = config('queue-monitor.connection')) {
             $this->setConnection($connection);
         }
