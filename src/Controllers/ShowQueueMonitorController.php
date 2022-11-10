@@ -3,6 +3,9 @@
 namespace xmlshop\QueueMonitor\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
@@ -17,9 +20,9 @@ use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 class ShowQueueMonitorController
 {
     /**
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @param Request $request
+     * @param QueueMonitorJobsRepository $jobsRepository
+     * @return Application|Factory|View
      */
     public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository)
     {
