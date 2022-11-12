@@ -36,6 +36,12 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $model = $this->model::query()
             ->orderByDesc('queued_at')
             ->firstOrCreate(['job_id' => $job_id,], $data);
+
+        if ($queuedAt = $model->getQueuedAtExact()) {
+            $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
+        }
+        $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
+
         $model->update($data);
     }
 

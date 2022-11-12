@@ -35,6 +35,8 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->timestamp('started_at')->nullable()->index();
                 $table->string('started_at_exact')->nullable();
 
+                $table->float('time_pending_elapsed', 12, 6)->nullable()->index();
+
                 $table->timestamp('finished_at')->nullable();
                 $table->string('finished_at_exact')->nullable();
 

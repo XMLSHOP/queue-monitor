@@ -28,7 +28,7 @@
 
         <div class="flex items-center my-2 -mx-2">
 
-            <div class="px-2 w-1/4">
+            <div class="px-2 w-1/8">
                 <label for="filter_show" class="block mb-1 text-xs uppercase font-semibold text-gray-600">
                     @lang('Status')
                 </label>
@@ -46,7 +46,7 @@
                 </select>
             </div>
 
-            <div class="px-2 w-1/4">
+            <div class="px-2 w-1/6">
                 <label for="filter_queues" class="block mb-1 text-xs uppercase font-semibold text-gray-600">
                     @lang('Queues')
                 </label>
@@ -90,6 +90,10 @@
     </form>
 
 </div>
+
+@include('queue-monitor::partials.summary-card', [
+    'filters'=>$filters
+])
 
 <div class="overflow-x-auto shadow-lg">
 

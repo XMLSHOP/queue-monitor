@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $queued_at_exact
  * @property \Illuminate\Support\Carbon|null $started_at
  * @property string|null $started_at_exact
+ * @property float $time_pending_elapsed
  * @property \Illuminate\Support\Carbon|null $finished_at
  * @property string|null $finished_at_exact
  * @property float $time_elapsed
@@ -125,6 +126,15 @@ class QueueMonitorModel extends Model
      * Methods
      *--------------------------------------------------------------------------
      */
+
+    public function getQueuedAtExact(): ?Carbon
+    {
+        if (null === $this->queued_at_exact) {
+            return null;
+        }
+
+        return Carbon::parse($this->queued_at_exact);
+    }
 
     public function getStartedAtExact(): ?Carbon
     {

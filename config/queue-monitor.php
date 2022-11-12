@@ -45,6 +45,14 @@ return [
 
         'show_metrics' => true,
 
+        'show_summary'=>true,
+        'summary_conf' =>[
+            'failed',
+            'succeeded',
+            'pending',
+            'running',
+        ],
+
         /**
          * Time frame used to calculate metrics values (in days).
          */
