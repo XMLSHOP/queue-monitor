@@ -16,6 +16,20 @@ class QueueMonitorQueueRepository extends BaseRepository
     }
 
     /**
+     * @param string|null $connection
+     * @param string $queue
+     * @return Model
+     */
+    public function addNew(?string $connection, string $queue): Model
+    {
+        $model = new $this->model();
+        $model->queue_name = $queue;
+        $model->connection_name = $connection ?? config('queue.default');
+        $model->save();
+        return $model;
+    }
+
+    /**
      * Execute the query as a "select" statement.
      *
      * @param array|string $columns

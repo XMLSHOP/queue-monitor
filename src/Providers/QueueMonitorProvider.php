@@ -11,6 +11,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
@@ -93,5 +94,10 @@ class QueueMonitorProvider extends ServiceProvider
                 'queue-monitor'
             );
         }
+
+        $this->app->bind('queue-monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);
+        $this->commands([
+            'queue-monitor:aggregate-queues-sizes',
+        ]);
     }
 }

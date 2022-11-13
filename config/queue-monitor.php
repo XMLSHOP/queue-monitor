@@ -45,8 +45,8 @@ return [
 
         'show_metrics' => true,
 
-        'show_summary'=>true,
-        'summary_conf' =>[
+        'show_summary' => true,
+        'summary_conf' => [
             'failed',
             'succeeded',
             'pending',
@@ -57,5 +57,39 @@ return [
          * Time frame used to calculate metrics values (in days).
          */
         'metrics_time_frame' => 14,
+    ],
+
+    // might be table or config
+    'queues_sizes_retrieves_mode' => 'table',
+//    'queues_sizes_retrieves_mode' => 'config',
+    'queues_sizes_retrieves_config' => [
+        'envs' => [
+            'default' => [
+                [
+                    'queue_name' => 'default',
+                    'connection_name' => 'sqs',
+                ],
+                [
+                    'queue_name' => 'parcels',
+                    'connection_name' => 'sqs',
+                ],
+                [
+                    'queue_name' => 'tracking',
+                    'connection_name' => 'sqs',
+                ],
+                [
+                    'queue_name' => 'default',
+                    'connection_name' => 'database',
+                ],
+                [
+                    'queue_name' => 'batches',
+                    'connection_name' => 'database',
+                ],
+                [
+                    'queue_name' => 'service-report',
+                    'connection_name' => 'database',
+                ],
+            ],
+        ],
     ],
 ];

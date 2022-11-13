@@ -3,38 +3,50 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
-use xmlshop\QueueMonitor\Models\QueueMonitorQueueModel;
+
+use Illuminate\Database\Eloquent\Builder;
+use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
 
 class QueueMonitorQueueSizesRepository extends BaseRepository
 {
 
     public function getModelName(): string
     {
-        return QueueMonitorQueueModel::class;
+        return QueueMonitorQueuesSizesModel::class;
     }
 
     /**
-     * Execute the query as a "select" statement.
-     *
-     * @param array|string $columns
-     * @return Collection|static[]
+     * @param array $data
+     * @return int
      */
-    public function select(array|string $columns = ['*']): Collection|array
+    public function bulkInsert(array $data)
     {
-        return $this->model::select()->get($columns);
+        return $this->model::insert($data);
     }
 
     /**
-     * @param string $queue
-     * @return Model
+     * @param string $from
+     * @param string $to
+     * @param array|null $queues
+     * @return Builder|QueueMonitorQueuesSizesModel
      */
-    public function addNew(string $queue): Model
+    public function getDataSegment(string $from, string $to, ?array $queues = null): Builder|QueueMonitorQueuesSizesModel
     {
-        $model = new $this->model();
-        $model->queue_name = $queue;
-        $model->save();
-        return $model;
+//        $res =
+        return $this->model::query()
+            ->from('queues_sizes', 'qs')
+            ->select('qs.created_at')
+            ->selectRaw('GROUP_CONCAT(q.queue_name) as queue_names')
+            ->selectRaw('GROUP_CONCAT(qs.size) as sizes')
+            ->whereBetween('qs.created_at', [$from, $to])
+            ->join('queues as q', 'q.id', '=', 'qs.queue_id')
+            ->when(null !== $queues, function ($query) use ($queues) {
+                $query->whereIn('q.queue_name', $queues);
+            })
+            ->groupBy('qs.created_at')
+            ->orderBy('qs.created_at');
+
+//        $res->dd();
+//        return $res;
     }
 }
