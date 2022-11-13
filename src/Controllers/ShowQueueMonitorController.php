@@ -7,11 +7,11 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
@@ -24,25 +24,48 @@ class ShowQueueMonitorController
      * @param Request $request
      * @param QueueMonitorJobsRepository $jobsRepository
      * @return Application|Factory|View
+     * @throws ValidationException
      */
     public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository)
     {
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'pending', 'running', 'failed', 'succeeded'])],
             'queue' => ['nullable', 'string'],
-            'job' => ['nullable', 'integer'],
+            'job' => ['nullable', 'string'],
+            'df' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
+            'dt' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
         ]);
+
+//        $request->attributes->add($data);
+//        $request->request->add($data);
+//        $request->merge($data);
 
         $filters = [
             'type' => $data['type'] ?? 'all',
             'queue' => $data['queue'] ?? 'all',
             'job' => $data['job'] ?? 'all',
+            'df' => $data['df'] ?? Carbon::now()->subHours(3)->toDateTimeLocalString(),
+            'dt' => $data['dt'] ?? Carbon::now()->toDateTimeLocalString(),
         ];
+//        dd($data0, $data, $filters);
 
+        /** @noinspection UnknownColumnInspection */
+        $this->filter_min_max_ids = collect(QueueMonitorService::getModel()
+            ->setConnection(config('queue-monitor.connection'))
+            ->newQuery()
+            ->selectRaw('MIN(id) as min')
+            ->selectRaw('MAX(id) as max')
+            ->whereBetween('queued_at', [$filters['df'], $filters['dt']])
+            ->orWhereBetween('started_at', [$filters['df'], $filters['dt']])
+            ->orWhereBetween('finished_at', [$filters['df'], $filters['dt']])
+            ->first() ?? [])->toArray();
+
+        /** @noinspection UnknownColumnInspection */
         $jobs = QueueMonitorService::getModel()
             ->setConnection(config('queue-monitor.connection'))
             ->newQuery()
             ->select([config('queue-monitor.table.monitor') . '.*', 'mj.name_with_namespace as name'])
+            ->whereBetween(config('queue-monitor.table.monitor') . '.id', array_values($this->filter_min_max_ids))
             ->join(config('queue-monitor.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
                 ->on(config('queue-monitor.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
             )->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
@@ -243,6 +266,7 @@ class ShowQueueMonitorController
                                 break;
                         }
                     });
+                $subSelect->whereBetween('id', array_values($this->filter_min_max_ids));
                 $aggregatedComparisonInfo
                     ->selectSub($subSelect, $status);
             }
@@ -259,16 +283,17 @@ class ShowQueueMonitorController
         $subs = [
             'pending_time' => QueueMonitorModel::query()
                 ->selectRaw('AVG(time_pending_elapsed)')
-                ->where('queue_monitor_job_id','=', $job_id)
+                ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['queued_at', 'started_at']),
             'execution_time' => QueueMonitorModel::query()
                 ->selectRaw('AVG(time_elapsed)')
-                ->where('queue_monitor_job_id','=', $job_id)
+                ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['started_at', 'finished_at'])
                 ->where('failed', '=', 0)
         ];
 
-        foreach ($subs as $key=>$sub) {
+        foreach ($subs as $key => $sub) {
+            $sub->whereBetween('id', array_values($this->filter_min_max_ids));
             $builder->selectSub($sub, $key);
         }
 

@@ -27,7 +27,7 @@
                                     </td>
                                     <td>
                                         <a class="text-underline"
-                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=running' }}">{{ $amount }}</a>
+                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=&df='.$filters['df'].'&dt='.$filters['dt'] }}">{{ $amount }}</a>
                                     </td>
                                 </tr>
                                 @break
@@ -40,7 +40,7 @@
                                     </td>
                                     <td>
                                         <a class="text-underline"
-                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=succeeded' }}">{{ $amount }}</a>
+                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=&df='.$filters['df'].'&dt='.$filters['dt'] }}">{{ $amount }}</a>
                                     </td>
                                 </tr>
                                 @break
@@ -53,7 +53,7 @@
                                     </td>
                                     <td>
                                         <a class="text-underline"
-                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=failed' }}">{{ $amount }}</a>
+                                           href="{{ Request::url() .'?queue='.$filters['queue'].'&job='.$filters['job'].'&type=failed&df='.$filters['df'].'&dt='.$filters['dt'] }}">{{ $amount }}</a>
                                     </td>
                                 </tr>
                                 @break
