@@ -22,12 +22,22 @@ class CreateQueueMonitorJobsTable extends Migration
             });
 
         Schema::connection(config('queue-monitor.connection'))
+            ->create(config('queue-monitor.table.monitor_queues'), function (Blueprint $table) {
+                $table->smallIncrements('id');
+                $table->string('queue_name', 128);
+                $table->string('connection_name', 128)->nullable();
+                $table->string('queue_name_started', 128)->nullable();
+                $table->string('connection_name_started', 128)->nullable();
+                $table->timestamps();
+            });
+
+        Schema::connection(config('queue-monitor.connection'))
             ->create(config('queue-monitor.table.monitor'), function (Blueprint $table) {
                 $table->increments('id');
 
                 $table->string('job_id')->index();
                 $table->unsignedInteger('queue_monitor_job_id')->index();
-                $table->string('queue')->nullable();
+                $table->unsignedSmallInteger('queue_id')->index();
 
                 $table->timestamp('queued_at')->nullable()->index();
                 $table->string('queued_at_exact')->nullable();
@@ -37,7 +47,7 @@ class CreateQueueMonitorJobsTable extends Migration
 
                 $table->float('time_pending_elapsed', 12, 6)->nullable()->index();
 
-                $table->timestamp('finished_at')->nullable();
+                $table->timestamp('finished_at')->nullable()->index();
                 $table->string('finished_at_exact')->nullable();
 
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
@@ -52,13 +62,6 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->text('exception_class')->nullable();
 
                 $table->longText('data')->nullable();
-            });
-
-        Schema::connection(config('queue-monitor.connection'))
-            ->create(config('queue-monitor.table.monitor_queues'), function (Blueprint $table) {
-                $table->smallIncrements('id');
-                $table->string('queue_name', 128)->index();
-                $table->timestamps();
             });
 
         Schema::connection(config('queue-monitor.connection'))

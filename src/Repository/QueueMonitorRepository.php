@@ -8,6 +8,16 @@ use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
 
 class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepositoryContract
 {
+    /**
+     * @var QueueMonitorQueueRepository
+     */
+    protected QueueMonitorQueueRepository $queueRepository;
+
+    public function __construct()
+    {
+        $this->queueRepository = app(QueueMonitorQueueRepository::class);
+        parent::__construct();
+    }
 
     public function getModelName(): string
     {
@@ -16,11 +26,15 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
     /**
      * @param array $data
-     * @return void
+     * @return Model
      */
-    public function addQueued(array $data): void
+    public function addQueued(array $data): Model
     {
-        $this->create($data);
+        $queue = $data['queue'];
+        $connection = $data['connection'];
+        unset($data['queue'], $data['connection']);
+        $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
+        return $this->create($data);
     }
 
     /**
@@ -32,16 +46,23 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $job_id = $data['job_id'];
         unset($data['job_id']);
 
+        $queue = $data['queue'];
+        $connection = $data['connection'];
+        unset($data['queue'], $data['connection']);
+
         /** @noinspection UnknownColumnInspection */
         $model = $this->model::query()
             ->orderByDesc('queued_at')
             ->firstOrCreate(['job_id' => $job_id,], $data);
 
+        $this->queueRepository->updateWithStarted($model->queue_id, $connection, $queue);
+
         if ($queuedAt = $model->getQueuedAtExact()) {
             $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
         }
         $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
-
+        unset($data['queue'], $data['connection']);
+        var_dump($data);
         $model->update($data);
     }
 

@@ -11,22 +11,24 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
+use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 
 class ShowQueueMonitorController
 {
+    private array $filter_min_max_ids;
+
     /**
      * @param Request $request
      * @param QueueMonitorJobsRepository $jobsRepository
+     * @param QueueMonitorQueueRepository $queueRepository
      * @return Application|Factory|View
-     * @throws ValidationException
      */
-    public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository)
+    public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository, QueueMonitorQueueRepository $queueRepository)
     {
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'pending', 'running', 'failed', 'succeeded'])],
@@ -36,10 +38,6 @@ class ShowQueueMonitorController
             'dt' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
         ]);
 
-//        $request->attributes->add($data);
-//        $request->request->add($data);
-//        $request->merge($data);
-
         $filters = [
             'type' => $data['type'] ?? 'all',
             'queue' => $data['queue'] ?? 'all',
@@ -47,7 +45,6 @@ class ShowQueueMonitorController
             'df' => $data['df'] ?? Carbon::now()->subHours(3)->toDateTimeLocalString(),
             'dt' => $data['dt'] ?? Carbon::now()->toDateTimeLocalString(),
         ];
-//        dd($data0, $data, $filters);
 
         /** @noinspection UnknownColumnInspection */
         $this->filter_min_max_ids = collect(QueueMonitorService::getModel()
@@ -64,11 +61,15 @@ class ShowQueueMonitorController
         $jobs = QueueMonitorService::getModel()
             ->setConnection(config('queue-monitor.connection'))
             ->newQuery()
-            ->select([config('queue-monitor.table.monitor') . '.*', 'mj.name_with_namespace as name'])
+            ->select([config('queue-monitor.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue'])
             ->whereBetween(config('queue-monitor.table.monitor') . '.id', array_values($this->filter_min_max_ids))
             ->join(config('queue-monitor.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
                 ->on(config('queue-monitor.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
-            )->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
+            )
+            ->join(config('queue-monitor.table.monitor_queues') . ' as mq', fn(JoinClause $join) => $join
+                ->on(config('queue-monitor.table.monitor') . '.queue_id', '=', 'mq.id')
+            )
+            ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
                     case 'pending':
                         /** @noinspection UnknownColumnInspection */
@@ -93,7 +94,7 @@ class ShowQueueMonitorController
             })
             ->when(($queue = $filters['queue']) && 'all' !== $queue, static function (Builder $builder) use ($queue) {
                 /** @noinspection UnknownColumnInspection */
-                $builder->where('queue', $queue);
+                $builder->where('queue_id', $queue);
             })
             ->when(($monitor_job_id = $filters['job']) && 'all' !== $monitor_job_id, static function (Builder $builder) use ($monitor_job_id) {
                 /** @noinspection UnknownColumnInspection */
@@ -108,15 +109,7 @@ class ShowQueueMonitorController
             );
 
         /** @noinspection UnknownColumnInspection */
-        $queues = QueueMonitorService::getModel()
-            ->newQuery()
-            ->select('queue')
-            ->groupBy('queue')
-            ->get()
-            ->map(function (QueueMonitorModel $monitor) {
-                return $monitor->queue;
-            })
-            ->toArray();
+        $queues = $queueRepository->select(['id', 'queue_name'])->toArray();
 
         /** @var \Illuminate\Database\Eloquent\Collection $jobs_list */
         $jobs_list = $jobsRepository->getCollection(['id', 'name'])->toArray();
@@ -237,7 +230,7 @@ class ShowQueueMonitorController
                 $subSelect
                     ->when(($queue = $filters['queue']) && 'all' !== $queue, static function ($builder) use ($queue) {
                         /** @noinspection UnknownColumnInspection */
-                        $builder->where('queue', $queue);
+                        $builder->where('queue_id', $queue);
                     })
                     ->when(($monitor_job_id = $filters['job']) && 'all' !== $monitor_job_id, static function ($builder) use ($monitor_job_id) {
                         /** @noinspection UnknownColumnInspection */

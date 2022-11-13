@@ -9,6 +9,9 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $queue_name
+ * @property string|null $connection_name
+ * @property string|null $queue_name_started
+ * @property string|null $connection_name_started
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static Builder|QueueMonitorQueueModel newModelQuery()

@@ -167,10 +167,11 @@ class QueueMonitorService
 
         $jobsRepository = app(QueueMonitorJobsRepository::class);
         $repository = self::getRepository();
-        $repository->create([
+        $repository->addQueued([
             'job_id' => $jobId,
             'queue_monitor_job_id' => $jobsRepository->firstOrCreate($jobClass),
             'queue' => $jobQueue,
+            'connection' => $jobConnection,
             'queued_at' => $now,
             'queued_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
             'attempt' => 0,
@@ -202,6 +203,7 @@ class QueueMonitorService
             'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
             'queue_monitor_job_id' => $jobsRepository->firstOrCreate($job->resolveName()),
             'queue' => $job->getQueue(),
+            'connection' => $job->getConnectionName(),
             'started_at' => $now,
             'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
         ]);

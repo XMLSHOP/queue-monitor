@@ -33,8 +33,8 @@
                         class="w-full p-2 bg-gray-200 border-2 border-gray-300 rounded">
                     <option value="all">All</option>
                     @foreach($queues as $queue)
-                        <option @if($filters['queue'] === $queue) selected @endif value="{{ $queue }}">
-                            {{ __($queue) }}
+                        <option @if((int)$filters['queue'] == $queue['id']) selected @endif value="{{ $queue['id'] }}">
+                            {{ $queue['queue_name'] }}
                         </option>
                     @endforeach
                 </select>

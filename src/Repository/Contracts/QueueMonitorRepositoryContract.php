@@ -10,7 +10,7 @@ interface QueueMonitorRepositoryContract
      * @param array $data
      * @return bool
      */
-    public function addQueued(array $data): void;
+    public function addQueued(array $data): Model;
 
     /**
      * @param string|null $id

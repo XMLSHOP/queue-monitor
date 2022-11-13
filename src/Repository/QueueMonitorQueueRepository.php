@@ -27,14 +27,32 @@ class QueueMonitorQueueRepository extends BaseRepository
     }
 
     /**
+     * @param string|null $connection
      * @param string $queue
-     * @return Model
+     * @return int
      */
-    public function addNew(string $queue): Model
+    public function firstOrCreate(?string $connection, string $queue): int
     {
-        $model = new $this->model();
-        $model->queue_name = $queue;
-        $model->save();
-        return $model;
+        return $this->model::query()
+            ->firstOrCreate(
+                [
+                    'queue_name' => $queue,
+                    'connection_name' => $connection ?? config('queue.default'),
+                ],
+                [
+                    'queue_name' => $queue,
+                    'connection_name' => $connection ?? config('queue.default'),
+                ],
+            )->id;
+    }
+
+    public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void
+    {
+        $model = $this->findById($queue_id);
+        if ($model->queue_name !== $queue || $model->connection_name !== $connection) {
+            $model->queue_name_started = $queue;
+            $model->connection_name_started = $connection ?? config('queue.default');
+            $model->save();
+        }
     }
 }
