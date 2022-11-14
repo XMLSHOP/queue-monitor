@@ -2,8 +2,8 @@
 
 namespace xmlshop\QueueMonitor\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -12,8 +12,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $connection_name
  * @property string|null $queue_name_started
  * @property string|null $connection_name_started
+ * @property string|null $alert_threshold
+ * @property Carbon|null $last_alert_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
  * @method static Builder|QueueMonitorQueueModel newModelQuery()
  * @method static Builder|QueueMonitorQueueModel newQuery()
  * @method static Builder|QueueMonitorQueueModel query()
@@ -28,6 +31,15 @@ class QueueMonitorQueueModel extends Model
     public $timestamps = true;
 
     /**
+     * @var string[]
+     */
+    protected $dates = [
+        'last_alert_sent_at',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
      * @param array<string, mixed> $attributes
      */
     public function __construct(array $attributes = [])
@@ -40,13 +52,13 @@ class QueueMonitorQueueModel extends Model
             $this->setConnection($connection);
         }
     }
-    
+
     protected $appends = ['resource_url'];
 
     /* ************************ ACCESSOR ************************* */
 
     public function getResourceUrlAttribute()
     {
-        return url('/admin/queues/'.$this->getKey());
+        return url('/admin/queues/' . $this->getKey());
     }
 }

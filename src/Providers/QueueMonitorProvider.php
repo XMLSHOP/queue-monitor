@@ -9,7 +9,6 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
@@ -35,14 +34,17 @@ class QueueMonitorProvider extends ServiceProvider
                 );
             }
 
-            foreach (File::files(__DIR__ . '/../../config/queue-monitor/') as $file) {
-                $this->publishes([
-                    __DIR__ . '/../../config/queue-monitor/' . $file->getBasename() => config_path('queue-monitor/' . $file->getBasename()),
-                ], 'config');
-            }
-
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor.php' => config_path('queue-monitor.php'),
+                __DIR__ . '/../../config/queue-monitor/db.php' => config_path('queue-monitor/db.php'),
+            ], 'config');
+            $this->publishes([
+                __DIR__ . '/../../config/queue-monitor/ui.php' => config_path('queue-monitor/ui.php'),
+            ], 'config');
+            $this->publishes([
+                __DIR__ . '/../../config/queue-monitor/queue-sizes-retrieves.php' => config_path('queue-monitor/queue-sizes-retrieves.php'),
+            ], 'config');
+            $this->publishes([
+                __DIR__ . '/../../config/queue-monitor/dashboard-charts.php' => config_path('queue-monitor/dashboard-charts.php'),
             ], 'config');
 
             $this->publishes([
@@ -97,13 +99,26 @@ class QueueMonitorProvider extends ServiceProvider
     public function register()
     {
         /** @phpstan-ignore-next-line */
-        if (!$this->app->configurationIsCached()) {
-            foreach (File::files(__DIR__ . '/../../config/queue-monitor/') as $file) {
-                $this->mergeConfigFrom(
-                    __DIR__ . '/../../config/queue-monitor/' . $file->getBasename(),
-                    'queue-monitor.' . explode('.', $file->getBasename())[0]
-                );
-            }
+        if ( ! $this->app->configurationIsCached()) {
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/queue-monitor/db.php',
+                'queue-monitor.db'
+            );
+
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/queue-monitor/ui.php',
+                'queue-monitor.ui'
+            );
+
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/queue-monitor/queue-sizes-retrieves.php',
+                'queue-monitor.queue-sizes-retrieves'
+            );
+
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/queue-monitor/dashboard-charts.php',
+                'queue-monitor.dashboard-charts'
+            );
         }
 
         /** @phpstan-ignore-next-line */

@@ -28,6 +28,7 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->string('connection_name', 128)->nullable();
                 $table->string('queue_name_started', 128)->nullable();
                 $table->string('connection_name_started', 128)->nullable();
+                $table->unsignedSmallInteger('alert_threshold')->nullable();
                 $table->timestamps();
             });
 

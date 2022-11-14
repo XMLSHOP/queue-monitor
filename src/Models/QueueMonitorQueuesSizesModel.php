@@ -11,7 +11,6 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $queue_id
  * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
  * @method static Builder|QueueMonitorQueuesSizesModel newModelQuery()
  * @method static Builder|QueueMonitorQueuesSizesModel newQuery()
  * @method static Builder|QueueMonitorQueuesSizesModel query()
@@ -22,7 +21,7 @@ class QueueMonitorQueuesSizesModel extends Model
 {
     protected $guarded = ['id'];
 
-    protected $dates = [];
+    protected $dates = ['created_at'];
 
     public $timestamps = false;
 
