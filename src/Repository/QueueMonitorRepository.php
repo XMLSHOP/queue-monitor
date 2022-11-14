@@ -2,6 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Repository;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
@@ -82,5 +83,17 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
     public function deleteOne(Model $monitor): void
     {
         $monitor->delete();
+    }
+
+    /**
+     * @param int $days
+     * @return void
+     */
+    public function purge(int $days): void
+    {
+        $this->model::query()
+            ->where('queued_at','<=', Carbon::now()->subDays($days))
+            ->orWhere('started_at','<=', Carbon::now()->subDays($days))
+            ->delete();
     }
 }

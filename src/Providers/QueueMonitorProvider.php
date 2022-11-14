@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
+use xmlshop\QueueMonitor\Commands\CleanUpCommand;
+use xmlshop\QueueMonitor\Commands\ListenerCommand;
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
@@ -104,9 +106,14 @@ class QueueMonitorProvider extends ServiceProvider
             }
         }
 
+        /** @phpstan-ignore-next-line */
         $this->app->bind('queue-monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);
+        $this->app->bind('queue-monitor:clean-up', CleanUpCommand::class);
+        $this->app->bind('queue-monitor:listener', ListenerCommand::class);
         $this->commands([
             'queue-monitor:aggregate-queues-sizes',
+            'queue-monitor:clean-up',
+            'queue-monitor:listener',
         ]);
     }
 }

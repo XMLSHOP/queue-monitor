@@ -19,4 +19,9 @@ return [
      */
     'max_length_exception' => 4294967295,
     'max_length_exception_message' => 65535,
+
+    /*
+     * Purge monitor & queue_sizes tables after days
+     */
+    'clean_after_days' => 14,
 ];

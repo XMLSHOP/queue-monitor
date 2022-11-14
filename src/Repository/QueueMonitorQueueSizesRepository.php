@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
-
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
 
@@ -49,5 +49,16 @@ class QueueMonitorQueueSizesRepository extends BaseRepository
 
 //        $res->dd();
 //        return $res;
+    }
+
+    /**
+     * @param int $days
+     * @return void
+     */
+    public function purge(int $days): void
+    {
+        $this->model::query()
+            ->where('created_at','<=', Carbon::now()->subDays($days))
+            ->delete();
     }
 }
