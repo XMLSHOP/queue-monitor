@@ -69,8 +69,8 @@ class AggregateQueuesSizesCommand extends Command
      */
     private function getQueuesIds(?string $mode = null)
     {
-        return match ($mode ?? config('queue-monitor.queues_sizes_retrieves_mode')) {
-            'table' => call_user_func(function () {
+        return match ($mode ?? config('queue-monitor.queue-sizes-retrieves.mode')) {
+            'db' => call_user_func(function () {
                 $out = [];
                 foreach (collect($this->queueRepository->select())->toArray() as $value) {
                     $out[$value['connection_name'] . ':' . $value['queue_name']] = [
@@ -82,11 +82,11 @@ class AggregateQueuesSizesCommand extends Command
                 return $out;
             }),
             'config' => call_user_func(function () {
-                $queues = config('queue-monitor.queues_sizes_retrieves_config.envs.' . App::environment());
+                $queues = config('queue-monitor.queue-sizes-retrieves.config.envs.' . App::environment());
                 if (empty($queues)) {
-                    $queues = config('queue-monitor.queues_sizes_retrieves_config.envs.default');
+                    $queues = config('queue-monitor.queue-sizes-retrieves.config.envs.default');
                 }
-                $out = $this->getQueuesIds('table');
+                $out = $this->getQueuesIds('db');
 
                 foreach ($queues as $value) {
                     if (!array_key_exists($value['connection_name'] . ':' . $value['queue_name'], $out)) {
@@ -101,7 +101,7 @@ class AggregateQueuesSizesCommand extends Command
 
                 return $out;
             }),
-            default => throw new \Exception('Wrong [queues_sizes_retrieves_mode]!')
+            default => throw new \Exception('Wrong [queue-sizes-retrieves.mode]!')
         };
     }
 

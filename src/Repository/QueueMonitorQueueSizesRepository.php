@@ -33,13 +33,14 @@ class QueueMonitorQueueSizesRepository extends BaseRepository
     public function getDataSegment(string $from, string $to, ?array $queues = null): Builder|QueueMonitorQueuesSizesModel
     {
 //        $res =
-        return $this->model::query()
-            ->from('queues_sizes', 'qs')
+        return
+            $this->model::query()
+            ->from(config('queue-monitor.db.table.monitor_queues_sizes'), 'qs')
             ->select('qs.created_at')
             ->selectRaw('GROUP_CONCAT(q.queue_name) as queue_names')
             ->selectRaw('GROUP_CONCAT(qs.size) as sizes')
             ->whereBetween('qs.created_at', [$from, $to])
-            ->join('queues as q', 'q.id', '=', 'qs.queue_id')
+            ->join(config('queue-monitor.db.table.monitor_queues').' as q', 'q.id', '=', 'qs.queue_id')
             ->when(null !== $queues, function ($query) use ($queues) {
                 $query->whereIn('q.queue_name', $queues);
             })

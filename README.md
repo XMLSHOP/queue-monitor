@@ -35,6 +35,21 @@ Migrate the Queue Monitoring table. The table name can be configured in the conf
 php artisan migrate
 ```
 
+## Scheduler
+```
+class Kernel extends ConsoleKernel
+{
+    #...
+    protected function schedule(Schedule $schedule)
+    {
+        #...
+        $schedule->command('queue-monitor:aggregate-queues-sizes')->everyMinute();
+        #...
+    }
+}
+```
+
+
 ## Usage
 
 To monitor a job, simply add the `xmlshop\QueueMonitor\Traits\IsMonitored` Trait.

@@ -15,7 +15,11 @@ class QueueMonitorRoutes
     {
         return function (array $options = []) {
             /** @var \Illuminate\Routing\Router $this */
-            $this->get('', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')->name('queue-monitor::index');
+            $this->get('jobs', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')->name('queue-monitor::jobs');
+
+            /** @var \Illuminate\Routing\Router $this */
+            $this->get('queue-sizes', '\xmlshop\QueueMonitor\Controllers\QueueSizesChartsController')->name('queue-monitor::queue-sizes');
+
 
             if (config('queue-monitor.ui.allow_deletion')) {
                 $this->delete('monitors/{monitor}', '\xmlshop\QueueMonitor\Controllers\DeleteMonitorController')->name('queue-monitor::destroy');

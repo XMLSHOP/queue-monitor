@@ -9,6 +9,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
@@ -30,6 +31,12 @@ class QueueMonitorProvider extends ServiceProvider
                 $this->loadMigrationsFrom(
                     __DIR__ . '/../../migrations'
                 );
+            }
+
+            foreach (File::files(__DIR__ . '/../../config/queue-monitor/') as $file) {
+                $this->publishes([
+                    __DIR__ . '/../../config/queue-monitor/' . $file->getBasename() => config_path('queue-monitor/' . $file->getBasename()),
+                ], 'config');
             }
 
             $this->publishes([
@@ -88,11 +95,13 @@ class QueueMonitorProvider extends ServiceProvider
     public function register()
     {
         /** @phpstan-ignore-next-line */
-        if ( ! $this->app->configurationIsCached()) {
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor.php',
-                'queue-monitor'
-            );
+        if (!$this->app->configurationIsCached()) {
+            foreach (File::files(__DIR__ . '/../../config/queue-monitor/') as $file) {
+                $this->mergeConfigFrom(
+                    __DIR__ . '/../../config/queue-monitor/' . $file->getBasename(),
+                    'queue-monitor.' . explode('.', $file->getBasename())[0]
+                );
+            }
         }
 
         $this->app->bind('queue-monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);

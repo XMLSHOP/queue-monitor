@@ -62,7 +62,6 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         }
         $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
         unset($data['queue'], $data['connection']);
-        var_dump($data);
         $model->update($data);
     }
 

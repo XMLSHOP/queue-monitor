@@ -48,7 +48,7 @@ class ShowQueueMonitorController
 
         /** @noinspection UnknownColumnInspection */
         $this->filter_min_max_ids = collect(QueueMonitorService::getModel()
-            ->setConnection(config('queue-monitor.connection'))
+            ->setConnection(config('queue-monitor.db.connection'))
             ->newQuery()
             ->selectRaw('MIN(id) as min')
             ->selectRaw('MAX(id) as max')
@@ -59,15 +59,15 @@ class ShowQueueMonitorController
 
         /** @noinspection UnknownColumnInspection */
         $jobs = QueueMonitorService::getModel()
-            ->setConnection(config('queue-monitor.connection'))
+            ->setConnection(config('queue-monitor.db.connection'))
             ->newQuery()
-            ->select([config('queue-monitor.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue'])
-            ->whereBetween(config('queue-monitor.table.monitor') . '.id', array_values($this->filter_min_max_ids))
-            ->join(config('queue-monitor.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
-                ->on(config('queue-monitor.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
+            ->select([config('queue-monitor.db.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue'])
+            ->whereBetween(config('queue-monitor.db.table.monitor') . '.id', array_values($this->filter_min_max_ids))
+            ->join(config('queue-monitor.db.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
+                ->on(config('queue-monitor.db.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
             )
-            ->join(config('queue-monitor.table.monitor_queues') . ' as mq', fn(JoinClause $join) => $join
-                ->on(config('queue-monitor.table.monitor') . '.queue_id', '=', 'mq.id')
+            ->join(config('queue-monitor.db.table.monitor_queues') . ' as mq', fn(JoinClause $join) => $join
+                ->on(config('queue-monitor.db.table.monitor') . '.queue_id', '=', 'mq.id')
             )
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
@@ -128,8 +128,7 @@ class ShowQueueMonitorController
             }
         }
 
-
-        return view('queue-monitor::jobs', [
+        return view('queue-monitor::jobs/index', [
             'jobs' => $jobs,
             'jobs_list' => $jobs_list,
             'filters' => $filters,
