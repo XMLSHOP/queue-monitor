@@ -31,6 +31,7 @@ return [
         'execution_time_to_previous' => 1.5,
 
         'exceptions' => [
+            /*
             'MonitoredFailingJob' => [
                 'ignore' => true,
             ],
@@ -43,6 +44,7 @@ return [
             'MonitoredJobWithData' => [
                 'execution_time_to_previous' => 1.1, // seconds
             ],
+            */
         ],
     ],
 ];

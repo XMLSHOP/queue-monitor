@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Services\Data;
@@ -19,7 +20,7 @@ class QueueSizesDataService
         $queuesSizeRepository = app(QueueMonitorQueueSizesRepository::class);
         $data = [];
 
-        foreach (config('queue-monitor.dashboard-charts') as $chartOptions) {
+        foreach (config('queue-monitor.dashboard-charts.root') as $chartOptions) {
             $obj = [];
             if (Arr::exists($chartOptions, 'queues')) {
                 $obj = array_merge($obj, $chartOptions['properties']);
@@ -35,11 +36,13 @@ class QueueSizesDataService
 
             $data[] = $obj;
         }
+
         return $data;
     }
 
     /**
      * @param Collection|array $data
+     *
      * @return array
      */
     private function transformData(Collection|array $data): array
@@ -48,13 +51,13 @@ class QueueSizesDataService
         foreach ($data as $record) {
             $queuesRaw = explode(',', $record->queue_names);
             foreach ($queuesRaw as $item) {
-                if (!in_array($item, $queues)) {
+                if ( ! in_array($item, $queues)) {
                     $queues[] = $item;
                 }
             }
         }
 
-        if (empty($queues) && count($data) == 0) {
+        if (empty($queues) && 0 == count($data)) {
             return [];
         }
 
@@ -65,23 +68,22 @@ class QueueSizesDataService
             $objQueues = explode(',', $record->queue_names);
             $objSizes = explode(',', $record->sizes);
             foreach (array_merge(['created_at'], $queues) as $queue) {
-                if ($queue == 'created_at') {
+                if ('created_at' == $queue) {
                     $outElement[] = $record->created_at;
                     continue;
                 }
 
                 $index = array_search($queue, $objQueues);
-                if ($index !== false) {
-                    $outElement[] = (int)$objSizes[$index];
+                if (false !== $index) {
+                    $outElement[] = (int) $objSizes[$index];
                 } else {
                     $outElement[] = null;
                 }
             }
 
             $out[] = $outElement;
-
         }
+
         return $out;
     }
-
 }

@@ -28,7 +28,9 @@ class QueueSizesChartsController
         ]);
         $requestData = $this->getSanitized($requestData);
 
+        /** @var QueueSizesDataService $queueSizesDataExportService */
         $queueSizesDataExportService = app(QueueSizesDataService::class);
+        /** @var QueuedJobsDataService $queuedJobsDataService */
         $queuedJobsDataService = app(QueuedJobsDataService::class);
 
         $data = [

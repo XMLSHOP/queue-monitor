@@ -27,6 +27,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
     /**
      * @param array $data
+     *
      * @return Model
      */
     public function addQueued(array $data): Model
@@ -35,11 +36,13 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $connection = $data['connection'];
         unset($data['queue'], $data['connection']);
         $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
+
         return $this->create($data);
     }
 
     /**
      * @param array $data
+     *
      * @return void
      */
     public function updateOrCreateStarted(array $data): void
@@ -55,12 +58,12 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         /** @noinspection UnknownColumnInspection */
         $model = $this->model::query()
             ->orderByDesc('queued_at')
-            ->firstOrCreate(['job_id' => $job_id,], $data);
+            ->firstOrCreate(['job_id' => $job_id], $data);
 
         $this->queueRepository->updateWithStarted($model->queue_id, $connection, $queue);
 
         if ($queuedAt = $model->getQueuedAtExact()) {
-            $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
+            $timeElapsed = (float) $queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
         }
         $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
         unset($data['queue'], $data['connection']);
@@ -70,6 +73,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
     /**
      * @param Model $model
      * @param array $attributes
+     *
      * @return void
      */
     public function updateFinished(Model $model, array $attributes): void
@@ -79,6 +83,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
     /**
      * @param Model $monitor
+     *
      * @return void
      */
     public function deleteOne(Model $monitor): void
@@ -88,13 +93,15 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
     /**
      * @param int $days
+     *
      * @return void
      */
     public function purge(int $days): void
     {
+        /** @noinspection UnknownColumnInspection */
         $this->model::query()
-            ->where('queued_at','<=', Carbon::now()->subDays($days))
-            ->orWhere('started_at','<=', Carbon::now()->subDays($days))
+            ->where('queued_at', '<=', Carbon::now()->subDays($days))
+            ->orWhere('started_at', '<=', Carbon::now()->subDays($days))
             ->delete();
     }
 }

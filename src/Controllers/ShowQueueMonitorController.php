@@ -11,12 +11,12 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
+use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
-use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
-use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 
 class ShowQueueMonitorController
 {
@@ -26,6 +26,7 @@ class ShowQueueMonitorController
      * @param Request $request
      * @param QueueMonitorJobsRepository $jobsRepository
      * @param QueueMonitorQueueRepository $queueRepository
+     *
      * @return Application|Factory|View
      */
     public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository, QueueMonitorQueueRepository $queueRepository)
@@ -63,10 +64,10 @@ class ShowQueueMonitorController
             ->newQuery()
             ->select([config('queue-monitor.db.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue'])
             ->whereBetween(config('queue-monitor.db.table.monitor') . '.id', array_values($this->filter_min_max_ids))
-            ->join(config('queue-monitor.db.table.monitor_jobs') . ' as mj', fn(JoinClause $join) => $join
+            ->join(config('queue-monitor.db.table.monitor_jobs') . ' as mj', fn (JoinClause $join) => $join
                 ->on(config('queue-monitor.db.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
             )
-            ->join(config('queue-monitor.db.table.monitor_queues') . ' as mq', fn(JoinClause $join) => $join
+            ->join(config('queue-monitor.db.table.monitor_queues') . ' as mq', fn (JoinClause $join) => $join
                 ->on(config('queue-monitor.db.table.monitor') . '.queue_id', '=', 'mq.id')
             )
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
@@ -123,7 +124,7 @@ class ShowQueueMonitorController
         $job_metrics = null;
         if (config('queue-monitor.ui.show_summary') && is_array(config('queue-monitor.ui.summary_conf'))) {
             $summary = $this->collectSummary($filters);
-            if ($filters['job'] !== 'all') {
+            if ('all' !== $filters['job']) {
                 $job_metrics = $this->collectJobMetrics($filters['job']);
             }
         }
@@ -184,6 +185,7 @@ class ShowQueueMonitorController
 
     /**
      * @param array $filters
+     *
      * @return array
      */
     private function collectSummary(array $filters): array
@@ -272,6 +274,7 @@ class ShowQueueMonitorController
         /** @var Builder $builder */
         $builder = app(\Illuminate\Database\Query\Builder::class);
 
+        /** @noinspection UnknownColumnInspection */
         $subs = [
             'pending_time' => QueueMonitorModel::query()
                 ->selectRaw('AVG(time_pending_elapsed)')
@@ -281,7 +284,7 @@ class ShowQueueMonitorController
                 ->selectRaw('AVG(time_elapsed)')
                 ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['started_at', 'finished_at'])
-                ->where('failed', '=', 0)
+                ->where('failed', '=', 0),
         ];
 
         foreach ($subs as $key => $sub) {

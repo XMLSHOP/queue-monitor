@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
@@ -10,7 +11,6 @@ use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
 
 class QueueMonitorQueueRepository extends BaseRepository
 {
-
     public function getModelName(): string
     {
         return QueueMonitorQueueModel::class;
@@ -19,6 +19,7 @@ class QueueMonitorQueueRepository extends BaseRepository
     /**
      * @param string|null $connection
      * @param string $queue
+     *
      * @return Model
      */
     public function addNew(?string $connection, string $queue): Model
@@ -27,6 +28,7 @@ class QueueMonitorQueueRepository extends BaseRepository
         $model->queue_name = $queue;
         $model->connection_name = $connection ?? config('queue.default');
         $model->save();
+
         return $model;
     }
 
@@ -34,6 +36,7 @@ class QueueMonitorQueueRepository extends BaseRepository
      * Execute the query as a "select" statement.
      *
      * @param array|string $columns
+     *
      * @return Collection|static[]
      */
     public function select(array|string $columns = ['*']): Collection|array
@@ -44,6 +47,7 @@ class QueueMonitorQueueRepository extends BaseRepository
     /**
      * @param string|null $connection
      * @param string $queue
+     *
      * @return int
      */
     public function firstOrCreate(?string $connection, string $queue): int
@@ -74,7 +78,9 @@ class QueueMonitorQueueRepository extends BaseRepository
     /**
      * @return array
      */
-    public function getQueuesAlertInfo(): array {
+    public function getQueuesAlertInfo(): array
+    {
+        /** @noinspection UnknownColumnInspection */
         return $this->model::query()
             ->select([
                 'mq.id',
@@ -85,13 +91,11 @@ class QueueMonitorQueueRepository extends BaseRepository
             ])
             ->from(config('queue-monitor.db.table.monitor_queues'), 'mq')
             ->join(config('queue-monitor.db.table.monitor_queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
-
-            ->whereIn('mqs.created_at',  function(\Illuminate\Database\Query\Builder $query) {
+            ->whereIn('mqs.created_at', function (\Illuminate\Database\Query\Builder $query) {
                 $query
                     ->from(with(new QueueMonitorQueuesSizesModel())->getTable())
                     ->selectRaw('MAX(created_at)');
-                }
+            }
             )->get()->toArray();
     }
-
 }

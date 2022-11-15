@@ -89,6 +89,7 @@ class QueueMonitorJobsRepository extends BaseRepository
      */
     public function getJobsAlertInfo(int $period_seconds, int $offset_seconds)
     {
+        /** @noinspection UnknownColumnInspection */
         return
 //            $m =
                 QueueMonitorModel::query()
