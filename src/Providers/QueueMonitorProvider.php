@@ -41,6 +41,9 @@ class QueueMonitorProvider extends ServiceProvider
                 __DIR__ . '/../../config/queue-monitor/ui.php' => config_path('queue-monitor/ui.php'),
             ], 'config');
             $this->publishes([
+                __DIR__ . '/../../config/queue-monitor/alarm.php' => config_path('queue-monitor/alarm.php'),
+            ], 'config');
+            $this->publishes([
                 __DIR__ . '/../../config/queue-monitor/queue-sizes-retrieves.php' => config_path('queue-monitor/queue-sizes-retrieves.php'),
             ], 'config');
             $this->publishes([
@@ -108,6 +111,11 @@ class QueueMonitorProvider extends ServiceProvider
             $this->mergeConfigFrom(
                 __DIR__ . '/../../config/queue-monitor/ui.php',
                 'queue-monitor.ui'
+            );
+
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/queue-monitor/alarm.php',
+                'queue-monitor.alarm'
             );
 
             $this->mergeConfigFrom(

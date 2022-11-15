@@ -81,7 +81,6 @@ class QueueMonitorQueueRepository extends BaseRepository
                 'mq.queue_name',
                 'mq.connection_name',
                 'mq.alert_threshold',
-                'mq.last_alert_sent_at',
                 'mqs.size',
             ])
             ->from(config('queue-monitor.db.table.monitor_queues'), 'mq')

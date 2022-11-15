@@ -13,7 +13,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $queue_name_started
  * @property string|null $connection_name_started
  * @property string|null $alert_threshold
- * @property Carbon|null $last_alert_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -34,7 +33,6 @@ class QueueMonitorQueueModel extends Model
      * @var string[]
      */
     protected $dates = [
-        'last_alert_sent_at',
         'created_at',
         'updated_at',
     ];

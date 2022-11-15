@@ -50,6 +50,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $queue = $data['queue'];
         $connection = $data['connection'];
         unset($data['queue'], $data['connection']);
+        $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
 
         /** @noinspection UnknownColumnInspection */
         $model = $this->model::query()
