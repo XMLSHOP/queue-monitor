@@ -15,6 +15,8 @@ class ListenerCommand extends Command
 {
     public const CACHE_KEY = 'queue-monitor-alerts';
 
+    public const DISABLE_CACHE_KEY = 'queue-monitor-alerts-disabled';
+
     private static ?array $alarm_config = [];
 
     /**
@@ -22,7 +24,7 @@ class ListenerCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:listener';
+    protected $signature = 'queue-monitor:listener {disable=0} {hours=1}';
 
     /**
      * The console command description.
@@ -31,7 +33,7 @@ class ListenerCommand extends Command
      */
     protected $description = 'Command retrieves information about queues sizes and jobs pending + execution time and informing team, if some indexes are over threshold.';
 
-    private array $alarmIdentifications;
+    private array $alarmIdentifications = [];
 
     private array $jobsAvgPrev;
 
@@ -59,18 +61,31 @@ class ListenerCommand extends Command
     {
         self::$alarm_config = config('queue-monitor.alarm');
 
-        $this->alarmIdentifications = [];
         try {
             $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
+            $cmd_disabled = Cache::store('redis')->get(self::DISABLE_CACHE_KEY, false);
+            if ('disable' === $this->argument('disable')) {
+                Cache::store('redis')->put(self::DISABLE_CACHE_KEY, true, Carbon::now()->addHours((int) $this->argument('hours')));
+                $cmd_disabled = true;
+            }
+            if ('enable' === $this->argument('disable')) {
+                Cache::store('redis')->forget(self::DISABLE_CACHE_KEY);
+                $cmd_disabled = false;
+            }
         } catch (\Exception $e) {
         }
+
+        if ( ! self::$alarm_config['is_active'] || $cmd_disabled) {
+            return 0;
+        }
+
+        $this->alarmIdentifications = [];
 
         $messages = [];
         foreach ($this->queuesRepository->getQueuesAlertInfo() as $queue) {
             if (null !== $queue['alert_threshold'] && $queue['size'] >= $queue['alert_threshold'] && $this->validatedAlarm('q-' . $queue['id'])) {
-                echo __LINE__ . "\n";
-                $messages[] = 'Queue [' . $queue['connection_name'] . ':' . $queue['queue_name'] . '] exceed the threshold' .
-                    '(' . $queue['alert_threshold'] . ')!' . "\n" . 'Size: *' . $queue['size'] . '*. ' .
+                $messages[] = 'Queue *[' . $queue['connection_name'] . ':' . $queue['queue_name'] . ']* exceed the threshold!' .
+                    'Size now: *' . $queue['size'] . '*. ' .
                     '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>' . "\n\n";
             }
         }
@@ -88,12 +103,11 @@ class ListenerCommand extends Command
         foreach ($jobLast as $job) {
             [$result, $message] = $this->detectedAlarm($job);
             if ($result && $this->validatedAlarm('j-' . $job['id'])) {
-                echo __LINE__ . "\n";
                 $messages[] = $message . "\n\n";
             }
         }
 
-        if ( ! empty($message)) {
+        if ( ! empty($messages)) {
             $this->sendNotification(implode("\n", $messages));
         }
 
@@ -116,7 +130,7 @@ class ListenerCommand extends Command
 //            default => $this->getSlack()->send($message)
 //        };
 
-        $this->getSlack()->send('[GMT] ' . now()->format('H:i') . ' ' . $message);
+        $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
     }
 
     /**
@@ -151,32 +165,41 @@ class ListenerCommand extends Command
      */
     private function detectedAlarm(array $job): array
     {
-        $messages = [];
+        if (Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore', false)) {
+            return [true, ''];
+        }
 
-        if ((int) $job['FailedCount'] > Arr::get(self::$alarm_config, 'jobs_thresholds.failing_count')) {
+        $failing_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.failing_count', Arr::get(self::$alarm_config, 'jobs_thresholds.failing_count'));
+        $pending_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_count', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_count'));
+        $pending_time = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_time', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time'));
+        $pending_time_to_previous = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_time_to_previous', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time_to_previous'));
+        $execution_time_to_previous = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.execution_time_to_previous', Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous'));
+
+        $messages = [];
+        if ((int) $job['FailedCount'] > $failing_count) {
             $messages[] = 'The job ' . $this->getJobLink($job) . ' has been failed *' . $job['FailedCount'] . '* times ' .
                 'per last ' . CarbonInterval::seconds(Arr::get(self::$alarm_config, 'jobs_compare_alerts.last'))->cascade()->forHumans();
         }
 
-        if ((int) $job['PendingCount'] > Arr::get(self::$alarm_config, 'jobs_thresholds.pending_count')) {
+        if ((int) $job['PendingCount'] > $pending_count) {
             $messages[] = 'The job ' . $this->getJobLink($job) . ' has a queue of *' . $job['PendingCount'] . '*. ';
         }
 
-        if ((int) $job['PendingAvg'] > Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time')) {
+        if ((int) $job['PendingAvg'] > $pending_time) {
             $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise to  *' .
                 CarbonInterval::seconds($job['PendingAvg'])->cascade()->forHumans() . '*.';
         }
 
         $hour_job_info = $this->jobsAvgPrev[$job['id']];
 
-        if ($job['PendingAvg'] / $hour_job_info['PendingAvg'] >= Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time_to_previous')) {
+        if ($job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
             $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
                 round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
         }
 
-        if ($job['PendingAvg'] / $hour_job_info['PendingAvg'] >= Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous')) {
-            $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
-                round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
+        if ($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous) {
+            $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
+                round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';
         }
 
         return [

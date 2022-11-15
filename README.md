@@ -52,6 +52,17 @@ class Kernel extends ConsoleKernel
 }
 ```
 
+After the listener automatically will be launched `queue-monitor:listener`. It might be disabled in configuration or by command
+```bash
+#php artisan queue-monitor:listener disable {hours}
+php artisan queue-monitor:listener disable 24 #disables alert-launcher for a day. By default 1 hour
+php artisan queue-monitor:listener enable #enables that back
+```
+
+## Alert function
+1. Listener looks into database in the `x_queue_monitoring_queue_sizes` table and comparing current amount with amount mentioned in field `alert_threshold`. If exceed - alert.
+2. Listener looks into database in the `x_queue_monitoring` table and comparing several metrics (pending time, execution time, etc.)
+3. You can manage exceptions for each Job. Including ignore alert.
 
 ## Usage
 

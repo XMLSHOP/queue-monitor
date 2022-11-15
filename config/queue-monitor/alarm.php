@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'is_active' => true,
+
     'channel' => 'slack',
 
     'time_between_alerts' => 5 * 60, // seconds
@@ -23,24 +25,24 @@ return [
     'jobs_thresholds' => [
         'failing_count' => 5,
         'pending_count' => 10,
-        'pending_time' => 60, // seconds
+        'pending_time' => 120, // seconds
 
-        'pending_time_to_previous' => 1.2,
-        'execution_time_to_previous' => 1.2,
-    ],
+        'pending_time_to_previous' => 1.5,
+        'execution_time_to_previous' => 1.5,
 
-    'jobs_meta' => [
-        'MonitoredFailingJob' => [
-            'ignore_failing' => true,
-        ],
-        'MonitoredJob' => [
-            'threshold_pending_count' => 15,
-        ],
-        'MonitoredJobWithArguments' => [
-            'threshold_pending_time' => 60, // seconds
-        ],
-        'MonitoredJobWithData' => [
-            'threshold_execution_time' => 0.5, // seconds
+        'exceptions' => [
+            'MonitoredFailingJob' => [
+                'ignore' => true,
+            ],
+            'MonitoredJob' => [
+                'pending_count' => 5,
+            ],
+            'MonitoredJobWithArguments' => [
+                'pending_time' => 60, // seconds
+            ],
+            'MonitoredJobWithData' => [
+                'execution_time_to_previous' => 1.1, // seconds
+            ],
         ],
     ],
 ];
