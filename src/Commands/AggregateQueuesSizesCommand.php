@@ -13,7 +13,7 @@ use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
 class AggregateQueuesSizesCommand extends Command
 {
     /**
-     * Command retrieves information about queues sizes and storing that in table
+     * Command retrieves information about queues sizes and storing that in table.
      *
      * @var string
      */
@@ -41,8 +41,9 @@ class AggregateQueuesSizesCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return int
      * @throws \Exception
+     *
+     * @return int
      */
     public function handle()
     {
@@ -60,14 +61,18 @@ class AggregateQueuesSizesCommand extends Command
         }
         $this->queuesSizeRepository->bulkInsert($data);
 
-        Artisan::command('queue-monitor:listener');
+        Artisan::command('queue-monitor:listener ', function () {
+        });
+
         return 0;
     }
 
     /**
      * @param string|null $mode
-     * @return mixed
+     *
      * @throws \Exception
+     *
+     * @return mixed
      */
     private function getQueuesIds(?string $mode = null)
     {
@@ -81,6 +86,7 @@ class AggregateQueuesSizesCommand extends Command
                         'id' => $value['id'],
                     ];
                 }
+
                 return $out;
             }),
             'config' => call_user_func(function () {
@@ -91,7 +97,7 @@ class AggregateQueuesSizesCommand extends Command
                 $out = $this->getQueuesIds('db');
 
                 foreach ($queues as $value) {
-                    if (!array_key_exists($value['connection_name'] . ':' . $value['queue_name'], $out)) {
+                    if ( ! array_key_exists($value['connection_name'] . ':' . $value['queue_name'], $out)) {
                         $model = $this->queueRepository->addNew($value['connection_name'], $value['queue_name']);
                         $out[$model->connection_name . ':' . $model->queue_name] = [
                             'queue' => $value['queue_name'],
@@ -106,5 +112,4 @@ class AggregateQueuesSizesCommand extends Command
             default => throw new \Exception('Wrong [queue-sizes-retrieves.mode]!')
         };
     }
-
 }
