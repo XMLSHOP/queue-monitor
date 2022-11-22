@@ -24,6 +24,7 @@ class QueueMonitorQueueRepository extends BaseRepository
      */
     public function addNew(?string $connection, string $queue): Model
     {
+        /** @var QueueMonitorQueueModel $model */
         $model = new $this->model();
         $model->queue_name = $queue;
         $model->connection_name = $connection ?? config('queue.default');
@@ -67,8 +68,12 @@ class QueueMonitorQueueRepository extends BaseRepository
 
     public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void
     {
+        /** @var QueueMonitorQueueModel $model */
         $model = $this->findById($queue_id);
-        if ($model->queue_name !== $queue || $model->connection_name !== $connection) {
+        if (
+            ($model->queue_name !== $queue || $model->connection_name !== $connection)
+            && (null === $model->queue_name_started && null === $model->connection_name_started)
+        ) {
             $model->queue_name_started = $queue;
             $model->connection_name_started = $connection ?? config('queue.default');
             $model->save();

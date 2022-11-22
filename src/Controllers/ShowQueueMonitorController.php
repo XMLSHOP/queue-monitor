@@ -202,7 +202,7 @@ class ShowQueueMonitorController
                     /** @noinspection UnknownColumnInspection */
                     $subSelect = QueueMonitorModel::query()
                         ->selectRaw('COUNT(1)')
-                        ->whereNotNull(['queued_at', 'started_at'])
+                        ->whereNotNull(['started_at'])
                         ->whereNull(['finished_at']);
                     break;
                 case 'pending':
@@ -216,14 +216,14 @@ class ShowQueueMonitorController
                     /** @noinspection UnknownColumnInspection */
                     $subSelect = QueueMonitorModel::query()
                         ->selectRaw('COUNT(1)')
-                        ->whereNotNull(['queued_at', 'started_at', 'finished_at'])
+                        ->whereNotNull(['started_at', 'finished_at'])
                         ->where('failed', '=', 0);
                     break;
                 case 'failed':
                     /** @noinspection UnknownColumnInspection */
                     $subSelect = QueueMonitorModel::query()
                         ->selectRaw('COUNT(1)')
-                        ->whereNotNull(['queued_at', 'started_at', 'finished_at'])
+                        ->whereNotNull(['started_at', 'finished_at'])
                         ->where('failed', '=', 1);
                     break;
             }
@@ -265,7 +265,7 @@ class ShowQueueMonitorController
                     ->selectSub($subSelect, $status);
             }
         }
-
+//        $aggregatedComparisonInfo->dd();
         return collect($aggregatedComparisonInfo->first())->toArray();
     }
 
