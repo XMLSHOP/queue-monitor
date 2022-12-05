@@ -6,19 +6,17 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
- * @property int $id
+ * @property string $uuid
  * @property string $job_id
  * @property int $queue_monitor_job_id
  * @property string|null $queue
  * @property \Illuminate\Support\Carbon|null $queued_at
- * @property string|null $queued_at_exact
  * @property \Illuminate\Support\Carbon|null $started_at
- * @property string|null $started_at_exact
  * @property float $time_pending_elapsed
  * @property \Illuminate\Support\Carbon|null $finished_at
- * @property string|null $finished_at_exact
  * @property float $time_elapsed
  * @property bool $failed
  * @property int $attempt
@@ -37,7 +35,11 @@ use Illuminate\Support\Carbon;
  */
 class QueueMonitorModel extends Model
 {
-    protected $guarded = [];
+    use Uuids;
+
+    protected $primaryKey = 'uuid';
+
+    protected $guarded = ['uuid'];
 
     /**
      * @var array<string, string>
@@ -95,7 +97,7 @@ class QueueMonitorModel extends Model
         /** @noinspection UnknownColumnInspection */
         $query
             ->orderBy('started_at', 'desc')
-            ->orderBy('started_at_exact', 'desc');
+            ->orderBy('queued_at', 'desc');
     }
 
     public function scopeLastHour(Builder $query): void
@@ -127,31 +129,31 @@ class QueueMonitorModel extends Model
      *--------------------------------------------------------------------------
      */
 
-    public function getQueuedAtExact(): ?Carbon
+    public function getQueued(): ?Carbon
     {
-        if (null === $this->queued_at_exact) {
+        if (null === $this->queued_at) {
             return null;
         }
 
-        return Carbon::parse($this->queued_at_exact);
+        return Carbon::parse($this->queued_at);
     }
 
-    public function getStartedAtExact(): ?Carbon
+    public function getStarted(): ?Carbon
     {
-        if (null === $this->started_at_exact) {
+        if (null === $this->started_at) {
             return null;
         }
 
-        return Carbon::parse($this->started_at_exact);
+        return Carbon::parse($this->started_at);
     }
 
-    public function getFinishedAtExact(): ?Carbon
+    public function getFinished(): ?Carbon
     {
-        if (null === $this->finished_at_exact) {
+        if (null === $this->finished_at) {
             return null;
         }
 
-        return Carbon::parse($this->finished_at_exact);
+        return Carbon::parse($this->finished_at);
     }
 
     /**
@@ -200,10 +202,10 @@ class QueueMonitorModel extends Model
     public function getElapsedInterval(Carbon $end = null): CarbonInterval
     {
         if (null === $end) {
-            $end = $this->getFinishedAtExact() ?? $this->finished_at ?? Carbon::now();
+            $end = $this->getFinished() ?? $this->finished_at ?? Carbon::now();
         }
 
-        $startedAt = $this->getStartedAtExact() ?? $this->started_at;
+        $startedAt = $this->getStarted() ?? $this->started_at;
 
         if (null === $startedAt) {
             return CarbonInterval::seconds(0);

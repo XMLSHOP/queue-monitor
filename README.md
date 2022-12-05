@@ -258,10 +258,6 @@ $job->isFinished();
 $job->hasFailed();
 $job->hasSucceeded();
 
-// Exact start & finish dates with milliseconds
-$job->getStartedAtExact();
-$job->getFinishedAtExact();
-
 // If the job is still running, get the estimated seconds remaining
 // Notice: This requires a progress to be set
 $job->getRemainingSeconds();

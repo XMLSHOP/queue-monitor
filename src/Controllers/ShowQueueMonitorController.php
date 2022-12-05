@@ -48,21 +48,10 @@ class ShowQueueMonitorController
         ];
 
         /** @noinspection UnknownColumnInspection */
-        $this->filter_min_max_ids = collect(QueueMonitorService::getModel()
-            ->setConnection(config('queue-monitor.db.connection'))
-            ->newQuery()
-            ->selectRaw('MIN(id) as min')
-            ->selectRaw('MAX(id) as max')
-            ->whereBetween('queued_at', [$filters['df'], $filters['dt']])
-            ->orWhereBetween('started_at', [$filters['df'], $filters['dt']])
-            ->orWhereBetween('finished_at', [$filters['df'], $filters['dt']])
-            ->first() ?? [])->toArray();
-
-        /** @noinspection UnknownColumnInspection */
         $jobs = QueueMonitorService::getModel()
             ->setConnection(config('queue-monitor.db.connection'))
             ->newQuery()
-            ->select([config('queue-monitor.db.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue'])
+            ->select([config('queue-monitor.db.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue', 'mh.name as host'])
             ->where(function ($query) use ($filters) {
                 /** @noinspection UnknownColumnInspection */
                 $query->whereBetween(config('queue-monitor.db.table.monitor') . '.queued_at', [$filters['df'], $filters['dt']])
@@ -71,6 +60,9 @@ class ShowQueueMonitorController
             })
             ->join(config('queue-monitor.db.table.monitor_jobs') . ' as mj', fn (JoinClause $join) => $join
                 ->on(config('queue-monitor.db.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
+            )
+            ->join(config('queue-monitor.db.table.monitor_hosts') . ' as mh', fn (JoinClause $join) => $join
+                ->on(config('queue-monitor.db.table.monitor') . '.host_id', '=', 'mh.id')
             )
             ->join(config('queue-monitor.db.table.monitor_queues') . ' as mq', fn (JoinClause $join) => $join
                 ->on(config('queue-monitor.db.table.monitor') . '.queue_id', '=', 'mq.id')
@@ -106,8 +98,10 @@ class ShowQueueMonitorController
                 /** @noinspection UnknownColumnInspection */
                 $builder->where('queue_monitor_job_id', $monitor_job_id);
             })
+            ->orderByDesc('started_at')
+            ->orderByDesc('queued_at')
+            ->orderByDesc('finished_at')
 //            ->dd()
-            ->ordered()
             ->paginate(
                 config('queue-monitor.ui.per_page')
             )
@@ -131,7 +125,7 @@ class ShowQueueMonitorController
         if (config('queue-monitor.ui.show_summary') && is_array(config('queue-monitor.ui.summary_conf'))) {
             $summary = $this->collectSummary($filters);
             if ('all' !== $filters['job']) {
-                $job_metrics = $this->collectJobMetrics($filters['job']);
+                $job_metrics = $this->collectJobMetrics($filters['job'], $filters);
             }
         }
 
@@ -283,7 +277,7 @@ class ShowQueueMonitorController
         return collect($aggregatedComparisonInfo->first())->toArray();
     }
 
-    private function collectJobMetrics(int $job_id)
+    private function collectJobMetrics(int $job_id, $filters)
     {
         /** @var Builder $builder */
         $builder = app(\Illuminate\Database\Query\Builder::class);
@@ -293,16 +287,23 @@ class ShowQueueMonitorController
             'pending_time' => QueueMonitorModel::query()
                 ->selectRaw('AVG(time_pending_elapsed)')
                 ->where('queue_monitor_job_id', '=', $job_id)
-                ->whereNotNull(['queued_at', 'started_at']),
+                ->whereNotNull(['queued_at', 'started_at'])
+                ->where(function ($query) use ($filters) {
+                    $query->whereBetween('queued_at', [$filters['df'], $filters['dt']])
+                        ->orWhereBetween('started_at', [$filters['df'], $filters['dt']]);
+                }),
             'execution_time' => QueueMonitorModel::query()
                 ->selectRaw('AVG(time_elapsed)')
                 ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['started_at', 'finished_at'])
-                ->where('failed', '=', 0),
+                ->where('failed', '=', 0)
+                ->where(function ($query) use ($filters) {
+                    $query->whereBetween('started_at', [$filters['df'], $filters['dt']])
+                        ->orWhereBetween('finished_at', [$filters['df'], $filters['dt']]);
+                }),
         ];
 
         foreach ($subs as $key => $sub) {
-            $sub->whereBetween('id', array_values($this->filter_min_max_ids));
             $builder->selectSub($sub, $key);
         }
 

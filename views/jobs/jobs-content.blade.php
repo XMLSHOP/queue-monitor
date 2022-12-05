@@ -8,7 +8,7 @@
 
         @foreach($metrics->all() as $metric)
 
-            @include('queue-monitor::partials.metrics-card', [
+            @include('queue-monitor::jobs/partials.metrics-card', [
                 'metric' => $metric,
             ])
 
@@ -18,11 +18,11 @@
 
 @endisset
 
-@include('queue-monitor::partials.filters', [
+@include('queue-monitor::jobs/partials.filters', [
     'filters'=>$filters
 ])
 
-@include('queue-monitor::partials.summary-card', [
+@include('queue-monitor::jobs/partials.summary-card', [
     'filters'=>$filters
 ])
 
@@ -45,9 +45,10 @@
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
             @endif
 
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>
+            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>--}}
+            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>--}}
+            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>--}}
+            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Timing')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Error')</th>
 
             @if(config('queue-monitor.ui.allow_deletion'))
@@ -90,7 +91,6 @@
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 font-medium border-b border-gray-200">
-
                     {{ \xmlshop\QueueMonitor\Models\QueueMonitorJobModel::getBaseName($job->name) }}
 
                     <div class="ml-1 text-xs text-gray-600">
@@ -101,6 +101,10 @@
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
+                    <div class="text-xs">
+                        <span class="text-gray-600 font-medium">Host:</span>
+                        <span class="font-semibold">{{ $job->host }}</span>
+                    </div>
                     <div class="text-xs">
                         <span class="text-gray-600 font-medium">@lang('Queue'):</span>
                         @if(preg_match("~https\:\/\/sqs\.(?<region>[\w-]+)\.\w+\.com\/(?<id>\w+)\/(?<name>\w+)~", $job->queue, $matches))
@@ -158,23 +162,31 @@
                 @endif
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    {{ $job->getElapsedInterval()->format('%H:%I:%S') }}
-                </td>
-
-                <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    @if(null !== $job->queued_at)
-                        {{ $job->queued_at->diffForHumans() }}
-                    @else
-                        -
-                    @endif
-                </td>
-
-                <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    @if(null !== $job->started_at)
-                        {{ $job->started_at->diffForHumans() }}
-                    @else
-                        -
-                    @endif
+                    <div>
+                        Duration:
+                        <strong>
+                            @if($job->getElapsedInterval()->format('%H:%I:%S') == '00:00:00')
+                                < 1s
+                            @else
+                                {{ $job->getElapsedInterval()->format('%H:%I:%S') }}
+                            @endif
+                        </strong>
+                    </div>
+                    <div>Queued:
+                        @if(null !== $job->queued_at)
+                            {{ $job->queued_at->diffForHumans() }}
+                        @else
+                            [in batch]
+                        @endif
+                    </div>
+                    <div>
+                        Started:
+                        @if(null !== $job->started_at)
+                            {{ $job->started_at->diffForHumans() }}
+                        @else
+                            -
+                        @endif
+                    </div>
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">

@@ -18,9 +18,9 @@ class QueueMonitorJobsRepository extends BaseRepository
     /**
      * @param string $name_with_namespace
      *
-     * @return void
+     * @return int
      */
-    public function firstOrCreate(string $name_with_namespace)
+    public function firstOrCreate(string $name_with_namespace): int
     {
         return $this->model::query()
             ->firstOrCreate(

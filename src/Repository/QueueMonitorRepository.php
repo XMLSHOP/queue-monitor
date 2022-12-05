@@ -62,9 +62,10 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
         $this->queueRepository->updateWithStarted($model->queue_id, $connection, $queue);
 
-        if ($queuedAt = $model->getQueuedAtExact()) {
+        if ($queuedAt = $model->getQueued()) {
             $timeElapsed = (float) $queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
         }
+
         $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
         unset($data['queue'], $data['connection']);
         $model->update($data);
