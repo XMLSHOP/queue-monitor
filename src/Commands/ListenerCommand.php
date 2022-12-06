@@ -57,7 +57,7 @@ class ListenerCommand extends Command
      */
     public function handle()
     {
-        self::$alarm_config = config('queue-monitor.alarm');
+        self::$alarm_config = config('monitor.alarm');
 
         try {
             $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
@@ -73,7 +73,7 @@ class ListenerCommand extends Command
         } catch (\Exception $e) {
         }
 
-        if (!self::$alarm_config['is_active'] || $cmd_disabled) {
+        if (!config('monitor.settings.active') || !config('monitor.settings.active-alarm') || $cmd_disabled) {
             return 0;
         }
 
@@ -124,7 +124,7 @@ class ListenerCommand extends Command
      */
     private function sendNotification(string $message): void
     {
-        if (config('queue-monitor.alarm.channel')) {
+        if (config('monitor.alarm.channel')) {
             $this->slack = app(Slack::class);
             $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
         }
@@ -135,7 +135,7 @@ class ListenerCommand extends Command
      */
     private function getSlack(): Slack
     {
-        return $this->slack->to(config('queue-monitor.alarm.recipient'));
+        return $this->slack->to(config('monitor.alarm.recipient'));
     }
 
     /**

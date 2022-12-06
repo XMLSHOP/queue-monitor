@@ -47,6 +47,10 @@ class AggregateQueuesSizesCommand extends Command
      */
     public function handle()
     {
+        if ( ! config('monitor.settings.active') || ! config('monitor.settings.active-monitor-queue-sizes')) {
+            $this->error('Monitor is not active or Queue-Sizes monitor is not active.');
+            return 0;
+        }
         $queuesIds = $this->getQueuesIds();
 
         $timestamp = Carbon::now()->toDateTimeLocalString();
@@ -76,7 +80,7 @@ class AggregateQueuesSizesCommand extends Command
      */
     private function getQueuesIds(?string $mode = null)
     {
-        return match ($mode ?? config('queue-monitor.queue-sizes-retrieves.mode')) {
+        return match ($mode ?? config('monitor.queue-sizes-retrieves.mode')) {
             'db' => call_user_func(function () {
                 $out = [];
                 foreach (collect($this->queueRepository->select())->toArray() as $value) {
@@ -90,9 +94,9 @@ class AggregateQueuesSizesCommand extends Command
                 return $out;
             }),
             'config' => call_user_func(function () {
-                $queues = config('queue-monitor.queue-sizes-retrieves.config.envs.' . App::environment());
+                $queues = config('monitor.queue-sizes-retrieves.config.envs.' . App::environment());
                 if (empty($queues)) {
-                    $queues = config('queue-monitor.queue-sizes-retrieves.config.envs.default');
+                    $queues = config('monitor.queue-sizes-retrieves.config.envs.default');
                 }
                 $out = $this->getQueuesIds('db');
 

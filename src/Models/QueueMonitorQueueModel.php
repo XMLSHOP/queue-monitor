@@ -44,9 +44,9 @@ class QueueMonitorQueueModel extends Model
     {
         parent::__construct($attributes);
 
-        $this->setTable(config('queue-monitor.db.table.monitor_queues'));
+        $this->setTable(config('monitor.db.table.queues'));
 
-        if ($connection = config('queue-monitor.db.connection')) {
+        if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
     }

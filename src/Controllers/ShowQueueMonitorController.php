@@ -49,23 +49,23 @@ class ShowQueueMonitorController
 
         /** @noinspection UnknownColumnInspection */
         $jobs = QueueMonitorService::getModel()
-            ->setConnection(config('queue-monitor.db.connection'))
+            ->setConnection(config('monitor.db.connection'))
             ->newQuery()
-            ->select([config('queue-monitor.db.table.monitor') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue', 'mh.name as host'])
+            ->select([config('monitor.db.table.monitor_queue') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue', 'mh.name as host'])
             ->where(function ($query) use ($filters) {
                 /** @noinspection UnknownColumnInspection */
-                $query->whereBetween(config('queue-monitor.db.table.monitor') . '.queued_at', [$filters['df'], $filters['dt']])
-                    ->orWhereBetween(config('queue-monitor.db.table.monitor') . '.started_at', [$filters['df'], $filters['dt']])
-                    ->orWhereBetween(config('queue-monitor.db.table.monitor') . '.finished_at', [$filters['df'], $filters['dt']]);
+                $query->whereBetween(config('monitor.db.table.monitor_queue') . '.queued_at', [$filters['df'], $filters['dt']])
+                    ->orWhereBetween(config('monitor.db.table.monitor_queue') . '.started_at', [$filters['df'], $filters['dt']])
+                    ->orWhereBetween(config('monitor.db.table.monitor_queue') . '.finished_at', [$filters['df'], $filters['dt']]);
             })
-            ->join(config('queue-monitor.db.table.monitor_jobs') . ' as mj', fn (JoinClause $join) => $join
-                ->on(config('queue-monitor.db.table.monitor') . '.queue_monitor_job_id', '=', 'mj.id')
+            ->join(config('monitor.db.table.jobs') . ' as mj', fn (JoinClause $join) => $join
+                ->on(config('monitor.db.table.monitor_queue') . '.queue_monitor_job_id', '=', 'mj.id')
             )
-            ->join(config('queue-monitor.db.table.monitor_hosts') . ' as mh', fn (JoinClause $join) => $join
-                ->on(config('queue-monitor.db.table.monitor') . '.host_id', '=', 'mh.id')
+            ->join(config('monitor.db.table.hosts') . ' as mh', fn (JoinClause $join) => $join
+                ->on(config('monitor.db.table.monitor_queue') . '.host_id', '=', 'mh.id')
             )
-            ->join(config('queue-monitor.db.table.monitor_queues') . ' as mq', fn (JoinClause $join) => $join
-                ->on(config('queue-monitor.db.table.monitor') . '.queue_id', '=', 'mq.id')
+            ->join(config('monitor.db.table.queues') . ' as mq', fn (JoinClause $join) => $join
+                ->on(config('monitor.db.table.monitor_queue') . '.queue_id', '=', 'mq.id')
             )
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
@@ -103,7 +103,7 @@ class ShowQueueMonitorController
             ->orderByDesc('finished_at')
 //            ->dd()
             ->paginate(
-                config('queue-monitor.ui.per_page')
+                config('monitor.ui.per_page')
             )
             ->appends(
                 $request->all()
@@ -117,12 +117,12 @@ class ShowQueueMonitorController
 
         $metrics = null;
 
-        if (config('queue-monitor.ui.show_metrics')) {
+        if (config('monitor.ui.show_metrics')) {
             $metrics = $this->collectMetrics();
         }
         $summary = null;
         $job_metrics = null;
-        if (config('queue-monitor.ui.show_summary') && is_array(config('queue-monitor.ui.summary_conf'))) {
+        if (config('monitor.ui.show_summary') && is_array(config('monitor.ui.summary_conf'))) {
             $summary = $this->collectSummary($filters);
             if ('all' !== $filters['job']) {
                 $job_metrics = $this->collectJobMetrics($filters['job'], $filters);
@@ -142,7 +142,7 @@ class ShowQueueMonitorController
 
     public function collectMetrics(): Metrics
     {
-        $timeFrame = config('queue-monitor.ui.metrics_time_frame') ?? 2;
+        $timeFrame = config('monitor.ui.metrics_time_frame') ?? 2;
 
         $metrics = new Metrics();
 
@@ -196,7 +196,7 @@ class ShowQueueMonitorController
         $aggregatedComparisonInfo = $builder;
 
         $subSelect = null;
-        foreach (config('queue-monitor.ui.summary_conf') as $status) {
+        foreach (config('monitor.ui.summary_conf') as $status) {
             switch ($status) {
                 case 'running':
                     /** @noinspection UnknownColumnInspection */

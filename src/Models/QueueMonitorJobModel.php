@@ -41,9 +41,9 @@ class QueueMonitorJobModel extends Model
     {
         parent::__construct($attributes);
 
-        $this->setTable(config('queue-monitor.db.table.monitor_jobs'));
+        $this->setTable(config('monitor.db.table.jobs'));
 
-        if ($connection = config('queue-monitor.db.connection')) {
+        if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
     }

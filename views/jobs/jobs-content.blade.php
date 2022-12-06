@@ -37,11 +37,11 @@
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Job')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Details')</th>
 
-            @if(config('queue-monitor.ui.show_custom_data'))
+            @if(config('monitor.ui.show_custom_data'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Custom Data')</th>
             @endif
 
-            @if(config('queue-monitor.ui.show_progress_column'))
+            @if(config('monitor.ui.show_progress_column'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
             @endif
 
@@ -51,7 +51,7 @@
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Timing')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Error')</th>
 
-            @if(config('queue-monitor.ui.allow_deletion'))
+            @if(config('monitor.ui.allow_deletion'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Action')</th>
             @endif
         </tr>
@@ -108,8 +108,8 @@
                     <div class="text-xs">
                         <span class="text-gray-600 font-medium">@lang('Queue'):</span>
                         @if(preg_match("~https\:\/\/sqs\.(?<region>[\w-]+)\.\w+\.com\/(?<id>\w+)\/(?<name>\w+)~", $job->queue, $matches))
-                            <span class="font-semibold"><span
-                                        class="font-medium">SQS</span> {{ $matches['name'] }}</span>
+                            <span class="font-semibold">
+                                <span class="font-medium">SQS</span> {{ $matches['name'] }}</span>
                             <br/>
                             <span class="font-semibold">{{ $matches['region'] }} :: {{ $matches['id'] }}</span>
                         @else
@@ -124,7 +124,7 @@
 
                 </td>
 
-                @if(config('queue-monitor.ui.show_custom_data'))
+                @if(config('monitor.ui.show_custom_data'))
 
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
@@ -137,7 +137,7 @@
 
                 @endif
 
-                @if(config('queue-monitor.ui.show_progress_column'))
+                @if(config('monitor.ui.show_progress_column'))
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
                         @if($job->progress !== null)
@@ -203,7 +203,7 @@
 
                 </td>
 
-                @if(config('queue-monitor.ui.allow_deletion'))
+                @if(config('monitor.ui.allow_deletion'))
 
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
@@ -293,7 +293,7 @@
 
 </div>
 
-@if(config('queue-monitor.ui.allow_purge'))
+@if(config('monitor.ui.allow_purge'))
 
     <div class="mt-12">
 

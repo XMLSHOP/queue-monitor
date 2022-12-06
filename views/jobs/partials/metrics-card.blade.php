@@ -3,7 +3,7 @@
     <div class="h-full flex flex-col justify-between p-6 bg-white rounded shadow-md">
 
         <div class="font-semibold text-sm text-gray-600"
-             title="{{ __('Last :days days', ['days' => config('queue-monitor.ui.metrics_time_frame') ?? 14]) }}">
+             title="{{ __('Last :days days', ['days' => config('monitor.ui.metrics_time_frame') ?? 14]) }}">
             {{ __($metric->title) }}
         </div>
 

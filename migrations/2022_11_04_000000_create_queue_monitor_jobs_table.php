@@ -13,16 +13,16 @@ class CreateQueueMonitorJobsTable extends Migration
      */
     public function up()
     {
-        Schema::connection(config('queue-monitor.db.connection'))
-            ->create(config('queue-monitor.db.table.monitor_jobs'), function (Blueprint $table) {
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.jobs'), function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name', 64);
                 $table->string('name_with_namespace');
                 $table->timestamps();
             });
 
-        Schema::connection(config('queue-monitor.db.connection'))
-            ->create(config('queue-monitor.db.table.monitor_queues'), function (Blueprint $table) {
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.queues'), function (Blueprint $table) {
                 $table->smallIncrements('id');
                 $table->string('queue_name', 128);
                 $table->string('connection_name', 128)->nullable();
@@ -32,8 +32,8 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->timestamps();
             });
 
-        Schema::connection(config('queue-monitor.db.connection'))
-            ->create(config('queue-monitor.db.table.monitor'), function (Blueprint $table) {
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.monitor_queue'), function (Blueprint $table) {
                 $table->uuid('uuid')->primary();
 
                 $table->string('job_id', 36)->index();
@@ -63,19 +63,44 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->longText('data')->nullable();
             });
 
-        Schema::connection(config('queue-monitor.db.connection'))
-            ->create(config('queue-monitor.db.table.monitor_queues_sizes'), function (Blueprint $table) {
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.queues_sizes'), function (Blueprint $table) {
                 $table->id();
                 $table->unsignedSmallInteger('queue_id');
                 $table->unsignedInteger('size');
                 $table->timestamp('created_at');
             });
 
-        Schema::connection(config('queue-monitor.db.connection'))
-            ->create(config('queue-monitor.db.table.monitor_hosts'), function (Blueprint $table) {
-                $table->increments('id');
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.hosts'), function (Blueprint $table) {
+                $table->unsignedSmallInteger('id');
                 $table->string('name', 64);
                 $table->timestamps();
+            });
+
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.scheduler'), function (Blueprint $table) {
+                $table->unsignedSmallInteger('id');
+                $table->string('command', 64);
+                $table->string('command', 64);
+                $table->timestamps();
+            });
+
+        Schema::connection(config('monitor.db.connection'))
+            ->create(config('monitor.db.table.monitor_scheduler'), function (Blueprint $table) {
+                $table->uuid('uuid')->primary();
+                $table->unsignedSmallInteger('scheduler_id')->index();
+                $table->unsignedSmallInteger('host_id')->index();
+
+                $table->timestamp('started_at')->nullable()->index();
+                $table->timestamp('finished_at')->nullable()->index();
+                $table->float('time_elapsed', 12, 6)->nullable()->index();
+
+                $table->boolean('failed')->default(false)->index();
+
+                $table->longText('exception')->nullable();
+                $table->text('exception_message')->nullable();
+                $table->text('exception_class')->nullable();
             });
     }
 
@@ -88,10 +113,12 @@ class CreateQueueMonitorJobsTable extends Migration
     {
 
 
-        Schema::connection(config('queue-monitor.db.connection'))->dropIfExists(config('queue-monitor.db.table.monitor_jobs'));
-        Schema::connection(config('queue-monitor.db.connection'))->dropIfExists(config('queue-monitor.db.table.monitor'));
-        Schema::connection(config('queue-monitor.db.connection'))->dropIfExists(config('queue-monitor.db.table.monitor_queues'));
-        Schema::connection(config('queue-monitor.db.connection'))->dropIfExists(config('queue-monitor.db.table.monitor_queues_sizes'));
-        Schema::connection(config('queue-monitor.db.connection'))->dropIfExists(config('queue-monitor.db.table.monitor_hosts'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.jobs'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues_sizes'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.scheduler'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.hosts'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.monitor_queue'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.monitor_scheduler'));
     }
 }

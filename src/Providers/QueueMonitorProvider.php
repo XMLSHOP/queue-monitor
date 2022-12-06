@@ -35,19 +35,19 @@ class QueueMonitorProvider extends ServiceProvider
             }
 
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor/db.php' => config_path('queue-monitor/db.php'),
+                __DIR__ . '/../../config/monitor/db.php' => config_path('monitor/db.php'),
             ], 'config');
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor/ui.php' => config_path('queue-monitor/ui.php'),
+                __DIR__ . '/../../config/monitor/ui.php' => config_path('monitor/ui.php'),
             ], 'config');
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor/alarm.php' => config_path('queue-monitor/alarm.php'),
+                __DIR__ . '/../../config/monitor/alarm.php' => config_path('monitor/alarm.php'),
             ], 'config');
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor/queue-sizes-retrieves.php' => config_path('queue-monitor/queue-sizes-retrieves.php'),
+                __DIR__ . '/../../config/monitor/queue-sizes-retrieves.php' => config_path('monitor/queue-sizes-retrieves.php'),
             ], 'config');
             $this->publishes([
-                __DIR__ . '/../../config/queue-monitor/dashboard-charts.php' => config_path('queue-monitor/dashboard-charts.php'),
+                __DIR__ . '/../../config/monitor/dashboard-charts.php' => config_path('monitor/dashboard-charts.php'),
             ], 'config');
 
             $this->publishes([
@@ -66,6 +66,10 @@ class QueueMonitorProvider extends ServiceProvider
 
         /** @phpstan-ignore-next-line */
         Route::mixin(new QueueMonitorRoutes());
+
+        if ( ! config('monitor.settings.active')) {
+            return;
+        }
 
         Event::listen([
             JobQueued::class,
@@ -104,28 +108,28 @@ class QueueMonitorProvider extends ServiceProvider
         /** @phpstan-ignore-next-line */
         if ( ! $this->app->configurationIsCached()) {
             $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor/db.php',
-                'queue-monitor.db'
+                __DIR__ . '/../../config/monitor/db.php',
+                'monitor.db'
             );
 
             $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor/ui.php',
-                'queue-monitor.ui'
+                __DIR__ . '/../../config/monitor/ui.php',
+                'monitor.ui'
             );
 
             $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor/alarm.php',
-                'queue-monitor.alarm'
+                __DIR__ . '/../../config/monitor/alarm.php',
+                'monitor.alarm'
             );
 
             $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor/queue-sizes-retrieves.php',
-                'queue-monitor.queue-sizes-retrieves'
+                __DIR__ . '/../../config/monitor/queue-sizes-retrieves.php',
+                'monitor.queue-sizes-retrieves'
             );
 
             $this->mergeConfigFrom(
-                __DIR__ . '/../../config/queue-monitor/dashboard-charts.php',
-                'queue-monitor.dashboard-charts'
+                __DIR__ . '/../../config/monitor/dashboard-charts.php',
+                'monitor.dashboard-charts'
             );
         }
 

@@ -21,11 +21,11 @@ class QueueMonitorRoutes
             $this->get('queue-sizes', '\xmlshop\QueueMonitor\Controllers\QueueSizesChartsController')->name('queue-monitor::queue-sizes');
 
 
-            if (config('queue-monitor.ui.allow_deletion')) {
+            if (config('monitor.ui.allow_deletion')) {
                 $this->delete('monitors/{monitor}', '\xmlshop\QueueMonitor\Controllers\DeleteMonitorController')->name('queue-monitor::destroy');
             }
 
-            if (config('queue-monitor.ui.allow_purge')) {
+            if (config('monitor.ui.allow_purge')) {
                 $this->delete('purge', '\xmlshop\QueueMonitor\Controllers\PurgeMonitorsController')->name('queue-monitor::purge');
             }
         };
