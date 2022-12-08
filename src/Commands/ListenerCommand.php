@@ -62,6 +62,7 @@ class ListenerCommand extends Command
      */
     public function handle()
     {
+        sleep(5);
         self::$alarm_config = config('queue-monitor.alarm');
 
         try {
