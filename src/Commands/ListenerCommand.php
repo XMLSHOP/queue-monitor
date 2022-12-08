@@ -192,6 +192,15 @@ class ListenerCommand extends Command
 
         $hour_job_info = $this->jobsAvgPrev[$job['id']];
 
+        foreach (['PendingAvg', 'ExecutingAvg'] as $key) {
+            if (0 === $hour_job_info[$key]) {
+                $hour_job_info[$key] = 0.000001;
+            }
+            if (0 === $job[$key]) {
+                $job[$key] = 0.000001;
+            }
+        }
+
         if ($job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
             $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
                 round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
