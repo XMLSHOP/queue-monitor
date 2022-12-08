@@ -37,7 +37,7 @@ class ListenerCommand extends Command
 
     private array $jobsAvgPrev;
     /**
-     * @var \Illuminate\Contracts\Foundation\Application|mixed
+     * @var ?Slack
      */
     private ?Slack $slack = null;
 
