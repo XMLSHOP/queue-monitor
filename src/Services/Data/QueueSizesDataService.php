@@ -20,7 +20,7 @@ class QueueSizesDataService
         $queuesSizeRepository = app(QueueMonitorQueueSizesRepository::class);
         $data = [];
 
-        foreach (config('queue-monitor.dashboard-charts.root') as $chartOptions) {
+        foreach (config('monitor.dashboard-charts.root') as $chartOptions) {
             $obj = [];
             if (Arr::exists($chartOptions, 'queues')) {
                 $obj = array_merge($obj, $chartOptions['properties']);

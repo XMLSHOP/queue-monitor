@@ -41,8 +41,8 @@ class CleanUpCommand extends Command
      */
     public function handle()
     {
-        $this->queuesSizeRepository->purge(config('queue-monitor.db.clean_after_days'));
-        $this->monitorRepository->purge(config('queue-monitor.db.clean_after_days'));
+        $this->queuesSizeRepository->purge(config('monitor.db.clean_after_days'));
+        $this->monitorRepository->purge(config('monitor.db.clean_after_days'));
 
         return 0;
     }

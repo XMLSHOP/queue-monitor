@@ -94,8 +94,8 @@ class QueueMonitorQueueRepository extends BaseRepository
                 'mq.alert_threshold',
                 'mqs.size',
             ])
-            ->from(config('queue-monitor.db.table.monitor_queues'), 'mq')
-            ->join(config('queue-monitor.db.table.monitor_queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
+            ->from(config('monitor.db.table.queues'), 'mq')
+            ->join(config('monitor.db.table.queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
             ->whereIn('mqs.created_at', function (\Illuminate\Database\Query\Builder $query) {
                 $query
                     ->from(with(new QueueMonitorQueuesSizesModel())->getTable())

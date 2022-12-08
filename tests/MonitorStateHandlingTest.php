@@ -43,7 +43,7 @@ class MonitorStateHandlingTest extends TestCase
                 ->first(['id'])->id,
             $monitor->queue_monitor_job_id);
         $this->assertEquals(IntentionallyFailedException::class, $monitor->exception_class);
-        $this->assertEquals(str_repeat('x', config('queue-monitor.db.max_length_exception_message')), $monitor->exception_message);
+        $this->assertEquals(str_repeat('x', config('monitor.db.max_length_exception_message')), $monitor->exception_message);
         $this->assertInstanceOf(IntentionallyFailedException::class, $monitor->getException());
     }
 }

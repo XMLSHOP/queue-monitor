@@ -12,14 +12,13 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
+use xmlshop\QueueMonitor\Repository\QueueMonitorHostsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
 
 class QueueMonitorService
 {
-    private const TIMESTAMP_EXACT_FORMAT = 'Y-m-d H:i:s.u';
-
     /**
      * @var bool
      */
@@ -57,9 +56,9 @@ class QueueMonitorService
      *
      * @param \Illuminate\Queue\Events\JobQueued $event
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     public static function handleJobQueued(JobQueued $event): void
     {
@@ -71,8 +70,9 @@ class QueueMonitorService
      *
      * @param \Illuminate\Queue\Events\JobProcessing $event
      *
-     * @return void
      * @throws \ReflectionException
+     *
+     * @return void
      */
     public static function handleJobProcessing(JobProcessing $event): void
     {
@@ -84,8 +84,9 @@ class QueueMonitorService
      *
      * @param \Illuminate\Queue\Events\JobProcessed $event
      *
-     * @return void
      * @throws \ReflectionException
+     *
+     * @return void
      */
     public static function handleJobProcessed(JobProcessed $event): void
     {
@@ -97,9 +98,9 @@ class QueueMonitorService
      *
      * @param \Illuminate\Queue\Events\JobFailed $event
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     public static function handleJobFailed(JobFailed $event): void
     {
@@ -111,9 +112,9 @@ class QueueMonitorService
      *
      * @param \Illuminate\Queue\Events\JobExceptionOccurred $event
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     public static function handleJobExceptionOccurred(JobExceptionOccurred $event): void
     {
@@ -145,15 +146,15 @@ class QueueMonitorService
      * @param string|null $jobConnection
      * @param \Closure|ShouldQueue|string $job
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     protected static function jobQueued(mixed $jobId, ?string $jobConnection, \Closure|ShouldQueue|string $job): void
     {
         $jobClass = get_class($job);
 
-        if (!self::shouldBeMonitored($jobClass)
+        if ( ! self::shouldBeMonitored($jobClass)
             || $job instanceof \Illuminate\Events\CallQueuedListener) {
             return;
         }
@@ -165,15 +166,19 @@ class QueueMonitorService
 
         $now = Carbon::now();
 
+        /** @var QueueMonitorJobsRepository $jobsRepository */
         $jobsRepository = app(QueueMonitorJobsRepository::class);
+        /** @var QueueMonitorHostsRepository $hostsRepository */
+        $hostsRepository = app(QueueMonitorHostsRepository::class);
+
         $repository = self::getRepository();
         $repository->addQueued([
             'job_id' => $jobId,
             'queue_monitor_job_id' => $jobsRepository->firstOrCreate($jobClass),
             'queue' => $jobQueue,
+            'host_id' => $hostsRepository->firstOrCreate(),
             'connection' => $jobConnection,
             'queued_at' => $now,
-            'queued_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
             'attempt' => 0,
         ]);
     }
@@ -183,29 +188,33 @@ class QueueMonitorService
      *
      * @param \Illuminate\Contracts\Queue\Job $job
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     protected static function jobStarted(Job $job): void
     {
-        if (!self::shouldBeMonitored($job)) {
+        if ( ! self::shouldBeMonitored($job)) {
             return;
         }
         $now = Carbon::now();
 
+        /** @var QueueMonitorJobsRepository $jobsRepository */
         $jobsRepository = app(QueueMonitorJobsRepository::class);
+        /** @var QueueMonitorHostsRepository $hostsRepository */
+        $hostsRepository = app(QueueMonitorHostsRepository::class);
+
         $repository = self::getRepository();
 
         /** @noinspection PhpUndefinedMethodInspection */
         $repository->updateOrCreateStarted([
             'job_id' => self::getJobId($job),
-            'attempt' => $job->attempts(), //TODO: check! works with $job->attempts() - 1 only
+            'attempt' => $job->attempts(), // TODO: check! works with $job->attempts() - 1 only
             'queue_monitor_job_id' => $jobsRepository->firstOrCreate($job->resolveName()),
             'queue' => $job->getQueue(),
+            'host_id' => $hostsRepository->firstOrCreate(),
             'connection' => $job->getConnectionName(),
             'started_at' => $now,
-            'started_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
         ]);
     }
 
@@ -216,14 +225,13 @@ class QueueMonitorService
      * @param bool $failed
      * @param \Throwable|null $exception
      *
-     * @return void
      * @throws \ReflectionException
      *
+     * @return void
      */
     protected static function jobFinished(Job $job, bool $failed = false, ?\Throwable $exception = null): void
     {
-
-        if (!self::shouldBeMonitored($job)) {
+        if ( ! self::shouldBeMonitored($job)) {
             return;
         }
 
@@ -237,8 +245,8 @@ class QueueMonitorService
 
         $now = Carbon::now();
 
-        if ($startedAt = $monitor->getStartedAtExact()) {
-            $timeElapsed = (float)$startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
+        if ($startedAt = $monitor->getStarted()) {
+            $timeElapsed = (float) $startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
@@ -253,16 +261,15 @@ class QueueMonitorService
 
         $attributes = [
             'finished_at' => $now,
-            'finished_at_exact' => $now->format(self::TIMESTAMP_EXACT_FORMAT),
             'time_elapsed' => $timeElapsed ?? 0.0,
             'failed' => $failed,
         ];
 
         if (null !== $exception) {
             $attributes += [
-                'exception' => mb_strcut((string)$exception, 0, config('queue-monitor.db.max_length_exception', 4294967295)),
+                'exception' => mb_strcut((string) $exception, 0, config('monitor.db.max_length_exception', 4294967295)),
                 'exception_class' => get_class($exception),
-                'exception_message' => mb_strcut($exception->getMessage(), 0, config('queue-monitor.db.max_length_exception_message', 65535)),
+                'exception_message' => mb_strcut($exception->getMessage(), 0, config('monitor.db.max_length_exception_message', 65535)),
             ];
         }
 
@@ -274,16 +281,15 @@ class QueueMonitorService
      *
      * @param Job|string $job
      *
-     * @return bool
      * @throws \ReflectionException
      *
+     * @return bool
      */
     public static function shouldBeMonitored(Job|string $job): bool
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return match (true) {
-            is_string($job) =>
-                in_array(IsMonitored::class, array_keys((new \ReflectionClass($job))->getTraits()))
+            is_string($job) => in_array(IsMonitored::class, array_keys((new \ReflectionClass($job))->getTraits()))
                 || (new \ReflectionClass($job))->getParentClass()
                 && in_array(IsMonitored::class, array_keys((new \ReflectionClass($job))->getParentClass()->getTraits())),
             default => array_key_exists(IsMonitored::class, ClassUses::classUsesRecursive(

@@ -1,8 +1,8 @@
 # Laravel Queue Monitor
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![Total Downloads](https://img.shields.io/packagist/dt/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![License](https://img.shields.io/packagist/l/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
+[![Latest Stable Version](https://img.shields.io/packagist/v/xmlshop/laravel-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
+[![Total Downloads](https://img.shields.io/packagist/dt/xmlshop/laravel-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
+[![License](https://img.shields.io/packagist/l/xmlshop/laravel-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
 [![GitHub Build Status](https://img.shields.io/github/workflow/status/xmlshop/Laravel-Queue-Monitor/Tests?style=flat-square)](https://github.com/xmlshop/Laravel-Queue-Monitor/actions)
 
 This package offers monitoring like [Laravel Horizon](https://laravel.com/docs/horizon) for database queue.
@@ -26,7 +26,7 @@ composer require xmlshop/laravel-queue-monitor
 Copy configuration & migration to your project:
 
 ```
-php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\QueueMonitorProvider"  --tag=config --tag=migrations
+php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\MonitorProvider"  --tag=config --tag=migrations
 ```
 
 Migrate the Queue Monitoring table. The table name can be configured in the config file or via the published migration.
@@ -104,7 +104,7 @@ Route::prefix('jobs')->group(function () {
 | ----- | ------------------- |
 | `/`   | Show the jobs table |
 
-See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/queue-monitor.php) for more information.
+See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/monitor.php) for more information.
 
 ![Preview](https://raw.githubusercontent.com/xmlshop/Laravel-Queue-Monitor/master/preview.png)
 
@@ -216,7 +216,7 @@ class CustomDataJob implements ShouldQueue
 }
 ``` 
 
-In order to show custom data on UI you need to add this line under `config/queue-monitor.php`
+In order to show custom data on UI you need to add this line under `config/monitor.php`
 ```php
 'ui' => [
     ...
@@ -257,10 +257,6 @@ $job = QueueMonitorModel::query()->first();
 $job->isFinished();
 $job->hasFailed();
 $job->hasSucceeded();
-
-// Exact start & finish dates with milliseconds
-$job->getStartedAtExact();
-$job->getFinishedAtExact();
 
 // If the job is still running, get the estimated seconds remaining
 // Notice: This requires a progress to be set

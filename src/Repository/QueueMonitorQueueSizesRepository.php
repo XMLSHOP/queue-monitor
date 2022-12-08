@@ -36,12 +36,12 @@ class QueueMonitorQueueSizesRepository extends BaseRepository
         /** @noinspection UnknownColumnInspection */
         return
             $this->model::query()
-            ->from(config('queue-monitor.db.table.monitor_queues_sizes'), 'qs')
+            ->from(config('monitor.db.table.queues_sizes'), 'qs')
             ->select('qs.created_at')
             ->selectRaw('GROUP_CONCAT(CONCAT(q.connection_name, \':\', q.queue_name)) as queue_names')
             ->selectRaw('GROUP_CONCAT(qs.size) as sizes')
             ->whereBetween('qs.created_at', [$from, $to])
-            ->join(config('queue-monitor.db.table.monitor_queues').' as q', 'q.id', '=', 'qs.queue_id')
+            ->join(config('monitor.db.table.queues').' as q', 'q.id', '=', 'qs.queue_id')
             ->when(null !== $queues, function (\Illuminate\Database\Eloquent\Builder $query) use ($queues) {
                 $query->whereRaw(
                     'CONCAT(q.connection_name, \':\', q.queue_name) IN ('.

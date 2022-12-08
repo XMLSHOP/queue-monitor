@@ -10,6 +10,6 @@ class MonitoredFailingJobWithHugeExceptionMessage extends BaseJob
 
     public function handle(): void
     {
-        throw new IntentionallyFailedException(str_repeat('x', config('queue-monitor.db.max_length_exception_message') + 10));
+        throw new IntentionallyFailedException(str_repeat('x', config('monitor.db.max_length_exception_message') + 10));
     }
 }

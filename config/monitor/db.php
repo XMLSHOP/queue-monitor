@@ -9,10 +9,19 @@ return [
     'connection' => null,
 
     'table' => [
-        'monitor' => 'x_queue_monitor',
-        'monitor_jobs' => 'x_queue_monitor_jobs',
-        'monitor_queues' => 'x_queue_monitor_queues',
-        'monitor_queues_sizes' => 'x_queue_monitor_queues_sizes',
+        'hosts' => 'x_hosts',
+        'exceptions' => 'x_exceptions_from_monitors',
+
+        'jobs' => 'x_jobs',
+        'queues_sizes' => 'x_queues_sizes',
+        'queues' => 'x_queues',
+        'monitor_queue' => 'x_monitor_queue',
+
+        'commands' => 'x_commands',
+        'monitor_command' => 'x_monitor_command',
+
+        'schedulers' => 'x_schedulers',
+        'monitor_scheduler' => 'x_monitor_scheduler',
     ],
 
     /*
