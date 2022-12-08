@@ -1,0 +1,52 @@
+name: Code analyse
+
+on:
+  - push
+
+env:
+  PSALM_COUNT_FILES_IN_BATCH: 10
+  APP_ENV: local
+  APP_DEBUG: true
+  LOG_CHANNEL: single
+  DB_CONNECTION: sqlite
+  APP_KEY: "base64:eTITmMxBb/v+E5iWPwtc2VnvFxt9ZRFZZPavcUam6eY="
+  DEFAULT_STORAGE: "local"
+
+jobs:
+  code-style-and-static-analyse:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: ['8.0']
+    steps:
+      - name: Git checkout placeholder-service
+        uses: actions/checkout@v2
+      # https://github.com/shivammathur/setup-php (community)
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+          tools: composer:v2
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo, imagick
+        env:
+          update: true
+      - name: Check PHP Version
+        run: php -v
+      # —— Composer —————————————————————————————————————————————————————————
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install Composer dependencies
+        run: composer install
+      - name: Execute tests
+        run: vendor/bin/phpunit
