@@ -59,7 +59,7 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->string('exception_id', 36)->nullable();
 
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
-                $table->float('use_cpu', 3)->nullable();
+                $table->float('use_cpu', 12, 6)->nullable();
 
                 $table->longText('data')->nullable();
             });
@@ -103,7 +103,7 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->string('exception_id', 36)->nullable();
 
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
-                $table->float('use_cpu', 3)->nullable();
+                $table->float('use_cpu', 12, 6)->nullable();
 
                 $table->timestamp('created_at')->index();
             });
@@ -134,7 +134,7 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->string('exception_id', 36)->nullable();
 
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
-                $table->float('use_cpu', 3)->nullable();
+                $table->float('use_cpu', 12, 6)->nullable();
 
                 $table->timestamp('created_at')->index();
             });
