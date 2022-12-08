@@ -26,7 +26,7 @@ composer require xmlshop/laravel-queue-monitor
 Copy configuration & migration to your project:
 
 ```
-php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\QueueMonitorProvider"  --tag=config --tag=migrations
+php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\MonitorProvider"  --tag=config --tag=migrations
 ```
 
 Migrate the Queue Monitoring table. The table name can be configured in the config file or via the published migration.

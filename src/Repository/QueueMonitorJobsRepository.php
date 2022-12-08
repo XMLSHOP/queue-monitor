@@ -71,7 +71,7 @@ class QueueMonitorJobsRepository extends BaseRepository
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
                         ->whereNotNull('finished_at')
                         ->whereFailed(1);
-                }, ])
+                },])
             ->withAvg(relation: ['assignedQueueMonitor as avg_exec_time' => function (Builder $q) {
                 /** @noinspection UnknownColumnInspection */
                 $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
@@ -90,9 +90,7 @@ class QueueMonitorJobsRepository extends BaseRepository
     public function getJobsAlertInfo(int $period_seconds, int $offset_seconds)
     {
         /** @noinspection UnknownColumnInspection */
-        return
-//            $m =
-                QueueMonitorModel::query()
+        return QueueMonitorModel::query()
             ->select(['qmj.id', 'qmj.name'])
             ->selectRaw('SUM(qm.failed) as FailedCount')
             ->selectRaw('COUNT(1) - COUNT(qm.time_pending_elapsed) as PendingCount')
@@ -104,8 +102,7 @@ class QueueMonitorJobsRepository extends BaseRepository
             ->orWhereRaw('qm.started_at BETWEEN (DATE_SUB(NOW(),INTERVAL ? SECOND)) AND (DATE_SUB(NOW(),INTERVAL ? SECOND))', [$period_seconds, $offset_seconds])
             ->groupBy('qmj.id')
             ->orderBy('qmj.id')
-//            ;
-//            dd($m->dd());
+//            ->dd()
             ->get();
     }
 }

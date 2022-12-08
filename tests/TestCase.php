@@ -5,7 +5,7 @@ namespace xmlshop\QueueMonitor\Tests;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Orchestra\Testbench\TestCase as BaseTestCase;
-use xmlshop\QueueMonitor\Providers\QueueMonitorProvider;
+use xmlshop\QueueMonitor\Providers\MonitorProvider;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 use xmlshop\QueueMonitor\Tests\Support\BaseJob;
 
@@ -62,7 +62,7 @@ class TestCase extends BaseTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            QueueMonitorProvider::class,
+            MonitorProvider::class,
         ];
     }
 }

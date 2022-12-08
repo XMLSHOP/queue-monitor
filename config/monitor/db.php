@@ -9,11 +9,18 @@ return [
     'connection' => null,
 
     'table' => [
-        'jobs' => 'x_jobs',
-        'queues' => 'x_queues',
-        'queues_sizes' => 'x_queues_sizes',
         'hosts' => 'x_hosts',
+        'exceptions' => 'x_exceptions_from_monitors',
+
+        'jobs' => 'x_jobs',
+        'queues_sizes' => 'x_queues_sizes',
+        'queues' => 'x_queues',
         'monitor_queue' => 'x_monitor_queue',
+
+        'commands' => 'x_commands',
+        'monitor_command' => 'x_monitor_command',
+
+        'schedulers' => 'x_schedulers',
         'monitor_scheduler' => 'x_monitor_scheduler',
     ],
 

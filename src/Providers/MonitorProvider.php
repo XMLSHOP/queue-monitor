@@ -2,6 +2,8 @@
 
 namespace xmlshop\QueueMonitor\Providers;
 
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -14,10 +16,12 @@ use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
 use xmlshop\QueueMonitor\Commands\CleanUpCommand;
 use xmlshop\QueueMonitor\Commands\ListenerCommand;
+use xmlshop\QueueMonitor\EventHandlers\CommandListener;
+use xmlshop\QueueMonitor\EventHandlers\ScheduledTaskEventSubscriber;
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
-class QueueMonitorProvider extends ServiceProvider
+class MonitorProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -49,6 +53,9 @@ class QueueMonitorProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../../config/monitor/dashboard-charts.php' => config_path('monitor/dashboard-charts.php'),
             ], 'config');
+            $this->publishes([
+                __DIR__ . '/../../config/monitor/settings.php' => config_path('monitor/settings.php'),
+            ], 'config');
 
             $this->publishes([
                 __DIR__ . '/../../migrations' => database_path('migrations'),
@@ -67,35 +74,23 @@ class QueueMonitorProvider extends ServiceProvider
         /** @phpstan-ignore-next-line */
         Route::mixin(new QueueMonitorRoutes());
 
-        if ( ! config('monitor.settings.active')) {
+        if (!config('monitor.settings.active')) {
             return;
         }
+        if (config('monitor.settings.active-monitor-scheduler')) {
+//            Event::subscribe(ScheduledTaskEventSubscriber::class);
+        }
+        if (config('monitor.settings.active-monitor-commands')) {
 
-        Event::listen([
-            JobQueued::class,
-        ], function (JobQueued $event) {
-            // Event happens when we do Job::dispatch(...)
-            QueueMonitorService::handleJobQueued($event);
-        });
 
-        /** @var QueueManager $manager */
-        $manager = app(QueueManager::class);
+//            Event::listen(CommandStarting::class, CommandListener::class);
+//            Event::listen(CommandFinished::class, CommandListener::class);
+        }
 
-        $manager->before(static function (JobProcessing $event) {
-            QueueMonitorService::handleJobProcessing($event);
-        });
 
-        $manager->after(static function (JobProcessed $event) {
-            QueueMonitorService::handleJobProcessed($event);
-        });
-
-        $manager->failing(static function (JobFailed $event) {
-            QueueMonitorService::handleJobFailed($event);
-        });
-
-        $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
-            QueueMonitorService::handleJobExceptionOccurred($event);
-        });
+        if (config('monitor.settings.active-monitor-queue-jobs')) {
+            $this->listenQueues();
+        }
     }
 
     /**
@@ -106,7 +101,7 @@ class QueueMonitorProvider extends ServiceProvider
     public function register()
     {
         /** @phpstan-ignore-next-line */
-        if ( ! $this->app->configurationIsCached()) {
+        if (!$this->app->configurationIsCached()) {
             $this->mergeConfigFrom(
                 __DIR__ . '/../../config/monitor/db.php',
                 'monitor.db'
@@ -131,6 +126,9 @@ class QueueMonitorProvider extends ServiceProvider
                 __DIR__ . '/../../config/monitor/dashboard-charts.php',
                 'monitor.dashboard-charts'
             );
+            $this->mergeConfigFrom(
+                __DIR__ . '/../../config/monitor/settings.php',
+                'monitor.settings');
         }
 
         /** @phpstan-ignore-next-line */
@@ -142,5 +140,33 @@ class QueueMonitorProvider extends ServiceProvider
             'queue-monitor:clean-up',
             'queue-monitor:listener',
         ]);
+    }
+
+    private function listenQueues()
+    {
+        Event::listen([
+            JobQueued::class,
+        ], function (JobQueued $event) {
+            QueueMonitorService::handleJobQueued($event);
+        });
+
+        /** @var QueueManager $manager */
+        $manager = app(QueueManager::class);
+
+        $manager->before(static function (JobProcessing $event) {
+            QueueMonitorService::handleJobProcessing($event);
+        });
+
+        $manager->after(static function (JobProcessed $event) {
+            QueueMonitorService::handleJobProcessed($event);
+        });
+
+        $manager->failing(static function (JobFailed $event) {
+            QueueMonitorService::handleJobFailed($event);
+        });
+
+        $manager->exceptionOccurred(static function (JobExceptionOccurred $event) {
+            QueueMonitorService::handleJobExceptionOccurred($event);
+        });
     }
 }
