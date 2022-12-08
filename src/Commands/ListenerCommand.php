@@ -86,7 +86,7 @@ class ListenerCommand extends Command
         $messages = [];
         foreach ($this->queuesRepository->getQueuesAlertInfo() as $queue) {
             if (null !== $queue['alert_threshold'] && $queue['size'] >= $queue['alert_threshold'] && $this->validatedAlarm('q-' . $queue['id'])) {
-                $messages[] = 'Queue *[' . $queue['connection_name'] . ':' . $queue['queue_name'] . ']* exceed the threshold!' .
+                $messages[] = 'Queue *[' . $queue['connection_name'] . ':' . $queue['queue_name'] . ']* exceed the threshold!' . "\n" .
                     'Size now: *' . $queue['size'] . '*. ' .
                     '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>' . "\n\n";
             }
@@ -198,21 +198,14 @@ class ListenerCommand extends Command
 
         $hour_job_info = $this->jobsAvgPrev[$job['id']];
 
-        foreach (['PendingAvg', 'ExecutingAvg'] as $key) {
-            if (0 === $hour_job_info[$key]) {
-                $hour_job_info[$key] = 0.000001;
-            }
-            if (0 === $job[$key]) {
-                $job[$key] = 0.000001;
-            }
-        }
-
-        if ($job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
+        if ($hour_job_info['PendingAvg'] > 0
+            && $job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
             $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
                 round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
         }
 
-        if ($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous) {
+        if ($hour_job_info['ExecutingAvg'] > 0
+            && $job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous) {
             $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
                 round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';
         }
