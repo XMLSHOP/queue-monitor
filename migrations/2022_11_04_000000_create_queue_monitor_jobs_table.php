@@ -123,8 +123,6 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->unsignedSmallInteger('scheduled_id')->index();
                 $table->unsignedSmallInteger('host_id')->index();
 
-                $table->string('type')->nullable();
-
                 $table->timestamp('started_at')->nullable()->index();
                 $table->timestamp('finished_at')->nullable()->index();
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
