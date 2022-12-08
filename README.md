@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
 [![Total Downloads](https://img.shields.io/packagist/dt/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
 [![License](https://img.shields.io/packagist/l/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![GitHub Build Status](https://img.shields.io/github/workflow/status/xmlshop/Laravel-Queue-Monitor/Tests?style=flat-square)](https://github.com/xmlshop/Laravel-Queue-Monitor/actions)
+[![Code analyse](https://github.com/XMLSHOP/Laravel-Queue-Monitor/actions/workflows/push-build.yml/badge.svg)](https://github.com/XMLSHOP/Laravel-Queue-Monitor/actions/workflows/push-build.yml)
 
 This package offers monitoring like [Laravel Horizon](https://laravel.com/docs/horizon) for database queue.
 

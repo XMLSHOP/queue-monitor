@@ -36,6 +36,7 @@ class ListenerCommand extends Command
     private array $alarmIdentifications = [];
 
     private array $jobsAvgPrev;
+    
     /**
      * @var ?Slack
      */

@@ -25,7 +25,7 @@ class TestCase extends BaseTestCase
         $this->withExceptionHandling();
 
         try {
-//            $this->artisan('queue:table');
+            $this->artisan('queue:table');
             $this->artisan('migrate');
         } catch (InvalidArgumentException $e) {
             // TODO: this command fails locally but is required for travis ci
