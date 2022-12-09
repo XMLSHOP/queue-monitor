@@ -65,9 +65,6 @@ class AggregateQueuesSizesCommand extends Command
         }
         $this->queuesSizeRepository->bulkInsert($data);
 
-        Artisan::command('queue-monitor:listener ', function () {
-        });
-
         return 0;
     }
 

@@ -14,18 +14,17 @@
         </testsuite>
     </testsuites>
     <php>
-        <server name="APP_ENV" value="testing"/>
-<!--        <server name="DB_CONNECTION" value="sqlite"/>-->
-<!--        <server name="DB_DATABASE" value=":memory:"/>-->
-
-        <server name="DB_CONNECTION" value="mysql"/>
-        <server name="DB_DATABASE" value="x_laravel_queue_monitor_test"/>
+        <server name="APP_ENV" value="testing" />
+        <server name="DB_CONNECTION" value="sqlite"/>
+        <server name="DB_DATABASE" value=":memory:"/>
+<!--        <server name="DB_CONNECTION" value="mysql"/>-->
+<!--        <server name="DB_DATABASE" value="x_laravel_queue_monitor_test"/>-->
+        <server name="BCRYPT_ROUNDS" value="4"/>
+        <server name="CACHE_DRIVER" value="array"/>
+        <server name="QUEUE_CONNECTION" value="database"/>
         <server name="DB_HOST" value="localhost"/>
         <server name="DB_PORT" value="3306"/>
         <server name="DB_USERNAME" value="root"/>
         <server name="DB_PASSWORD" value="01234567"/>
-        <server name="BCRYPT_ROUNDS" value="4"/>
-        <server name="CACHE_DRIVER" value="array"/>
-        <server name="QUEUE_CONNECTION" value="database"/>
     </php>
 </phpunit>
