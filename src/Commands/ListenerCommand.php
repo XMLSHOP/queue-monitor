@@ -110,10 +110,7 @@ class ListenerCommand extends Command
             $this->sendNotification(implode("\n", $messages));
         }
 
-        try {
-            Cache::store('redis')->put(self::CACHE_KEY, $this->alarmIdentifications, now()->addMinutes(5));
-        } catch (\Exception $e) {
-        }
+        Cache::store('redis')->put(self::CACHE_KEY, $this->alarmIdentifications, 4 * 60 + 30); //4m 30s
 
         return 0;
     }
