@@ -152,7 +152,7 @@ class ListenerCommand extends Command
             ->gt(
                 Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
         ) {
-            unlink($this->alarmIdentifications[$alarmId]);
+            unset($this->alarmIdentifications[$alarmId]);
         }
 
         if (Arr::exists($this->alarmIdentifications, $alarmId)) {
