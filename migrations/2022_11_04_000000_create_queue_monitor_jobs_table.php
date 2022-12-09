@@ -16,8 +16,8 @@ class CreateQueueMonitorJobsTable extends Migration
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.jobs'), function (Blueprint $table) {
                 $table->smallIncrements('id');
-                $table->string('name', 64);
-                $table->string('name_with_namespace');
+                $table->string('name', 64)->unique();
+                $table->string('name_with_namespace')->unique();
                 $table->timestamps();
             });
 
@@ -83,7 +83,7 @@ class CreateQueueMonitorJobsTable extends Migration
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.commands'), function (Blueprint $table) {
                 $table->unsignedSmallInteger('id');
-                $table->string('command', 64);
+                $table->string('command', 64)->unique();
                 $table->string('class_with_namespace', 64)->nullable();
                 $table->timestamps();
             });
@@ -111,7 +111,7 @@ class CreateQueueMonitorJobsTable extends Migration
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.schedulers'), function (Blueprint $table) {
                 $table->unsignedSmallInteger('id');
-                $table->string('name');
+                $table->string('name')->unique();
                 $table->string('type')->nullable();
                 $table->string('cron_expression');
                 $table->timestamps();
