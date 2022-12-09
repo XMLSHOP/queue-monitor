@@ -36,7 +36,7 @@ class ListenerCommand extends Command
     private array $alarmIdentifications = [];
 
     private array $jobsAvgPrev;
-    
+
     /**
      * @var ?Slack
      */
@@ -65,25 +65,20 @@ class ListenerCommand extends Command
         sleep(5);
         self::$alarm_config = config('queue-monitor.alarm');
 
-        try {
-            $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
-            $cmd_disabled = Cache::store('redis')->get(self::DISABLE_CACHE_KEY, false);
-            if ('disable' === $this->argument('disable')) {
-                Cache::store('redis')->put(self::DISABLE_CACHE_KEY, true, Carbon::now()->addHours((int)$this->argument('hours')));
-                $cmd_disabled = true;
-            }
-            if ('enable' === $this->argument('disable')) {
-                Cache::store('redis')->forget(self::DISABLE_CACHE_KEY);
-                $cmd_disabled = false;
-            }
-        } catch (\Exception $e) {
+        $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
+        $cmd_disabled = Cache::store('redis')->get(self::DISABLE_CACHE_KEY, false);
+        if ('disable' === $this->argument('disable')) {
+            Cache::store('redis')->put(self::DISABLE_CACHE_KEY, true, Carbon::now()->addHours((int)$this->argument('hours')));
+            $cmd_disabled = true;
+        }
+        if ('enable' === $this->argument('disable')) {
+            Cache::store('redis')->forget(self::DISABLE_CACHE_KEY);
+            $cmd_disabled = false;
         }
 
         if (!self::$alarm_config['is_active'] || $cmd_disabled) {
             return 0;
         }
-
-        $this->alarmIdentifications = [];
 
         $messages = [];
         foreach ($this->queuesRepository->getQueuesAlertInfo() as $queue) {
@@ -198,18 +193,20 @@ class ListenerCommand extends Command
                 CarbonInterval::seconds($job['PendingAvg'])->cascade()->forHumans() . '*.';
         }
 
-        $hour_job_info = $this->jobsAvgPrev[$job['id']];
+        if (Arr::exists($this->jobsAvgPrev, $job['id'])) {
+            $hour_job_info = $this->jobsAvgPrev[$job['id']];
 
-        if ($hour_job_info['PendingAvg'] > 0
-            && $job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
-            $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
-                round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
-        }
+            if ($hour_job_info['PendingAvg'] > 0
+                && $job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous) {
+                $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
+                    round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
+            }
 
-        if ($hour_job_info['ExecutingAvg'] > 0
-            && $job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous) {
-            $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
-                round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';
+            if ($hour_job_info['ExecutingAvg'] > 0
+                && $job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous) {
+                $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
+                    round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';
+            }
         }
 
         return [
