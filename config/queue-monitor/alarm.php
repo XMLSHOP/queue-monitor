@@ -27,8 +27,11 @@ return [
         'pending_count' => 10,
         'pending_time' => 120, // seconds
 
-        'pending_time_to_previous' => 1.5,
-        'execution_time_to_previous' => 1.5,
+        'pending_time_to_previous' => true,
+        'execution_time_to_previous' => true,
+
+        'pending_time_to_previous_factor' => 1.5,
+        'execution_time_to_previous_factor' => 1.5,
 
         'exceptions' => [
             /*
