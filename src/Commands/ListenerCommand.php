@@ -148,9 +148,17 @@ class ListenerCommand extends Command
      */
     private function validatedAlarm(string $alarmId): bool
     {
+        if (now()->subMinutes(4)->subSeconds(10)
+            ->gt(
+                Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
+        ) {
+            unlink($this->alarmIdentifications[$alarmId]);
+        }
+
         if (Arr::exists($this->alarmIdentifications, $alarmId)) {
             return false;
         }
+
         $this->alarmIdentifications[$alarmId] = time();
 
         return true;
