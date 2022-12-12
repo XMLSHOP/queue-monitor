@@ -93,16 +93,16 @@ class ExampleJob implements ShouldQueue
 You can enable the optional UI routes by calling `Route::queueMonitor()` inside your route file, similar to the official [ui scaffolding](https://github.com/laravel/ui).
 
 ```php
-Route::prefix('jobs')->group(function () {
+Route::prefix('monitor')->group(function () {
     Route::queueMonitor();
 });
 ```
 
 ### Routes
 
-| Route | Action              |
-| ----- | ------------------- |
-| `/`   | Show the jobs table |
+| Route           | Action              |
+|-----------------| ------------------- |
+| `/monitor` | Show the jobs table |
 
 See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/monitor.php) for more information.
 

@@ -3,11 +3,15 @@
 declare(strict_types=1);
 
 return [
-    /** might be 'config' or 'db' */
+    // might be 'config' or 'db'
     'mode' => 'db',
+
     'config' => [
+
         'envs' => [
+
             'default' => [
+
                 [
                     'queue_name' => 'default',
                     'connection_name' => 'sqs',
@@ -32,6 +36,7 @@ return [
                     'queue_name' => 'service-report',
                     'connection_name' => 'database',
                 ],
+
             ],
         ],
     ],

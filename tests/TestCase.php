@@ -17,12 +17,10 @@ class TestCase extends BaseTestCase
     {
         QueueMonitorService::$loadMigrations = true;
 
-        parent::tearDown();
         parent::setUp();
 
         $this->withoutMockingConsoleOutput();
-//        $this->withoutExceptionHandling();
-        $this->withExceptionHandling();
+        $this->withoutExceptionHandling();
 
         try {
             $this->artisan('queue:table');
@@ -30,11 +28,6 @@ class TestCase extends BaseTestCase
         } catch (\InvalidArgumentException $e) {
             // TODO: this command fails locally but is required for travis ci
         }
-    }
-
-    public function tearDown(): void
-    {
-//        parent::tearDown();
     }
 
     protected function dispatch(BaseJob $job): self

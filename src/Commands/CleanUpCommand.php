@@ -13,7 +13,7 @@ class CleanUpCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:clean-up';
+    protected $signature = 'monitor:clean-up';
 
     /**
      * The console command description.

@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Models;
 
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
@@ -13,17 +17,16 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property string $job_id
  * @property int $queue_monitor_job_id
  * @property string|null $queue
- * @property \Illuminate\Support\Carbon|null $queued_at
- * @property \Illuminate\Support\Carbon|null $started_at
+ * @property int|null $queue_id
+ * @property Carbon|null $queued_at
+ * @property Carbon|null $started_at
  * @property float $time_pending_elapsed
- * @property \Illuminate\Support\Carbon|null $finished_at
+ * @property Carbon|null $finished_at
  * @property float $time_elapsed
  * @property bool $failed
  * @property int $attempt
  * @property int|null $progress
- * @property string|null $exception
- * @property string|null $exception_class
- * @property string|null $exception_message
+ * @property MonitorExceptionModel|null $exception
  * @property string|null $data
  *
  * @method static Builder|QueueMonitorModel whereJob()
@@ -41,25 +44,17 @@ class QueueMonitorModel extends Model
 
     protected $guarded = ['uuid'];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'failed' => 'bool',
+        'queue_id' => 'int'
     ];
 
-    /**
-     * @var string[]
-     */
     protected $dates = [
         'queued_at',
         'started_at',
         'finished_at',
     ];
 
-    /**
-     * @var bool
-     */
     public $timestamps = false;
 
     /**
@@ -76,17 +71,18 @@ class QueueMonitorModel extends Model
         }
     }
 
+    public function exception(): BelongsTo
+    {
+        return $this->belongsTo(MonitorExceptionModel::class, 'exception_id', 'uuid');
+    }
+
     /*
      *--------------------------------------------------------------------------
      * Scopes
      *--------------------------------------------------------------------------
      */
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string|int $jobId
-     */
-    public function scopeWhereJob(Builder $query, $jobId): void
+    public function scopeWhereJob(Builder $query, string|int $jobId): void
     {
         /** @noinspection UnknownColumnInspection */
         $query->where('job_id', $jobId);
@@ -158,10 +154,6 @@ class QueueMonitorModel extends Model
 
     /**
      * Get the estimated remaining seconds. This requires a job progress to be set.
-     *
-     * @param \Illuminate\Support\Carbon|null $now
-     *
-     * @return float
      */
     public function getRemainingSeconds(Carbon $now = null): float
     {
@@ -189,10 +181,6 @@ class QueueMonitorModel extends Model
 
     /**
      * Get the currently elapsed seconds.
-     *
-     * @param \Illuminate\Support\Carbon|null $end
-     *
-     * @return float
      */
     public function getElapsedSeconds(Carbon $end = null): float
     {
@@ -216,8 +204,6 @@ class QueueMonitorModel extends Model
 
     /**
      * Get any optional data that has been added to the monitor model within the job.
-     *
-     * @return array<string, mixed>
      */
     public function getData(): array
     {
@@ -228,31 +214,24 @@ class QueueMonitorModel extends Model
      * Recreate the exception.
      *
      * @param bool $rescue Wrap the exception recreation to catch exceptions
-     *
-     * @return \Throwable|null
      */
     public function getException(bool $rescue = true): ?\Throwable
     {
-        if (null === $this->exception_class) {
+        if (null === $this->exception) {
             return null;
         }
 
         if (!$rescue) {
-            return new $this->exception_class($this->exception_message);
+            return new $this->exception->exception_class($this->exception->exception_message);
         }
 
         try {
-            return new $this->exception_class($this->exception_message);
+            return new $this->exception->exception_class($this->exception->exception_message);
         } catch (\Exception $exception) {
             return null;
         }
     }
 
-    /**
-     * Check if the job is pending.
-     *
-     * @return bool
-     */
     public function isPending(): bool
     {
         return !$this->hasFailed()
@@ -261,11 +240,6 @@ class QueueMonitorModel extends Model
             && null === $this->finished_at;
     }
 
-    /**
-     * check if the job is finished.
-     *
-     * @return bool
-     */
     public function isFinished(): bool
     {
         if ($this->hasFailed()) {
@@ -275,21 +249,11 @@ class QueueMonitorModel extends Model
         return null !== $this->finished_at;
     }
 
-    /**
-     * Check if the job has failed.
-     *
-     * @return bool
-     */
     public function hasFailed(): bool
     {
         return true === $this->failed;
     }
 
-    /**
-     * check if the job has succeeded.
-     *
-     * @return bool
-     */
     public function hasSucceeded(): bool
     {
         if (!$this->isFinished()) {

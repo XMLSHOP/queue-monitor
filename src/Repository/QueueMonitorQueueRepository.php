@@ -70,6 +70,7 @@ class QueueMonitorQueueRepository extends BaseRepository
     {
         /** @var QueueMonitorQueueModel $model */
         $model = $this->findById($queue_id);
+
         if (
             ($model->queue_name !== $queue || $model->connection_name !== $connection)
             && (null === $model->queue_name_started && null === $model->connection_name_started)

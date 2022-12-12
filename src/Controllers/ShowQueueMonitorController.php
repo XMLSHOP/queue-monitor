@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Controllers;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
@@ -20,17 +20,15 @@ use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class ShowQueueMonitorController
 {
-    private array $filter_min_max_ids;
-
-    /**
-     * @param Request $request
-     * @param QueueMonitorJobsRepository $jobsRepository
-     * @param QueueMonitorQueueRepository $queueRepository
-     *
-     * @return Application|Factory|View
-     */
-    public function __invoke(Request $request, QueueMonitorJobsRepository $jobsRepository, QueueMonitorQueueRepository $queueRepository)
+    public function __construct(private QueueMonitorService $queueMonitorService)
     {
+    }
+
+    public function __invoke(
+        Request $request,
+        QueueMonitorJobsRepository $jobsRepository,
+        QueueMonitorQueueRepository $queueRepository
+    ): View {
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'pending', 'running', 'failed', 'succeeded'])],
             'queue' => ['nullable', 'string'],
@@ -48,7 +46,8 @@ class ShowQueueMonitorController
         ];
 
         /** @noinspection UnknownColumnInspection */
-        $jobs = QueueMonitorService::getModel()
+        $jobs = $this->queueMonitorService
+            ->model
             ->setConnection(config('monitor.db.connection'))
             ->newQuery()
             ->select([config('monitor.db.table.monitor_queue') . '.*', 'mj.name_with_namespace as name', 'mq.queue_name as queue', 'mh.name as host'])
@@ -101,7 +100,6 @@ class ShowQueueMonitorController
             ->orderByDesc('started_at')
             ->orderByDesc('queued_at')
             ->orderByDesc('finished_at')
-//            ->dd()
             ->paginate(
                 config('monitor.ui.per_page')
             )
@@ -120,6 +118,7 @@ class ShowQueueMonitorController
         if (config('monitor.ui.show_metrics')) {
             $metrics = $this->collectMetrics();
         }
+
         $summary = null;
         $job_metrics = null;
         if (config('monitor.ui.show_summary') && is_array(config('monitor.ui.summary_conf'))) {
@@ -129,7 +128,7 @@ class ShowQueueMonitorController
             }
         }
 
-        return view('queue-monitor::jobs/index', [
+        return view('monitor::index', [
             'jobs' => $jobs,
             'jobs_list' => $jobs_list,
             'filters' => $filters,
@@ -153,14 +152,16 @@ class ShowQueueMonitorController
         ];
 
         /** @noinspection UnknownColumnInspection */
-        $aggregatedInfo = QueueMonitorService::getModel()
+        $aggregatedInfo = $this->queueMonitorService
+            ->model
             ->newQuery()
             ->select($aggregationColumns)
             ->where('started_at', '>=', Carbon::now()->subDays($timeFrame))
             ->first();
 
         /** @noinspection UnknownColumnInspection */
-        $aggregatedComparisonInfo = QueueMonitorService::getModel()
+        $aggregatedComparisonInfo = $this->queueMonitorService
+            ->model
             ->newQuery()
             ->select($aggregationColumns)
             ->where('started_at', '>=', Carbon::now()->subDays($timeFrame * 2))
@@ -171,16 +172,28 @@ class ShowQueueMonitorController
             return $metrics;
         }
 
-        return $metrics
-            ->push(
-                new Metric('Total Jobs Executed', $aggregatedInfo->count ?? 0, $aggregatedComparisonInfo->count, '%d')
+        return $metrics->push(
+            new Metric(
+                'Total Jobs Executed',
+                $aggregatedInfo->count ?? 0,
+                $aggregatedComparisonInfo->count,
+                '%d'
             )
-            ->push(
-                new Metric('Total Execution Time', $aggregatedInfo->total_time_elapsed ?? 0, $aggregatedComparisonInfo->total_time_elapsed, '%ds')
+        )->push(
+            new Metric(
+                'Total Execution Time',
+                $aggregatedInfo->total_time_elapsed ?? 0,
+                $aggregatedComparisonInfo->total_time_elapsed,
+                '%ds'
             )
-            ->push(
-                new Metric('Average Execution Time', $aggregatedInfo->average_time_elapsed ?? 0, $aggregatedComparisonInfo->average_time_elapsed, '%0.2fs')
-            );
+        )->push(
+            new Metric(
+                'Average Execution Time',
+                $aggregatedInfo->average_time_elapsed ?? 0,
+                $aggregatedComparisonInfo->average_time_elapsed,
+                '%0.2fs'
+            )
+        );
     }
 
     /**
@@ -235,6 +248,7 @@ class ShowQueueMonitorController
                         ->where('failed', '=', 1);
                     break;
             }
+
             if (null !== $subSelect) {
                 $subSelect
                     ->when(($queue = $filters['queue']) && 'all' !== $queue, static function ($builder) use ($queue) {
@@ -273,7 +287,7 @@ class ShowQueueMonitorController
                     ->selectSub($subSelect, $status);
             }
         }
-//        $aggregatedComparisonInfo->dd();
+
         return collect($aggregatedComparisonInfo->first())->toArray();
     }
 

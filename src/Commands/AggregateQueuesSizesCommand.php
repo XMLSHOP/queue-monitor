@@ -17,7 +17,7 @@ class AggregateQueuesSizesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:aggregate-queues-sizes';
+    protected $signature = 'monitor:aggregate-queues-sizes';
 
     /**
      * The console command description.
