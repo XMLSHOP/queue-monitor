@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Services\Data;
@@ -8,17 +9,15 @@ use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 
 class QueuedJobsDataService
 {
-    /**
-     * @param array $requestData
-     * @return Collection|array
-     */
+    public function __construct(private QueueMonitorJobsRepository $queueMonitorJobsRepository)
+    {
+    }
+
     public function execute(array $requestData): Collection|array
     {
-        /** @var QueueMonitorJobsRepository $queuedJobsRepository */
-        $queuedJobsRepository = app(QueueMonitorJobsRepository::class);
-        return $queuedJobsRepository->getJobsStatistic(
+        return $this->queueMonitorJobsRepository->getJobsStatistic(
             $requestData['filter']['date_from'],
-            $requestData['filter']['date_to']
+            $requestData['filter']['date_to'],
         );
     }
 }

@@ -10,28 +10,26 @@ use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
 
 class QueueSizesDataService
 {
-    /**
-     * @param array $requestData
-     * @return array
-     */
+    public function __construct(private QueueMonitorQueueSizesRepository $queueMonitorQueueSizesRepository)
+    {
+    }
+
     public function execute(array $requestData): array
     {
-        /** @var QueueMonitorQueueSizesRepository $queuesSizeRepository */
-        $queuesSizeRepository = app(QueueMonitorQueueSizesRepository::class);
         $data = [];
 
         foreach (config('monitor.dashboard-charts.root') as $chartOptions) {
             $obj = [];
             if (Arr::exists($chartOptions, 'queues')) {
                 $obj = array_merge($obj, $chartOptions['properties']);
-                $obj['data'] =
-                    $this->transformData(
-                        $queuesSizeRepository->getDataSegment(
-                            $requestData['filter']['date_from'],
-                            $requestData['filter']['date_to'],
-                            $chartOptions['queues']
-                        )->get()
-                    );
+
+                $dataToTransform = $this->queueMonitorQueueSizesRepository->getDataSegment(
+                    $requestData['filter']['date_from'],
+                    $requestData['filter']['date_to'],
+                    $chartOptions['queues'],
+                )->get();
+
+                $obj['data'] = $this->transformData($dataToTransform);
             }
 
             $data[] = $obj;
@@ -40,11 +38,6 @@ class QueueSizesDataService
         return $data;
     }
 
-    /**
-     * @param Collection|array $data
-     *
-     * @return array
-     */
     private function transformData(Collection|array $data): array
     {
         $queues = [];

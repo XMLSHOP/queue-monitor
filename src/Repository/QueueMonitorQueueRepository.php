@@ -16,12 +16,6 @@ class QueueMonitorQueueRepository extends BaseRepository
         return QueueMonitorQueueModel::class;
     }
 
-    /**
-     * @param string|null $connection
-     * @param string $queue
-     *
-     * @return Model
-     */
     public function addNew(?string $connection, string $queue): Model
     {
         /** @var QueueMonitorQueueModel $model */
@@ -33,24 +27,11 @@ class QueueMonitorQueueRepository extends BaseRepository
         return $model;
     }
 
-    /**
-     * Execute the query as a "select" statement.
-     *
-     * @param array|string $columns
-     *
-     * @return Collection|static[]
-     */
     public function select(array|string $columns = ['*']): Collection|array
     {
         return $this->model::select()->get($columns);
     }
 
-    /**
-     * @param string|null $connection
-     * @param string $queue
-     *
-     * @return int
-     */
     public function firstOrCreate(?string $connection, string $queue): int
     {
         return $this->model::query()
@@ -81,9 +62,6 @@ class QueueMonitorQueueRepository extends BaseRepository
         }
     }
 
-    /**
-     * @return array
-     */
     public function getQueuesAlertInfo(): array
     {
         /** @noinspection UnknownColumnInspection */

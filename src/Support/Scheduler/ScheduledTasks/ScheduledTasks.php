@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks;
+
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Collection;

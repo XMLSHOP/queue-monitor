@@ -1,17 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Controllers\Payloads;
 
 final class Metrics
 {
-    /**
-     * @var \xmlshop\QueueMonitor\Controllers\Payloads\Metric[]
-     */
     public $metrics = [];
 
-    /**
-     * @return \xmlshop\QueueMonitor\Controllers\Payloads\Metric[]
-     */
     public function all(): array
     {
         return $this->metrics;

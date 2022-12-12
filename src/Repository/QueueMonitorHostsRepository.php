@@ -11,9 +11,6 @@ class QueueMonitorHostsRepository extends BaseRepository
         return QueueMonitorHostModel::class;
     }
 
-    /**
-     * @return int
-     */
     public function firstOrCreate():int
     {
         return $this->model::query()->firstOrCreate(['name' => gethostname()], ['name' => gethostname()])->id;

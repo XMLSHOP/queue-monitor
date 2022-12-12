@@ -100,9 +100,9 @@ Route::prefix('monitor')->group(function () {
 
 ### Routes
 
-| Route           | Action              |
-|-----------------| ------------------- |
-| `/monitor` | Show the jobs table |
+| Route          | Action              |
+|----------------| ------------------- |
+| `/monitor`     | Show the jobs table |
 
 See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/monitor.php) for more information.
 
