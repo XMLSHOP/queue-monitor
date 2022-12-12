@@ -191,12 +191,12 @@
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
-                    @if($job->hasFailed() && $job->exception_message !== null)
+                    @if($job->hasFailed() && $job->exception !== null)
 
                         <textarea rows="4" class="w-64 text-xs p-1 border rounded form-control" readonly
                                   style="resize: both"
                         >
-                            {{ $job->exception_message }}
+                            {{ $job->exception->exception_message }}
                         </textarea>
 
                     @else
