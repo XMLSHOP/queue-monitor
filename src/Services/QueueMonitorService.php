@@ -12,7 +12,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Events\CallQueuedListener;
 use xmlshop\QueueMonitor\Models\MonitorExceptionModel;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
@@ -30,7 +29,6 @@ class QueueMonitorService
         private QueueMonitorHostsRepository $hostsRepository,
         public QueueMonitorModel $model
     ) {
-        $this->model = new QueueMonitorModel;
     }
 
     public function handleJobQueued(JobQueued $jobQueued): void

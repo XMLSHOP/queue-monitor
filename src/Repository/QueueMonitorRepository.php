@@ -42,11 +42,12 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
 
         /** @noinspection UnknownColumnInspection */
-        $model = $this->model::query()
+        $model = $this->model
+            ->newModelQuery()
             ->orderByDesc('queued_at')
             ->firstOrCreate(['job_id' => $job_id], $data);
 
-        $this->queueRepository->updateWithStarted((int)$model->queue_id, $connection, $queue);
+        $this->queueRepository->updateWithStarted($model->queue_id, $connection, $queue);
 
         if ($queuedAt = $model->getQueued()) {
             $timeElapsed = (float) $queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
@@ -72,7 +73,8 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
     public function purge(int $days): void
     {
         /** @noinspection UnknownColumnInspection */
-        $this->model::query()
+        $this->model
+            ->newModelQuery()
             ->where('queued_at', '<=', Carbon::now()->subDays($days))
             ->orWhere('started_at', '<=', Carbon::now()->subDays($days))
             ->delete();

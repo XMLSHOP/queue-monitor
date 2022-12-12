@@ -17,6 +17,7 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property string $job_id
  * @property int $queue_monitor_job_id
  * @property string|null $queue
+ * @property int|null $queue_id
  * @property Carbon|null $queued_at
  * @property Carbon|null $started_at
  * @property float $time_pending_elapsed
@@ -43,25 +44,17 @@ class QueueMonitorModel extends Model
 
     protected $guarded = ['uuid'];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'failed' => 'bool',
+        'queue_id' => 'int'
     ];
 
-    /**
-     * @var string[]
-     */
     protected $dates = [
         'queued_at',
         'started_at',
         'finished_at',
     ];
 
-    /**
-     * @var bool
-     */
     public $timestamps = false;
 
     /**

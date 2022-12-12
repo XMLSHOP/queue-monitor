@@ -66,7 +66,7 @@ class QueueMonitorQueueRepository extends BaseRepository
             )->id;
     }
 
-    public function updateWithStarted(int|string $queue_id, ?string $connection, string $queue): void
+    public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void
     {
         /** @var QueueMonitorQueueModel $model */
         $model = $this->findById($queue_id);
