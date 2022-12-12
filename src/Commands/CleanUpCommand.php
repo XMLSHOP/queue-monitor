@@ -24,10 +24,6 @@ class CleanUpCommand extends Command
      */
     protected $description = 'Command clean data in monitor an queue-sizes tables.';
 
-    /**
-     * @param QueueMonitorQueueSizesRepository $queuesSizeRepository
-     * @param QueueMonitorRepository $monitorRepository
-     */
     public function __construct(
         private QueueMonitorQueueSizesRepository $queuesSizeRepository,
         private QueueMonitorRepository $monitorRepository
@@ -35,18 +31,11 @@ class CleanUpCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws \Exception
-     */
-    public function handle()
+    public function handle(): int
     {
         $this->queuesSizeRepository->purge(config('monitor.db.clean_after_days'));
         $this->monitorRepository->purge(config('monitor.db.clean_after_days'));
 
         return 0;
     }
-
 }

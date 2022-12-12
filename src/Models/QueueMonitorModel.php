@@ -8,7 +8,6 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
@@ -57,9 +56,6 @@ class QueueMonitorModel extends Model
 
     public $timestamps = false;
 
-    /**
-     * @param array<string, mixed> $attributes
-     */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -75,12 +71,6 @@ class QueueMonitorModel extends Model
     {
         return $this->belongsTo(MonitorExceptionModel::class, 'exception_id', 'uuid');
     }
-
-    /*
-     *--------------------------------------------------------------------------
-     * Scopes
-     *--------------------------------------------------------------------------
-     */
 
     public function scopeWhereJob(Builder $query, string|int $jobId): void
     {
@@ -118,12 +108,6 @@ class QueueMonitorModel extends Model
         /** @noinspection UnknownColumnInspection */
         $query->where('failed', false);
     }
-
-    /*
-     *--------------------------------------------------------------------------
-     * Methods
-     *--------------------------------------------------------------------------
-     */
 
     public function getQueued(): ?Carbon
     {

@@ -44,10 +44,6 @@ class ListenerCommand extends Command
      */
     private ?Slack $slack = null;
 
-    /**
-     * @param QueueMonitorQueueRepository $queuesRepository
-     * @param QueueMonitorJobsRepository $jobsRepository
-     */
     public function __construct(
         private QueueMonitorQueueRepository $queuesRepository,
         private QueueMonitorJobsRepository $jobsRepository
@@ -55,14 +51,7 @@ class ListenerCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws \Exception|\Psr\SimpleCache\InvalidArgumentException
-     *
-     */
-    public function handle()
+    public function handle(): int
     {
         sleep(5);
         self::$alarm_config = config('monitor.alarm');
@@ -86,10 +75,16 @@ class ListenerCommand extends Command
 
         $messages = [];
         foreach ($this->queuesRepository->getQueuesAlertInfo() as $queue) {
-            if (null !== $queue['alert_threshold'] && $queue['size'] >= $queue['alert_threshold'] && $this->validatedAlarm('q-' . $queue['id'])) {
-                $messages[] = 'Queue *[' . $queue['connection_name'] . ':' . $queue['queue_name'] . ']* exceed the threshold!' . "\n" .
+            if (null !== $queue['alert_threshold']
+                && $queue['size'] >= $queue['alert_threshold']
+                && $this->validatedAlarm('q-' . $queue['id'])
+            ) {
+                $messages[] = 'Queue *[' . $queue['connection_name'] . ':'
+                    . $queue['queue_name'] . ']* exceed the threshold!'
+                    . "\n" .
                     'Size now: *' . $queue['size'] . '*. ' .
-                    '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>' . "\n\n";
+                    '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>'
+                    . "\n\n";
             }
         }
 
@@ -119,19 +114,11 @@ class ListenerCommand extends Command
         return 0;
     }
 
-    /**
-     * @param string $message
-     *
-     * @return void
-     */
     private function sendNotification(string $message): void
     {
         $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
     }
 
-    /**
-     * @return Slack
-     */
     private function getSlack(): Slack
     {
         if (null === $this->slack) {
@@ -141,17 +128,12 @@ class ListenerCommand extends Command
         return $this->slack->to(config('monitor.alarm.recipient'));
     }
 
-    /**
-     * @param string $alarmId
-     *
-     * @return bool
-     */
     private function validatedAlarm(string $alarmId): bool
     {
+        $alarm = Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]);
+
         if (Arr::exists($this->alarmIdentifications, $alarmId)
-            && now()->subMinutes(4)->subSeconds(10)
-            ->gt(
-                Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
+            && now()->subMinutes(4)->subSeconds(10)->gt($alarm)
         ) {
             unset($this->alarmIdentifications[$alarmId]);
         }
@@ -165,13 +147,6 @@ class ListenerCommand extends Command
         return true;
     }
 
-    /**
-     * @param array $job
-     *
-     * @return array
-     * @throws \Exception
-     *
-     */
     private function detectedAlarm(array $job): array
     {
         if (Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore', false)) {
@@ -223,11 +198,6 @@ class ListenerCommand extends Command
         ];
     }
 
-    /**
-     * @param array $job
-     *
-     * @return string
-     */
     private function getJobLink(array $job): string
     {
         return

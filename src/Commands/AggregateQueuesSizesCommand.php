@@ -27,11 +27,6 @@ class AggregateQueuesSizesCommand extends Command
      */
     protected $description = 'Command gets sizes of declared queues and store them to the table.';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct(
         private QueueMonitorQueueSizesRepository $queuesSizeRepository,
         private QueueMonitorQueueRepository $queueRepository
@@ -39,14 +34,7 @@ class AggregateQueuesSizesCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @throws \Exception
-     *
-     * @return int
-     */
-    public function handle()
+    public function handle(): int
     {
         if ( ! config('monitor.settings.active') || ! config('monitor.settings.active-monitor-queue-sizes')) {
             $this->error('Monitor is not active or Queue-Sizes monitor is not active.');

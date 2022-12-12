@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace xmlshop\QueueMonitor\Repository\Contracts;
+namespace xmlshop\QueueMonitor\Repository\Interfaces;
 
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 
-interface QueueMonitorRepositoryContract
+interface QueueMonitorRepositoryInterface
 {
     public function addQueued(array $data): Model;
 

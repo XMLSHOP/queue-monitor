@@ -7,9 +7,9 @@ namespace xmlshop\QueueMonitor\Repository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
-use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueMonitorRepositoryInterface;
 
-class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepositoryContract
+class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepositoryInterface
 {
     public function __construct(protected QueueMonitorQueueRepository $queueRepository)
     {

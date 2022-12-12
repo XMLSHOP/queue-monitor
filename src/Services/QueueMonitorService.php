@@ -14,7 +14,7 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Queue;
 use xmlshop\QueueMonitor\Models\MonitorExceptionModel;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
-use xmlshop\QueueMonitor\Repository\Contracts\QueueMonitorRepositoryContract;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueMonitorRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\QueueMonitorHostsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
@@ -24,10 +24,10 @@ class QueueMonitorService
     public static bool $loadMigrations = false;
 
     public function __construct(
-        private QueueMonitorRepositoryContract $queueMonitorRepository,
-        private QueueMonitorJobsRepository $jobsRepository,
-        private QueueMonitorHostsRepository $hostsRepository,
-        public QueueMonitorModel $model
+        private QueueMonitorRepositoryInterface $queueMonitorRepository,
+        private QueueMonitorJobsRepository      $jobsRepository,
+        private QueueMonitorHostsRepository     $hostsRepository,
+        public QueueMonitorModel                $model
     ) {
     }
 
@@ -147,21 +147,22 @@ class QueueMonitorService
             return;
         }
 
-        $attributes = [
+        $monitor = $this->queueMonitorRepository->updateFinished($monitor, [
             'finished_at' => $now,
             'time_elapsed' => $timeElapsed ?? 0.0,
             'failed' => $failed,
-        ];
+        ]);
 
-        $monitor = $this->queueMonitorRepository->updateFinished($monitor, $attributes);
+        if ($exception) {
+            $exceptionMaxLength = config('monitor.db.max_length_exception');
+            $exceptionMessageMaxLength = config('monitor.db.max_length_exception_message');
 
-        if (null !== $exception) {
             $monitorException = MonitorExceptionModel::query()->create([
                 'entity' => MonitorExceptionModel::ENTITY_JOB,
-                'exception' => mb_strcut((string) $exception, 0, config('monitor.db.max_length_exception')),
+                'exception' => mb_strcut((string) $exception, 0, $exceptionMaxLength),
                 'exception_class' => get_class($exception),
-                'exception_message' => mb_strcut($exception->getMessage(), 0, config('monitor.db.max_length_exception_message')),
-                'created_at' => now()
+                'exception_message' => mb_strcut($exception->getMessage(), 0, $exceptionMessageMaxLength),
+                'created_at' => $now
             ]);
 
             $monitor->exception()->associate($monitorException);
@@ -170,7 +171,7 @@ class QueueMonitorService
     }
 
     /**
-     * Determine weather the Job should be monitored, default true.
+     * Determine weather the Job should be monitored.
      */
     public static function shouldBeMonitored(JobContract|ShouldQueue $job): bool
     {
