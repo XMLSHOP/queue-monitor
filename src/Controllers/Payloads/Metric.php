@@ -1,28 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Controllers\Payloads;
 
 final class Metric
 {
-    /**
-     * @var string
-     */
-    public $title;
+    public string $title;
 
-    /**
-     * @var int
-     */
-    public $value;
+    public int $value;
 
-    /**
-     * @var int
-     */
-    public $previousValue;
+    public int $previousValue;
 
-    /**
-     * @var string
-     */
-    public $format;
+    public string $format;
 
     public function __construct(string $title, int $value = 0, int $previousValue = null, string $format = '%d')
     {

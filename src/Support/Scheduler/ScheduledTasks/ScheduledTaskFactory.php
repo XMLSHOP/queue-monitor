@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks;
 
 use Illuminate\Console\Scheduling\Event;
@@ -14,11 +16,11 @@ class ScheduledTaskFactory
     public static function createForEvent(Event $event): Task
     {
         $taskClass = collect([
-            ClosureTask::class,
-            JobTask::class,
-            CommandTask::class,
-            ShellTask::class,
-        ])
+                ClosureTask::class,
+                JobTask::class,
+                CommandTask::class,
+                ShellTask::class,
+            ])
             ->first(fn (string $taskClass) => $taskClass::canHandleEvent($event));
 
         return new $taskClass($event);

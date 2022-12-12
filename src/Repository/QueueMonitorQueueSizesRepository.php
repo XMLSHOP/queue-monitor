@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
@@ -9,33 +10,21 @@ use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
 
 class QueueMonitorQueueSizesRepository extends BaseRepository
 {
-
     public function getModelName(): string
     {
         return QueueMonitorQueuesSizesModel::class;
     }
 
-    /**
-     * @param array $data
-     * @return int
-     */
-    public function bulkInsert(array $data)
+    public function bulkInsert(array $data): bool
     {
-        return $this->model::insert($data);
+        return $this->model->newModelQuery()->insert($data);
     }
 
-    /**
-     * @param string $from
-     * @param string $to
-     * @param array|null $queues
-     * @return Builder|QueueMonitorQueuesSizesModel
-     */
     public function getDataSegment(string $from, string $to, ?array $queues = null): Builder|QueueMonitorQueuesSizesModel
     {
-//        $res =
         /** @noinspection UnknownColumnInspection */
-        return
-            $this->model::query()
+        return $this->model
+            ->newModelQuery()
             ->from(config('monitor.db.table.queues_sizes'), 'qs')
             ->select('qs.created_at')
             ->selectRaw('GROUP_CONCAT(CONCAT(q.connection_name, \':\', q.queue_name)) as queue_names')
@@ -53,19 +42,13 @@ class QueueMonitorQueueSizesRepository extends BaseRepository
             })
             ->groupBy('qs.created_at')
             ->orderBy('qs.created_at');
-
-//        $res->dd();
-//        return $res;
     }
 
-    /**
-     * @param int $days
-     * @return void
-     */
     public function purge(int $days): void
     {
         /** @noinspection UnknownColumnInspection */
-        $this->model::query()
+        $this->model
+            ->newModelQuery()
             ->where('created_at','<=', Carbon::now()->subDays($days))
             ->delete();
     }

@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;

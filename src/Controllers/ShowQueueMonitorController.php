@@ -11,6 +11,7 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Collection;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 use xmlshop\QueueMonitor\Models\QueueMonitorModel;
@@ -110,7 +111,7 @@ class ShowQueueMonitorController
         /** @noinspection UnknownColumnInspection */
         $queues = $queueRepository->select(['id', 'queue_name'])->toArray();
 
-        /** @var \Illuminate\Database\Eloquent\Collection $jobs_list */
+        /** @var Collection $jobs_list */
         $jobs_list = $jobsRepository->getCollection(['id', 'name'])->toArray();
 
         $metrics = null;
