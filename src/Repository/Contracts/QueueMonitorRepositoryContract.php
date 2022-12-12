@@ -1,40 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Repository\Contracts;
 
 use Illuminate\Database\Eloquent\Model;
+use xmlshop\QueueMonitor\Models\QueueMonitorModel;
 
 interface QueueMonitorRepositoryContract
 {
-    /**
-     * @param array $data
-     * @return bool
-     */
     public function addQueued(array $data): Model;
 
-    /**
-     * @param string|null $id
-     * @param array $data
-     * @return bool
-     */
     public function updateOrCreateStarted(array $data): void;
 
-    /**
-     * @param string $field
-     * @param mixed $value
-     * @param array $columns
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @return mixed
-     */
-    public function findByOrderBy(string $field, mixed $value, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC');
+    public function findByOrderBy(
+        string $field,
+        mixed $value,
+        array $columns = ['*'],
+        string $orderBy = 'id',
+        string $orderDirection = 'DESC'
+    ): Model;
 
-    /**
-     * @param Model $model
-     * @param array $attributes
-     * @return void
-     */
-    public function updateFinished(Model $model, array $attributes): void;
+    public function updateFinished(QueueMonitorModel $model, array $attributes): QueueMonitorModel;
 
-    public function deleteOne(Model $monitor);
+    public function deleteOne(Model $monitor): void;
 }

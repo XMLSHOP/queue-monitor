@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -38,7 +40,7 @@ class QueueMonitorQueuesSizesModel extends Model
             $this->setConnection($connection);
         }
     }
-    
+
     protected $appends = ['resource_url'];
 
     public function queues(): BelongsTo

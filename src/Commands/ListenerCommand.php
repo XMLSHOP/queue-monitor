@@ -13,9 +13,9 @@ use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
 
 class ListenerCommand extends Command
 {
-    public const CACHE_KEY = 'queue-monitor-alerts';
+    public const CACHE_KEY = 'monitor-alerts';
 
-    public const DISABLE_CACHE_KEY = 'queue-monitor-alerts-disabled';
+    public const DISABLE_CACHE_KEY = 'monitor-alerts-disabled';
 
     private static ?array $alarm_config = [];
 
@@ -24,7 +24,7 @@ class ListenerCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:listener {disable=0} {hours=1}';
+    protected $signature = 'monitor:listener {disable=0} {hours=1}';
 
     /**
      * The console command description.
@@ -67,10 +67,12 @@ class ListenerCommand extends Command
 
         $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
         $cmd_disabled = Cache::store('redis')->get(self::DISABLE_CACHE_KEY, false);
+
         if ('disable' === $this->argument('disable')) {
             Cache::store('redis')->put(self::DISABLE_CACHE_KEY, true, Carbon::now()->addHours((int)$this->argument('hours')));
             $cmd_disabled = true;
         }
+
         if ('enable' === $this->argument('disable')) {
             Cache::store('redis')->forget(self::DISABLE_CACHE_KEY);
             $cmd_disabled = false;
@@ -122,10 +124,6 @@ class ListenerCommand extends Command
      */
     private function sendNotification(string $message): void
     {
-//        match (config('monitor.alarm.channel')) {
-//            default => $this->getSlack()->send($message)
-//        };
-
         $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
     }
 

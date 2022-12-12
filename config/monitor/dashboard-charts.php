@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+
     'root' => [
         [
             'properties' => [
@@ -18,6 +19,7 @@ return [
                 'database-default',
             ],
         ],
+
         /*
         [
             'properties' => [

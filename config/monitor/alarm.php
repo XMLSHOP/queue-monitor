@@ -10,8 +10,8 @@ return [
     'recipient' => '#notifications',
 
     'routes' => [
-        'jobs' => 'https://{domain}}/queue-monitor/jobs',
-        'queue-sizes' => 'https://{domain}}/queue-monitor/queue-sizes',
+        'jobs' => 'https://{domain}}/monitor/jobs',
+        'queue-sizes' => 'https://{domain}}/monitor/queue-sizes',
     ],
 
     'jobs_compare_alerts' => [

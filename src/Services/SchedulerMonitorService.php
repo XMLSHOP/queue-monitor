@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Services;
 
 use Illuminate\Console\Scheduling\Event;
@@ -9,5 +11,5 @@ use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\ScheduledTaskFactory;
 
 class SchedulerMonitorService
 {
-    
+
 }

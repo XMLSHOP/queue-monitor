@@ -1,17 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateQueueMonitorJobsTable extends Migration
+class CreateMonitorTables extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.jobs'), function (Blueprint $table) {
@@ -35,32 +35,21 @@ class CreateQueueMonitorJobsTable extends Migration
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.monitor_queue'), function (Blueprint $table) {
                 $table->uuid('uuid')->primary();
-
                 $table->string('job_id', 36)->index();
                 $table->unsignedSmallInteger('queue_monitor_job_id')->index();
                 $table->unsignedSmallInteger('queue_id')->index();
                 $table->unsignedSmallInteger('host_id')->index();
-
                 $table->timestamp('queued_at')->nullable()->index();
-
                 $table->timestamp('started_at')->nullable()->index();
-
                 $table->float('time_pending_elapsed', 12, 6)->nullable()->index();
-
                 $table->timestamp('finished_at')->nullable()->index();
-
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
-
                 $table->boolean('failed')->default(false)->index();
-
                 $table->integer('attempt')->default(0);
                 $table->integer('progress')->nullable();
-
                 $table->string('exception_id', 36)->nullable();
-
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
                 $table->float('use_cpu', 12, 6)->nullable();
-
                 $table->longText('data')->nullable();
             });
 
@@ -93,18 +82,13 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->uuid('uuid')->primary();
                 $table->unsignedSmallInteger('command_id')->index();
                 $table->unsignedSmallInteger('host_id')->index();
-
                 $table->timestamp('started_at')->nullable()->index();
                 $table->timestamp('finished_at')->nullable()->index();
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
-
                 $table->boolean('failed')->default(false)->index();
-
                 $table->string('exception_id', 36)->nullable();
-
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
                 $table->float('use_cpu', 12, 6)->nullable();
-
                 $table->timestamp('created_at')->index();
             });
 
@@ -122,18 +106,13 @@ class CreateQueueMonitorJobsTable extends Migration
                 $table->uuid('uuid')->primary();
                 $table->unsignedSmallInteger('scheduled_id')->index();
                 $table->unsignedSmallInteger('host_id')->index();
-
                 $table->timestamp('started_at')->nullable()->index();
                 $table->timestamp('finished_at')->nullable()->index();
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
-
                 $table->boolean('failed')->default(false)->index();
-
                 $table->string('exception_id', 36)->nullable();
-
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
                 $table->float('use_cpu', 12, 6)->nullable();
-
                 $table->timestamp('created_at')->index();
             });
 
@@ -150,13 +129,9 @@ class CreateQueueMonitorJobsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
-
-
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.jobs'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues_sizes'));

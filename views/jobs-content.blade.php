@@ -8,7 +8,7 @@
 
         @foreach($metrics->all() as $metric)
 
-            @include('queue-monitor::jobs/partials.metrics-card', [
+            @include('monitor::partials.metrics-card', [
                 'metric' => $metric,
             ])
 
@@ -18,11 +18,11 @@
 
 @endisset
 
-@include('queue-monitor::jobs/partials.filters', [
+@include('monitor::partials.filters', [
     'filters'=>$filters
 ])
 
-@include('queue-monitor::jobs/partials.summary-card', [
+@include('monitor::partials.summary-card', [
     'filters'=>$filters
 ])
 
@@ -195,7 +195,9 @@
 
                         <textarea rows="4" class="w-64 text-xs p-1 border rounded form-control" readonly
                                   style="resize: both"
-                        >{{ $job->exception_message }}</textarea>
+                        >
+                            {{ $job->exception_message }}
+                        </textarea>
 
                     @else
                         -
@@ -207,7 +209,7 @@
 
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
-                        <form action="{{ route('queue-monitor::destroy', [$job]) }}" method="post">
+                        <form action="{{ route('monitor::destroy', [$job]) }}" method="post">
 
                             @csrf
                             @method('delete')
@@ -297,7 +299,7 @@
 
     <div class="mt-12">
 
-        <form action="{{ route('queue-monitor::purge') }}" method="post">
+        <form action="{{ route('monitor::purge') }}" method="post">
 
             @csrf
             @method('delete')
