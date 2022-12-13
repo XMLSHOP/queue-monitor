@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Commands;
 
 use Illuminate\Console\Command;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
 class CleanUpCommand extends Command
 {
@@ -25,8 +25,8 @@ class CleanUpCommand extends Command
     protected $description = 'Command clean data in monitor an queue-sizes tables.';
 
     public function __construct(
-        private QueueMonitorQueueSizesRepository $queuesSizeRepository,
-        private QueueMonitorRepository $monitorRepository
+        private QueueSizeRepositoryInterface $queuesSizeRepository,
+        private MonitorQueueRepositoryInterface $monitorRepository
     ) {
         parent::__construct();
     }

@@ -5,21 +5,25 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $queue_id
+ * @property string $queue_name
+ * @property string|null $connection_name
+ * @property string|null $queue_name_started
+ * @property string|null $connection_name_started
+ * @property string|null $alert_threshold
  * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
-class QueueMonitorQueuesSizesModel extends Model
+class Queue extends Model
 {
     protected $guarded = ['id'];
 
-    protected $dates = ['created_at'];
+    public $timestamps = true;
 
-    public $timestamps = false;
+    protected $dates = ['created_at', 'updated_at',];
 
     protected $appends = ['resource_url'];
 
@@ -27,20 +31,15 @@ class QueueMonitorQueuesSizesModel extends Model
     {
         parent::__construct($attributes);
 
-        $this->setTable(config('monitor.db.table.queues_sizes'));
+        $this->setTable(config('monitor.db.table.queues'));
 
         if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
     }
 
-    public function queues(): BelongsTo
-    {
-        return $this->belongsTo(QueueMonitorQueueModel::class);
-    }
-
     public function getResourceUrlAttribute()
     {
-        return url('/admin/monitor-queues-sizes/'.$this->getKey());
+        return url('/admin/queues/' . $this->getKey());
     }
 }

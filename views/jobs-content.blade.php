@@ -91,7 +91,7 @@
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 font-medium border-b border-gray-200">
-                    {{ \xmlshop\QueueMonitor\Models\QueueMonitorJobModel::getBaseName($job->name) }}
+                    {{ $job->getBasenameJob() }}
 
                     <div class="ml-1 text-xs text-gray-600">
                         #{{ $job->job_id }}

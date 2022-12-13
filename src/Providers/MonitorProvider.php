@@ -18,8 +18,16 @@ use xmlshop\QueueMonitor\Commands\CleanUpCommand;
 use xmlshop\QueueMonitor\Commands\ListenerCommand;
 use xmlshop\QueueMonitor\EventHandlers\CommandListener;
 use xmlshop\QueueMonitor\EventHandlers\ScheduledTaskEventSubscriber;
-use xmlshop\QueueMonitor\Repository\Interfaces\QueueMonitorRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
+use xmlshop\QueueMonitor\Repository\HostRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\JobRepository;
+use xmlshop\QueueMonitor\Repository\MonitorQueueRepository;
+use xmlshop\QueueMonitor\Repository\QueueRepository;
+use xmlshop\QueueMonitor\Repository\QueueSizeRepository;
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
@@ -121,7 +129,11 @@ class MonitorProvider extends ServiceProvider
                 'monitor.settings');
         }
 
-        $this->app->bind(QueueMonitorRepositoryInterface::class, QueueMonitorRepository::class);
+        $this->app->bind(MonitorQueueRepositoryInterface::class, MonitorQueueRepository::class);
+        $this->app->bind(QueueRepositoryInterface::class, QueueRepository::class);
+        $this->app->bind(HostRepositoryInterface::class, HostRepository::class);
+        $this->app->bind(JobRepositoryInterface::class, JobRepository::class);
+        $this->app->bind(QueueSizeRepositoryInterface::class, QueueSizeRepository::class);
 
         /** @phpstan-ignore-next-line */
         $this->app->bind('monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);

@@ -6,7 +6,6 @@ namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 /**
@@ -16,14 +15,13 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $created_at
  */
-class QueueMonitorJobModel extends Model
+class Job extends Model
 {
     protected $guarded = ['id'];
 
-    protected $dates = [
-        'created_at',
-        'updated_at',
-    ];
+    protected $fillable = ['name', 'name_with_namespace'];
+
+    protected $dates = ['created_at', 'updated_at'];
 
     protected $appends = ['resource_url'];
 
@@ -47,20 +45,20 @@ class QueueMonitorJobModel extends Model
             return null;
         }
 
-        return self::getBasename($this->name);
+        return $this->getBasename($this->name);
     }
 
     /**
      * Get the base class name, without namespace
      */
-    public static function getBasename(string $name): ?string
+    public function getBasename(string $name): ?string
     {
-        return Arr::last(explode('\\', $name));
+        return \last(explode('\\', $name));
     }
 
     public function assignedQueueMonitor(): HasMany
     {
-        return $this->hasMany(QueueMonitorModel::class, 'queue_monitor_job_id');
+        return $this->hasMany(MonitorQueue::class, 'queue_monitor_job_id');
     }
 
     public function getResourceUrlAttribute()

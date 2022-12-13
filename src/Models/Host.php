@@ -5,23 +5,18 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property string $queue_name
- * @property string|null $connection_name
- * @property string|null $queue_name_started
- * @property string|null $connection_name_started
- * @property string|null $alert_threshold
- * @property Carbon|null $created_at
+ * @property string $name
  * @property Carbon|null $updated_at
+ * @property Carbon|null $created_at
  */
-class QueueMonitorQueueModel extends Model
+class Host extends Model
 {
     protected $guarded = ['id'];
-
-    public $timestamps = true;
 
     protected $dates = [
         'created_at',
@@ -34,15 +29,20 @@ class QueueMonitorQueueModel extends Model
     {
         parent::__construct($attributes);
 
-        $this->setTable(config('monitor.db.table.queues'));
+        $this->setTable(config('monitor.db.table.hosts'));
 
         if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
     }
 
+    public function assignedQueueMonitor(): HasMany
+    {
+        return $this->hasMany(MonitorQueue::class, 'host_id');
+    }
+
     public function getResourceUrlAttribute()
     {
-        return url('/admin/queues/' . $this->getKey());
+        return url('/admin/jobs/' . $this->getKey());
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Traits;
 
 use Illuminate\Queue\InteractsWithQueue;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 /**
@@ -99,7 +99,7 @@ trait IsMonitored
         $monitor->delete();
     }
 
-    protected function getQueueMonitor(): ?QueueMonitorModel
+    protected function getQueueMonitor(): ?MonitorQueue
     {
         if (!property_exists($this, 'job')) {
             return null;

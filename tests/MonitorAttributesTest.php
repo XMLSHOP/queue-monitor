@@ -2,8 +2,8 @@
 
 namespace xmlshop\QueueMonitor\Tests;
 
-use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\Job;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithData;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithMergedData;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithMergedDataConflicting;
@@ -18,7 +18,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithData());
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
 
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
@@ -34,7 +34,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithMergedData());
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithMergedData::class)->id,
@@ -49,7 +49,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithMergedDataConflicting());
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithMergedDataConflicting::class)->id,
@@ -64,7 +64,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgress(50));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgress::class)->id,
@@ -78,7 +78,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgress(120));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgress::class)->id,
@@ -92,7 +92,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgress(-20));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgress::class)->id,
@@ -106,7 +106,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldown(0));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldown::class)->id,
@@ -120,7 +120,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldown(50));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldown::class)->id,
@@ -134,7 +134,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldown(10));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldown::class)->id,
@@ -148,7 +148,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldownMockingTime(0));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldownMockingTime::class)->id,
@@ -162,7 +162,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldownMockingTime(50));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldownMockingTime::class)->id,
@@ -176,7 +176,7 @@ class MonitorAttributesTest extends TestCase
         $this->dispatch(new MonitoredJobWithProgressCooldownMockingTime(10));
         $this->workQueue();
 
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
         /** @noinspection UnknownColumnInspection */
         $this->assertEquals(
             $this->getQueueMonitorModel(MonitoredJobWithProgressCooldownMockingTime::class)->id,
@@ -185,9 +185,9 @@ class MonitorAttributesTest extends TestCase
         $this->assertEquals(10, $monitor->progress);
     }
 
-    private function getQueueMonitorModel(string $class): ?QueueMonitorJobModel
+    private function getQueueMonitorModel(string $class): ?Job
     {
-        return QueueMonitorJobModel::query()
+        return Job::query()
             ->where('name_with_namespace', '=', $class)
             ->first(['id']);
     }

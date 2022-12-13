@@ -8,8 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Queue;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
 class AggregateQueuesSizesCommand extends Command
 {
@@ -28,8 +28,8 @@ class AggregateQueuesSizesCommand extends Command
     protected $description = 'Command gets sizes of declared queues and store them to the table.';
 
     public function __construct(
-        private QueueMonitorQueueSizesRepository $queuesSizeRepository,
-        private QueueMonitorQueueRepository $queueRepository
+        private QueueSizeRepositoryInterface $queuesSizeRepository,
+        private QueueRepositoryInterface $queueRepository
     ) {
         parent::__construct();
     }

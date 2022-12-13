@@ -6,19 +6,16 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
-use xmlshop\QueueMonitor\Repository\Interfaces\QueueMonitorRepositoryInterface;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 
-class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepositoryInterface
+class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepositoryInterface
 {
-    public function __construct(protected QueueMonitorQueueRepository $queueRepository)
-    {
-        parent::__construct();
-    }
-
-    public function getModelName(): string
-    {
-        return QueueMonitorModel::class;
+    public function __construct(
+        protected MonitorQueue $model,
+        protected QueueRepositoryInterface $queueRepository,
+    ) {
     }
 
     public function addQueued(array $data): Model
@@ -43,7 +40,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
 
         /** @noinspection UnknownColumnInspection */
         $model = $this->model
-            ->newModelQuery()
+            ->newQuery()
             ->orderByDesc('queued_at')
             ->firstOrCreate(['job_id' => $job_id], $data);
 
@@ -58,7 +55,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
         $model->update($data);
     }
 
-    public function updateFinished(QueueMonitorModel $model, array $attributes): QueueMonitorModel
+    public function updateFinished(MonitorQueue $model, array $attributes): MonitorQueue
     {
         $model->update($attributes);
 
@@ -74,7 +71,7 @@ class QueueMonitorRepository extends BaseRepository implements QueueMonitorRepos
     {
         /** @noinspection UnknownColumnInspection */
         $this->model
-            ->newModelQuery()
+            ->newQuery()
             ->where('queued_at', '<=', Carbon::now()->subDays($days))
             ->orWhere('started_at', '<=', Carbon::now()->subDays($days))
             ->delete();

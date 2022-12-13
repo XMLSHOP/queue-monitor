@@ -5,29 +5,28 @@ namespace xmlshop\QueueMonitor\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
+use xmlshop\QueueMonitor\Models\Job;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
 
-class QueueMonitorJobsRepository extends BaseRepository
+class JobRepository extends BaseRepository implements JobRepositoryInterface
 {
-    public function getModelName(): string
+    public function __construct(protected Job $model)
     {
-        return QueueMonitorJobModel::class;
     }
 
     public function firstOrCreate(string $name_with_namespace): int
     {
-        return $this->model::query()->firstOrCreate([
+        return $this->model->newQuery()->firstOrCreate([
             'name_with_namespace' => $name_with_namespace,
         ], [
-            'name' => $this->model::getBasename($name_with_namespace),
-            'name_with_namespace' => $name_with_namespace,
+            'name' => $this->model->getBasename($name_with_namespace),
         ])->id;
     }
 
-    public function getJobsStatistic(string $date_from, string $date_to): Collection|array
+    public function getJobsStatistic(string $date_from, string $date_to): Collection
     {
         /** @noinspection UnknownColumnInspection */
-        return $this->model::query()
+        return $this->model->newQuery()
             ->select(['name', 'name_with_namespace'])
             ->selectRaw('@datefrom:=?', [$date_from])
             ->selectRaw('@dateto:=?', [$date_to])
@@ -72,7 +71,7 @@ class QueueMonitorJobsRepository extends BaseRepository
     public function getJobsAlertInfo(int $period_seconds, int $offset_seconds): Collection
     {
         /** @noinspection UnknownColumnInspection */
-        return $this->model::query()
+        return $this->model->newQuery()
             ->select(['qmj.id', 'qmj.name'])
             ->selectRaw('SUM(qm.failed) as FailedCount')
             ->selectRaw('COUNT(1) - COUNT(qm.time_pending_elapsed) as PendingCount')

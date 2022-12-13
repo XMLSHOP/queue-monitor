@@ -10,8 +10,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Pressutto\LaravelSlack\Slack;
-use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 
 class ListenerCommand extends Command
 {
@@ -45,8 +45,8 @@ class ListenerCommand extends Command
     private ?Slack $slack = null;
 
     public function __construct(
-        private QueueMonitorQueueRepository $queuesRepository,
-        private QueueMonitorJobsRepository $jobsRepository
+        private QueueRepositoryInterface $queuesRepository,
+        private JobRepositoryInterface $jobsRepository
     ) {
         parent::__construct();
     }

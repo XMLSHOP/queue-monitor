@@ -14,9 +14,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Collection;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
 use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
-use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 
 class ShowQueueMonitorController
@@ -27,8 +27,8 @@ class ShowQueueMonitorController
 
     public function __invoke(
         Request $request,
-        QueueMonitorJobsRepository $jobsRepository,
-        QueueMonitorQueueRepository $queueRepository
+        JobRepositoryInterface $jobsRepository,
+        QueueRepositoryInterface $queueRepository
     ): View {
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'pending', 'running', 'failed', 'succeeded'])],
@@ -214,21 +214,21 @@ class ShowQueueMonitorController
             switch ($status) {
                 case 'running':
                     /** @noinspection UnknownColumnInspection */
-                    $subSelect = QueueMonitorModel::query()
+                    $subSelect = MonitorQueue::query()
                         ->selectRaw('COUNT(1)')
                         ->whereBetween('started_at', [$filters['df'], $filters['dt']])
                         ->whereNull(['finished_at']);
                     break;
                 case 'pending':
                     /** @noinspection UnknownColumnInspection */
-                    $subSelect = QueueMonitorModel::query()
+                    $subSelect = MonitorQueue::query()
                         ->selectRaw('COUNT(1)')
                         ->whereBetween('queued_at', [$filters['df'], $filters['dt']])
                         ->whereNull(['started_at', 'finished_at']);
                     break;
                 case 'succeeded':
                     /** @noinspection UnknownColumnInspection */
-                    $subSelect = QueueMonitorModel::query()
+                    $subSelect = MonitorQueue::query()
                         ->selectRaw('COUNT(1)')
                         ->where(function ($query) use ($filters) {
                             $query->whereBetween('started_at', [$filters['df'], $filters['dt']])
@@ -239,7 +239,7 @@ class ShowQueueMonitorController
                     break;
                 case 'failed':
                     /** @noinspection UnknownColumnInspection */
-                    $subSelect = QueueMonitorModel::query()
+                    $subSelect = MonitorQueue::query()
                         ->selectRaw('COUNT(1)')
                         ->whereNotNull(['started_at', 'finished_at'])
                         ->where(function ($query) use ($filters) {
@@ -299,7 +299,7 @@ class ShowQueueMonitorController
 
         /** @noinspection UnknownColumnInspection */
         $subs = [
-            'pending_time' => QueueMonitorModel::query()
+            'pending_time' => MonitorQueue::query()
                 ->selectRaw('AVG(time_pending_elapsed)')
                 ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['queued_at', 'started_at'])
@@ -307,7 +307,7 @@ class ShowQueueMonitorController
                     $query->whereBetween('queued_at', [$filters['df'], $filters['dt']])
                         ->orWhereBetween('started_at', [$filters['df'], $filters['dt']]);
                 }),
-            'execution_time' => QueueMonitorModel::query()
+            'execution_time' => MonitorQueue::query()
                 ->selectRaw('AVG(time_elapsed)')
                 ->where('queue_monitor_job_id', '=', $job_id)
                 ->whereNotNull(['started_at', 'finished_at'])

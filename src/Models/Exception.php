@@ -16,7 +16,7 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property string|null $exception_message
  * @property Carbon|null $created_at
  */
-class MonitorExceptionModel extends Model
+class Exception extends Model
 {
     use Uuids;
 
