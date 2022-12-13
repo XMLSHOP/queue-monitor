@@ -36,29 +36,19 @@ class Job extends Model
         }
     }
 
-    /**
-     * Get the base class name of the job.
-     */
-    public function getBasenameJob(): ?string
-    {
-        if (null === $this->name) {
-            return null;
-        }
-
-        return $this->getBasename($this->name);
-    }
-
-    /**
-     * Get the base class name, without namespace
-     */
-    public function getBasename(string $name): ?string
-    {
-        return \last(explode('\\', $name));
-    }
-
     public function assignedQueueMonitor(): HasMany
     {
         return $this->hasMany(MonitorQueue::class, 'queue_monitor_job_id');
+    }
+
+    public function getBasenameJob(): ?string
+    {
+        return !$this->name ? null : $this->getBasename($this->name);
+    }
+
+    public function getBasename(string $name): ?string
+    {
+        return \last(explode('\\', $name));
     }
 
     public function getResourceUrlAttribute()
