@@ -34,15 +34,13 @@ use xmlshop\QueueMonitor\Services\{QueueMonitorService, SchedulerMonitorService,
 
 class MonitorProvider extends ServiceProvider
 {
-    public function __construct(
-        Application $app,
-        private Dispatcher $dispatcher,
-        private QueueManager $queueManager,
-        private QueueMonitorService $queueMonitorService,
-        private SchedulerMonitorService $schedulerMonitorService,
-        private CommandMonitorService $commandMonitorService,
-    ) {
+    private Dispatcher $dispatcher;
+
+    public function __construct(Application $app)
+    {
         parent::__construct($app);
+
+        $this->dispatcher = $app->make(Dispatcher::class);
     }
 
     /**
@@ -128,58 +126,65 @@ class MonitorProvider extends ServiceProvider
 
     private function listenQueues(): void
     {
+        $queueManager = $this->app->make(QueueManager::class);
+        $queueMonitorService = $this->app->make(QueueMonitorService::class);
+
         $this->dispatcher->listen(
             JobQueued::class,
-            static fn (JobQueued $event) => $this->queueMonitorService->handleJobQueued($event)
+            static fn (JobQueued $event) => $queueMonitorService->handleJobQueued($event)
         );
 
-        $this->queueManager->before(
-            static fn (JobProcessing $event) => $this->queueMonitorService->handleJobProcessing($event)
+        $queueManager->before(
+            static fn (JobProcessing $event) => $queueMonitorService->handleJobProcessing($event)
         );
-        $this->queueManager->after(
-            static fn (JobProcessed $event) => $this->queueMonitorService->handleJobProcessed($event)
+        $queueManager->after(
+            static fn (JobProcessed $event) => $queueMonitorService->handleJobProcessed($event)
         );
-        $this->queueManager->failing(
-            static fn (JobFailed $event) => $this->queueMonitorService->handleJobFailed($event)
+        $queueManager->failing(
+            static fn (JobFailed $event) => $queueMonitorService->handleJobFailed($event)
         );
-        $this->queueManager->exceptionOccurred(
-            static fn (JobExceptionOccurred $event) => $this->queueMonitorService->handleJobExceptionOccurred($event)
+        $queueManager->exceptionOccurred(
+            static fn (JobExceptionOccurred $event) => $queueMonitorService->handleJobExceptionOccurred($event)
         );
     }
 
     private function listenSchedullers(): void
     {
+        $schedulerMonitorService = $this->app->make(SchedulerMonitorService::class);
+
         $this->dispatcher->listen(
             ScheduledTaskStarting::class,
-            static fn (ScheduledTaskStarting $event) => $this->schedulerMonitorService->handleTaskStarting($event)
+            static fn (ScheduledTaskStarting $event) => $schedulerMonitorService->handleTaskStarting($event)
         );
 
         $this->dispatcher->listen(
             ScheduledTaskFinished::class,
-            static fn (ScheduledTaskFinished $event) => $this->schedulerMonitorService->handleTaskFinished($event)
+            static fn (ScheduledTaskFinished $event) => $schedulerMonitorService->handleTaskFinished($event)
         );
 
         $this->dispatcher->listen(
             ScheduledTaskFailed::class,
-            static fn (ScheduledTaskFailed $event) => $this->schedulerMonitorService->handleTaskFailed($event)
+            static fn (ScheduledTaskFailed $event) => $schedulerMonitorService->handleTaskFailed($event)
         );
 
         $this->dispatcher->listen(
             ScheduledTaskSkipped::class,
-            static fn (ScheduledTaskSkipped $event) => $this->schedulerMonitorService->handleTaskSkipped($event)
+            static fn (ScheduledTaskSkipped $event) => $schedulerMonitorService->handleTaskSkipped($event)
         );
     }
 
     private function listenCommand(): void
     {
+        $commandMonitorService = $this->app->make(CommandMonitorService::class);
+
         $this->dispatcher->listen(
             CommandStarting::class,
-            static fn (CommandStarting $event) => $this->commandMonitorService->handleCommandStarting($event),
+            static fn (CommandStarting $event) => $commandMonitorService->handleCommandStarting($event),
         );
 
         $this->dispatcher->listen(
             CommandFinished::class,
-            static fn (CommandFinished $event) => $this->commandMonitorService->handleCommandFinished($event),
+            static fn (CommandFinished $event) => $commandMonitorService->handleCommandFinished($event),
         );
     }
 }
