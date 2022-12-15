@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Repository;
 
 use xmlshop\QueueMonitor\Models\Host;

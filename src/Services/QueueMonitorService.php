@@ -14,6 +14,7 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Queue;
 use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
+use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
@@ -27,6 +28,7 @@ class QueueMonitorService
         private MonitorQueueRepositoryInterface $queueMonitorRepository,
         private JobRepositoryInterface $jobsRepository,
         private HostRepositoryInterface $hostsRepository,
+        private ExceptionRepositoryInterface $exceptionRepository,
         public MonitorQueue $model
     ) {
     }
@@ -154,17 +156,7 @@ class QueueMonitorService
         ]);
 
         if ($exception) {
-            $exceptionMaxLength = config('monitor.db.max_length_exception');
-            $exceptionMessageMaxLength = config('monitor.db.max_length_exception_message');
-
-            $monitorException = Exception::query()->create([
-                'entity' => Exception::ENTITY_JOB,
-                'exception' => mb_strcut((string) $exception, 0, $exceptionMaxLength),
-                'exception_class' => get_class($exception),
-                'exception_message' => mb_strcut($exception->getMessage(), 0, $exceptionMessageMaxLength),
-                'created_at' => $now
-            ]);
-
+            $monitorException = $this->exceptionRepository->createFromThrowable($exception);
             $monitor->exception()->associate($monitorException);
             $monitor->save();
         }

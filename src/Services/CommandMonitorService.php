@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Services;
 
-use Illuminate\Console\Scheduling\Event;
-use Illuminate\Console\Events\ScheduledTaskFinished;
-use Illuminate\Console\Events\ScheduledTaskStarting;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\ScheduledTaskFactory;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 
 class CommandMonitorService
 {
+    public function handleCommandStarting(CommandStarting $event): void
+    {
 
+    }
+
+    public function handleCommandFinished(CommandFinished $event): void
+    {
+
+    }
 }

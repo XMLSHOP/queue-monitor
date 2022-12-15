@@ -1,38 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Providers;
 
-use Illuminate\Console\Events\CommandFinished;
-use Illuminate\Console\Events\CommandStarting;
-use Illuminate\Queue\Events\JobExceptionOccurred;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Queue\Events\JobProcessing;
-use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Console\Events\{CommandFinished,
+    CommandStarting,
+    ScheduledTaskFailed,
+    ScheduledTaskFinished,
+    ScheduledTaskSkipped,
+    ScheduledTaskStarting};
+use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobProcessing, JobQueued};
 use Illuminate\Queue\QueueManager;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\{Event, Route};
 use Illuminate\Support\ServiceProvider;
-use xmlshop\QueueMonitor\Commands\AggregateQueuesSizesCommand;
-use xmlshop\QueueMonitor\Commands\CleanUpCommand;
-use xmlshop\QueueMonitor\Commands\ListenerCommand;
-use xmlshop\QueueMonitor\EventHandlers\CommandListener;
-use xmlshop\QueueMonitor\EventHandlers\ScheduledTaskEventSubscriber;
+use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand};
 use xmlshop\QueueMonitor\Repository\HostRepository;
-use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\JobRepository;
-use xmlshop\QueueMonitor\Repository\MonitorQueueRepository;
-use xmlshop\QueueMonitor\Repository\QueueRepository;
-use xmlshop\QueueMonitor\Repository\QueueSizeRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\{
+    HostRepositoryInterface,
+    JobRepositoryInterface,
+    MonitorQueueRepositoryInterface,
+    QueueRepositoryInterface,
+    QueueSizeRepositoryInterface,
+    ExceptionRepositoryInterface
+};
+use xmlshop\QueueMonitor\Repository\{
+    JobRepository, MonitorQueueRepository, QueueRepository, QueueSizeRepository, ExceptionRepository
+};
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
-use xmlshop\QueueMonitor\Services\QueueMonitorService;
+use xmlshop\QueueMonitor\Services\{QueueMonitorService, SchedulerMonitorService, CommandMonitorService};
 
 class MonitorProvider extends ServiceProvider
 {
+    public function __construct(
+        Application $app,
+        private Dispatcher $dispatcher,
+        private QueueManager $queueManager,
+        private QueueMonitorService $queueMonitorService,
+        private SchedulerMonitorService $schedulerMonitorService,
+        private CommandMonitorService $commandMonitorService,
+    ) {
+        parent::__construct($app);
+    }
+
     /**
      * Bootstrap the application services.
      *
@@ -64,10 +76,7 @@ class MonitorProvider extends ServiceProvider
             ], 'views');
         }
 
-        $this->loadViewsFrom(
-            __DIR__ . '/../../views',
-            'monitor'
-        );
+        $this->loadViewsFrom(__DIR__ . '/../../views', 'monitor');
 
         /** @phpstan-ignore-next-line */
         Route::mixin(new QueueMonitorRoutes());
@@ -76,18 +85,9 @@ class MonitorProvider extends ServiceProvider
             return;
         }
 
-        if (config('monitor.settings.active-monitor-scheduler')) {
-//            Event::subscribe(ScheduledTaskEventSubscriber::class);
-        }
-
-        if (config('monitor.settings.active-monitor-commands')) {
-//            Event::listen(CommandStarting::class, CommandListener::class);
-//            Event::listen(CommandFinished::class, CommandListener::class);
-        }
-
-        if (config('monitor.settings.active-monitor-queue-jobs')) {
-            $this->listenQueues();
-        }
+        config('monitor.settings.active-monitor-scheduler') && $this->listenSchedullers();
+        config('monitor.settings.active-monitor-commands') && $this->listenCommand();
+        config('monitor.settings.active-monitor-queue-jobs') && $this->listenQueues();
     }
 
     /**
@@ -99,34 +99,12 @@ class MonitorProvider extends ServiceProvider
     {
         /** @phpstan-ignore-next-line */
         if (!$this->app->configurationIsCached()) {
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/db.php',
-                'monitor.db'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/ui.php',
-                'monitor.ui'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/alarm.php',
-                'monitor.alarm'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/queue-sizes-retrieves.php',
-                'monitor.queue-sizes-retrieves'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/dashboard-charts.php',
-                'monitor.dashboard-charts'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__ . '/../../config/monitor/settings.php',
-                'monitor.settings');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/db.php', 'monitor.db');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/ui.php', 'monitor.ui');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/alarm.php', 'monitor.alarm');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/queue-sizes-retrieves.php', 'monitor.queue-sizes-retrieves');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/dashboard-charts.php', 'monitor.dashboard-charts');
+            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/settings.php', 'monitor.settings');
         }
 
         $this->app->bind(MonitorQueueRepositoryInterface::class, MonitorQueueRepository::class);
@@ -134,6 +112,7 @@ class MonitorProvider extends ServiceProvider
         $this->app->bind(HostRepositoryInterface::class, HostRepository::class);
         $this->app->bind(JobRepositoryInterface::class, JobRepository::class);
         $this->app->bind(QueueSizeRepositoryInterface::class, QueueSizeRepository::class);
+        $this->app->bind(ExceptionRepositoryInterface::class, ExceptionRepository::class);
 
         /** @phpstan-ignore-next-line */
         $this->app->bind('monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);
@@ -149,29 +128,58 @@ class MonitorProvider extends ServiceProvider
 
     private function listenQueues(): void
     {
-        /** @var QueueManager $manager */
-        $manager = app(QueueManager::class);
-        /** @var QueueMonitorService $queueMonitorService */
-        $queueMonitorService = app(QueueMonitorService::class);
+        $this->dispatcher->listen(
+            JobQueued::class,
+            static fn (JobQueued $event) => $this->queueMonitorService->handleJobQueued($event)
+        );
 
-        Event::listen([JobQueued::class], function (JobQueued $jobQueued) use ($queueMonitorService) {
-            $queueMonitorService->handleJobQueued($jobQueued);
-        });
+        $this->queueManager->before(
+            static fn (JobProcessing $event) => $this->queueMonitorService->handleJobProcessing($event)
+        );
+        $this->queueManager->after(
+            static fn (JobProcessed $event) => $this->queueMonitorService->handleJobProcessed($event)
+        );
+        $this->queueManager->failing(
+            static fn (JobFailed $event) => $this->queueMonitorService->handleJobFailed($event)
+        );
+        $this->queueManager->exceptionOccurred(
+            static fn (JobExceptionOccurred $event) => $this->queueMonitorService->handleJobExceptionOccurred($event)
+        );
+    }
 
-        $manager->before(static function (JobProcessing $jobProcessing) use ($queueMonitorService) {
-            $queueMonitorService->handleJobProcessing($jobProcessing);
-        });
+    private function listenSchedullers(): void
+    {
+        $this->dispatcher->listen(
+            ScheduledTaskStarting::class,
+            static fn (ScheduledTaskStarting $event) => $this->schedulerMonitorService->handleTaskStarting($event)
+        );
 
-        $manager->after(static function (JobProcessed $jobProcessed) use ($queueMonitorService) {
-            $queueMonitorService->handleJobProcessed($jobProcessed);
-        });
+        $this->dispatcher->listen(
+            ScheduledTaskFinished::class,
+            static fn (ScheduledTaskFinished $event) => $this->schedulerMonitorService->handleTaskFinished($event)
+        );
 
-        $manager->failing(static function (JobFailed $jobFailed) use ($queueMonitorService) {
-            $queueMonitorService->handleJobFailed($jobFailed);
-        });
+        $this->dispatcher->listen(
+            ScheduledTaskFailed::class,
+            static fn (ScheduledTaskFailed $event) => $this->schedulerMonitorService->handleTaskFailed($event)
+        );
 
-        $manager->exceptionOccurred(static function (JobExceptionOccurred $jobException) use ($queueMonitorService) {
-            $queueMonitorService->handleJobExceptionOccurred($jobException);
-        });
+        $this->dispatcher->listen(
+            ScheduledTaskSkipped::class,
+            static fn (ScheduledTaskSkipped $event) => $this->schedulerMonitorService->handleTaskSkipped($event)
+        );
+    }
+
+    private function listenCommand(): void
+    {
+        $this->dispatcher->listen(
+            CommandStarting::class,
+            static fn (CommandStarting $event) => $this->commandMonitorService->handleCommandStarting($event),
+        );
+
+        $this->dispatcher->listen(
+            CommandFinished::class,
+            static fn (CommandFinished $event) => $this->commandMonitorService->handleCommandFinished($event),
+        );
     }
 }
