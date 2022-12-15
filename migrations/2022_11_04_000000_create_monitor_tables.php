@@ -71,7 +71,7 @@ class CreateMonitorTables extends Migration
 
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.commands'), function (Blueprint $table) {
-                $table->unsignedSmallInteger('id');
+                $table->smallIncrements('id');
                 $table->string('command', 64)->unique();
                 $table->string('class_with_namespace', 64)->nullable();
                 $table->timestamps();
@@ -94,7 +94,7 @@ class CreateMonitorTables extends Migration
 
         Schema::connection(config('monitor.db.connection'))
             ->create(config('monitor.db.table.schedulers'), function (Blueprint $table) {
-                $table->unsignedSmallInteger('id');
+                $table->smallIncrements('id');
                 $table->string('name')->unique();
                 $table->string('type')->nullable();
                 $table->string('cron_expression');
@@ -135,9 +135,12 @@ class CreateMonitorTables extends Migration
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.jobs'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.queues_sizes'));
-        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.command'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.commands'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.hosts'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.monitor_queue'));
         Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.monitor_command'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.schedulers'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.monitor_scheduler'));
+        Schema::connection(config('monitor.db.connection'))->dropIfExists(config('monitor.db.table.exceptions'));
     }
 }

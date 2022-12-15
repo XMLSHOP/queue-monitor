@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -17,31 +16,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $alert_threshold
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- *
- * @method static Builder|QueueMonitorQueueModel newModelQuery()
- * @method static Builder|QueueMonitorQueueModel newQuery()
- * @method static Builder|QueueMonitorQueueModel query()
- * @method static Builder|QueueMonitorQueueModel select()
- * @method static Builder|QueueMonitorQueueModel whereQueueName()
- * @method static integer insert()
  */
-class QueueMonitorQueueModel extends Model
+class Queue extends Model
 {
     protected $guarded = ['id'];
 
     public $timestamps = true;
 
-    /**
-     * @var string[]
-     */
-    protected $dates = [
-        'created_at',
-        'updated_at',
-    ];
+    protected $dates = ['created_at', 'updated_at',];
 
-    /**
-     * @param array<string, mixed> $attributes
-     */
+    protected $appends = ['resource_url'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -52,10 +37,6 @@ class QueueMonitorQueueModel extends Model
             $this->setConnection($connection);
         }
     }
-
-    protected $appends = ['resource_url'];
-
-    /* ************************ ACCESSOR ************************* */
 
     public function getResourceUrlAttribute()
     {

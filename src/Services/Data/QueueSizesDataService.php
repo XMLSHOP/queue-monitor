@@ -6,11 +6,11 @@ namespace xmlshop\QueueMonitor\Services\Data;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
 class QueueSizesDataService
 {
-    public function __construct(private QueueMonitorQueueSizesRepository $queueMonitorQueueSizesRepository)
+    public function __construct(private QueueSizeRepositoryInterface $queueSizesRepository)
     {
     }
 
@@ -23,7 +23,7 @@ class QueueSizesDataService
             if (Arr::exists($chartOptions, 'queues')) {
                 $obj = array_merge($obj, $chartOptions['properties']);
 
-                $dataToTransform = $this->queueMonitorQueueSizesRepository->getDataSegment(
+                $dataToTransform = $this->queueSizesRepository->getDataSegment(
                     $requestData['filter']['date_from'],
                     $requestData['filter']['date_to'],
                     $chartOptions['queues'],

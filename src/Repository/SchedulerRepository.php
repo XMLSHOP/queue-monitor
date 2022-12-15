@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace xmlshop\QueueMonitor\Repository;
+
+use Illuminate\Database\Eloquent\Model;
+use xmlshop\QueueMonitor\Models\Scheduler;
+use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
+use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\Task;
+
+class SchedulerRepository implements SchedulerRepositoryInterface
+{
+    public function __construct(protected Scheduler $model)
+    {
+    }
+
+    public function findByName(string $name): ?Scheduler
+    {
+        return $this->model->newQuery()->where('name', $name)->first();
+    }
+
+    public function updateOrCreate(Task $task): Model
+    {
+        return $this->model->newQuery()->updateOrCreate([
+            'name' => $task->name()
+        ], [
+            'type' => $task->type(),
+            'cron_expression' => $task->cronExpression(),
+        ]);
+    }
+
+    public function deleteByIds(array $ids): void
+    {
+        $this->model->newQuery()->whereNotIn('id', $ids)->delete();
+    }
+}

@@ -24,10 +24,9 @@ class TestCase extends BaseTestCase
 
         try {
             $this->artisan('queue:table');
-            $this->artisan('migrate');
-        } catch (\InvalidArgumentException $e) {
-            // TODO: this command fails locally but is required for travis ci
-        }
+        } catch (\Throwable) {}
+
+        $this->artisan('migrate');
     }
 
     protected function dispatch(BaseJob $job): self

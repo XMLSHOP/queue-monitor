@@ -8,7 +8,6 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
@@ -26,17 +25,17 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property bool $failed
  * @property int $attempt
  * @property int|null $progress
- * @property MonitorExceptionModel|null $exception
+ * @property Exception|null $exception
  * @property string|null $data
  *
- * @method static Builder|QueueMonitorModel whereJob()
- * @method static Builder|QueueMonitorModel ordered()
- * @method static Builder|QueueMonitorModel lastHour()
- * @method static Builder|QueueMonitorModel today()
- * @method static Builder|QueueMonitorModel failed()
- * @method static Builder|QueueMonitorModel succeeded()
+ * @method static Builder|MonitorQueue whereJob()
+ * @method static Builder|MonitorQueue ordered()
+ * @method static Builder|MonitorQueue lastHour()
+ * @method static Builder|MonitorQueue today()
+ * @method static Builder|MonitorQueue failed()
+ * @method static Builder|MonitorQueue succeeded()
  */
-class QueueMonitorModel extends Model
+class MonitorQueue extends Model
 {
     use Uuids;
 
@@ -49,17 +48,10 @@ class QueueMonitorModel extends Model
         'queue_id' => 'int'
     ];
 
-    protected $dates = [
-        'queued_at',
-        'started_at',
-        'finished_at',
-    ];
+    protected $dates = ['queued_at', 'started_at', 'finished_at'];
 
     public $timestamps = false;
 
-    /**
-     * @param array<string, mixed> $attributes
-     */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -73,14 +65,8 @@ class QueueMonitorModel extends Model
 
     public function exception(): BelongsTo
     {
-        return $this->belongsTo(MonitorExceptionModel::class, 'exception_id', 'uuid');
+        return $this->belongsTo(Exception::class, 'exception_id', 'uuid');
     }
-
-    /*
-     *--------------------------------------------------------------------------
-     * Scopes
-     *--------------------------------------------------------------------------
-     */
 
     public function scopeWhereJob(Builder $query, string|int $jobId): void
     {
@@ -118,12 +104,6 @@ class QueueMonitorModel extends Model
         /** @noinspection UnknownColumnInspection */
         $query->where('failed', false);
     }
-
-    /*
-     *--------------------------------------------------------------------------
-     * Methods
-     *--------------------------------------------------------------------------
-     */
 
     public function getQueued(): ?Carbon
     {

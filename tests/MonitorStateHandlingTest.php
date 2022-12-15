@@ -2,8 +2,8 @@
 
 namespace xmlshop\QueueMonitor\Tests;
 
-use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\Job;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Tests\Support\IntentionallyFailedException;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredFailingJob;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredFailingJobWithHugeExceptionMessage;
@@ -15,8 +15,8 @@ class MonitorStateHandlingTest extends TestCase
         $this->dispatch(new MonitoredFailingJob());
         $this->workQueue();
 
-        $this->assertCount(1, QueueMonitorModel::all());
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertCount(1, MonitorQueue::all());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
 
         $monitorModel = $this->getQueueMonitorModel(MonitoredFailingJob::class);
 
@@ -32,8 +32,8 @@ class MonitorStateHandlingTest extends TestCase
         $this->dispatch(new MonitoredFailingJobWithHugeExceptionMessage());
         $this->workQueue();
 
-        $this->assertCount(1, QueueMonitorModel::all());
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertCount(1, MonitorQueue::all());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
 
         $monitorModel = $this->getQueueMonitorModel(MonitoredFailingJobWithHugeExceptionMessage::class);
 
@@ -46,9 +46,9 @@ class MonitorStateHandlingTest extends TestCase
         $this->assertInstanceOf(IntentionallyFailedException::class, $monitor->getException());
     }
 
-    private function getQueueMonitorModel(string $class): ?QueueMonitorJobModel
+    private function getQueueMonitorModel(string $class): ?Job
     {
-        return QueueMonitorJobModel::query()
+        return Job::query()
             ->where('name_with_namespace', '=', $class)
             ->first(['id']);
     }

@@ -6,50 +6,40 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use xmlshop\QueueMonitor\Models\QueueMonitorQueueModel;
-use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
+use xmlshop\QueueMonitor\Models\Queue;
+use xmlshop\QueueMonitor\Models\QueueSize;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 
-class QueueMonitorQueueRepository extends BaseRepository
+class QueueRepository extends BaseRepository implements QueueRepositoryInterface
 {
-    public function getModelName(): string
+    public function __construct(protected Queue $model)
     {
-        return QueueMonitorQueueModel::class;
     }
 
     public function addNew(?string $connection, string $queue): Model
     {
-        /** @var QueueMonitorQueueModel $model */
-        $model = new $this->model();
-        $model->queue_name = $queue;
-        $model->connection_name = $connection ?? config('queue.default');
-        $model->save();
-
-        return $model;
+        return $this->create([
+            'queue_name' => $queue,
+            'connection_name' => $connection ?? config('queue.default'),
+        ]);
     }
 
-    public function select(array|string $columns = ['*']): Collection|array
+    public function select(array|string $columns = ['*']): Collection
     {
-        return $this->model::select()->get($columns);
+        return $this->getCollection($columns);
     }
 
-    public function firstOrCreate(?string $connection, string $queue): int
+    public function firstOrCreate(?string $connection, string $queue): Model
     {
-        return $this->model::query()
-            ->firstOrCreate(
-                [
-                    'queue_name' => $queue,
-                    'connection_name' => $connection ?? config('queue.default'),
-                ],
-                [
-                    'queue_name' => $queue,
-                    'connection_name' => $connection ?? config('queue.default'),
-                ],
-            )->id;
+        return $this->model->newQuery()->firstOrCreate([
+            'queue_name' => $queue,
+            'connection_name' => $connection ?? config('queue.default'),
+        ]);
     }
 
     public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void
     {
-        /** @var QueueMonitorQueueModel $model */
+        /** @var Queue $model */
         $model = $this->findById($queue_id);
 
         if (
@@ -65,7 +55,7 @@ class QueueMonitorQueueRepository extends BaseRepository
     public function getQueuesAlertInfo(): array
     {
         /** @noinspection UnknownColumnInspection */
-        return $this->model::query()
+        return $this->model->newQuery()
             ->select([
                 'mq.id',
                 'mq.queue_name',
@@ -77,9 +67,10 @@ class QueueMonitorQueueRepository extends BaseRepository
             ->join(config('monitor.db.table.queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
             ->whereIn('mqs.created_at', function (\Illuminate\Database\Query\Builder $query) {
                 $query
-                    ->from(with(new QueueMonitorQueuesSizesModel())->getTable())
+                    ->from(with(new QueueSize())->getTable())
                     ->selectRaw('MAX(created_at)');
-            }
-            )->get()->toArray();
+            })
+            ->get()
+            ->toArray();
     }
 }

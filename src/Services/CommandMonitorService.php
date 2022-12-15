@@ -1,13 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Services;
 
-use Illuminate\Console\Scheduling\Event;
-use Illuminate\Console\Events\ScheduledTaskFinished;
-use Illuminate\Console\Events\ScheduledTaskStarting;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\ScheduledTaskFactory;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
+use xmlshop\QueueMonitor\Repository\Interfaces\CommandRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
 
 class CommandMonitorService
 {
+    private array $commandsToSkipp = [
+        'migrate:fresh',
+        'migrate:rollback',
+        'migrate',
+        'queue:table',
+    ];
 
+    public function __construct(
+        private CommandRepositoryInterface $commandRepository,
+        private HostRepositoryInterface $hostRepository,
+        private MonitorCommandRepositoryInterface $monitorCommandRepository,
+    ) {
+    }
+
+    public function handleCommandStarting(CommandStarting $event): void
+    {
+        if (\in_array($event->command, $this->commandsToSkipp, true)) {
+            return;
+        }
+
+        $host = $this->hostRepository->firstOrCreate();
+        $command = $this->commandRepository->firstOrCreateByEvent($event);
+
+        $this->monitorCommandRepository->createOrUpdateByCommandAndHost($command, $host);
+    }
+
+    public function handleCommandFinished(CommandFinished $event): void
+    {
+        if (\in_array($event->command, $this->commandsToSkipp, true)) {
+            return;
+        }
+
+        $host = $this->hostRepository->firstOrCreate();
+        $command = $this->commandRepository->firstOrCreateByEvent($event);
+
+        $this->monitorCommandRepository->updateByCommandAndHost($command, $host);
+    }
 }

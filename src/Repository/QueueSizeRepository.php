@@ -6,25 +6,25 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
-use xmlshop\QueueMonitor\Models\QueueMonitorQueuesSizesModel;
+use xmlshop\QueueMonitor\Models\QueueSize;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
-class QueueMonitorQueueSizesRepository extends BaseRepository
+class QueueSizeRepository extends BaseRepository implements QueueSizeRepositoryInterface
 {
-    public function getModelName(): string
+    public function __construct(protected QueueSize $model)
     {
-        return QueueMonitorQueuesSizesModel::class;
     }
 
     public function bulkInsert(array $data): bool
     {
-        return $this->model->newModelQuery()->insert($data);
+        return $this->model->newQuery()->insert($data);
     }
 
-    public function getDataSegment(string $from, string $to, ?array $queues = null): Builder|QueueMonitorQueuesSizesModel
+    public function getDataSegment(string $from, string $to, ?array $queues = null): Builder
     {
         /** @noinspection UnknownColumnInspection */
         return $this->model
-            ->newModelQuery()
+            ->newQuery()
             ->from(config('monitor.db.table.queues_sizes'), 'qs')
             ->select('qs.created_at')
             ->selectRaw('GROUP_CONCAT(CONCAT(q.connection_name, \':\', q.queue_name)) as queue_names')
@@ -48,7 +48,7 @@ class QueueMonitorQueueSizesRepository extends BaseRepository
     {
         /** @noinspection UnknownColumnInspection */
         $this->model
-            ->newModelQuery()
+            ->newQuery()
             ->where('created_at','<=', Carbon::now()->subDays($days))
             ->delete();
     }

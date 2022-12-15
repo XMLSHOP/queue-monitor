@@ -1,122 +1,82 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use xmlshop\QueueMonitor\Repository\Interfaces\BaseRepositoryInterface;
 
-abstract class BaseRepository
+abstract class BaseRepository implements BaseRepositoryInterface
 {
-    protected Model $model;
-
-    abstract public function getModelName(): string;
-
-    public function __construct()
-    {
-        $this->makeModel();
-    }
-
-    public function save(Model $model): bool
-    {
-        return $model->save();
-    }
-
-    public function makeModel(): void
-    {
-        $model = app($this->getModelName());
-
-        if (!$model instanceof Model) {
-            throw new \Exception("Class $model must be an instance of Illuminate\Database\Eloquent\Model");
-        }
-
-        $this->model = $model;
-    }
-
     public function create(array $data = []): Model
     {
-        return $this->model->create($data);
+        return $this->model->newQuery()->create($data);
     }
 
-    public function getFillableFields(): array
+    public function getCollection(array $columns = ['*']): Collection
     {
-        $fillable = $this->model->getFillable();
-        if (\is_callable([$this->model, 'getNotFillable'])) {
-            $fillable = array_diff($fillable, $this->model->getNotFillable());
-        }
-        return $fillable;
+        return $this->model->newQuery()->get($columns);
     }
 
-    public function getCollection(array $columns = ['*'])
+    public function getCollectionByIds(array $ids, array $columns = ['*']): Collection
     {
-        return $this->model::get($columns);
-    }
-
-    public function getCollectionByIds(array $ids, array $columns = ['*'])
-    {
-        return $this->model::findMany($ids, $columns);
+        return $this->model->newQuery()->findMany($ids, $columns);
     }
 
     public function update(int $id, string $attribute = 'id', array $data = []): bool
     {
-        $model = $this->model::where($attribute, '=', $id)->first();
-
-        if (!$model) {
+        if (!$locatedModel = $this->model->newQuery()->where($attribute, '=', $id)->first()) {
             return false;
         }
 
-        $model->fill($data);
-
-        return $model->save();
+        return $locatedModel->fill($data)->save();
     }
 
     public function updateMany(array $ids, array $data): int
     {
-        return $this->model::whereIn('id', $ids)->update($data);
+        return $this->model->newQuery()->whereIn('id', $ids)->update($data);
     }
 
     public function delete($ids): int
     {
-        return $this->model::destroy($ids);
+        return $this->model->newQuery()->destroy($ids);
     }
 
-    public function findById(int $id, array $columns = ['*'], array $with = [])
+    public function findById(int $id, array $columns = ['*'], array $with = []): Model
     {
-        return $this->model::with($with)->findOrFail($id, $columns);
+        return $this->model->newQuery()->with($with)->findOrFail($id, $columns);
     }
 
-    public function findOneByAttribute(string $attribute, string $value, array $columns = ['*'])
+    public function findOneByAttribute(string $attribute, string $value, array $columns = ['*']): Model
     {
-        return $this->model::where($attribute, '=', $value)->firstOrFail($columns);
+        return $this->model->newQuery()->where($attribute, '=', $value)->firstOrFail($columns);
     }
 
-    public function getCollectionWhereIn(string $attribute, array $values, array $columns = ['*'])
+    public function getCollectionWhereIn(string $attribute, array $values, array $columns = ['*']): Collection
     {
-        return $this->model::whereIn($attribute, $values)->get($columns);
+        return $this->model->newQuery()->whereIn($attribute, $values)->get($columns);
     }
 
     public function getCollectionWhereBetween(string $attribute, array $values, array $columns = ['*']): Collection
     {
-        return $this->whereBetween($attribute, $values)->get($columns);
+        return $this->model->newQuery()->whereBetween($attribute, $values)->get($columns);
     }
 
     public function count(): int
     {
-        return $this->model::count();
+        return $this->model->newQuery()->count();
     }
 
-    public function load(int|string $id, array $columns = ['*'])
+    public function load(int|string $id, array $columns = ['*']): Model
     {
-        return $this->model->find($id, $columns);
+        return $this->model->newQuery()->find($id, $columns);
     }
 
     public function loadRelations(Model $model, array $relations): void
     {
         $model->load($relations);
-    }
-
-    protected function exception(string $message, int $code = 0): void
-    {
-        throw new \Exception($message, $code);
     }
 
     public function findByOrderBy(
@@ -128,7 +88,7 @@ abstract class BaseRepository
     ): Model {
         return $this->model::query()
             ->select($columns)
-            ->orderBy($orderBy, strtoupper($orderDirection) == 'ASC' ? 'ASC' : 'DESC')
+            ->orderBy($orderBy, strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC')
             ->where($field, '=', $value)
             ->first();
     }
