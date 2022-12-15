@@ -20,6 +20,8 @@ class Scheduler extends Model
 {
     protected $dates = ['created_at', 'updated_at'];
 
+    protected $fillable = ['name', 'type', 'cron_expression'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);

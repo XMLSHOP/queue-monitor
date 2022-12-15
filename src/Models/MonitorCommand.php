@@ -31,7 +31,7 @@ class MonitorCommand extends Model
 
     protected $guarded = ['uuid'];
 
-    protected $dates = ['created_at'];
+    protected $dates = ['created_at', 'started_at', 'finished_at'];
 
     public $timestamps = false;
 

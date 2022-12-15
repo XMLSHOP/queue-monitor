@@ -6,7 +6,6 @@ namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
  * @property int $id
@@ -18,6 +17,8 @@ use xmlshop\QueueMonitor\Traits\Uuids;
 class Command extends Model
 {
     protected $dates = ['created_at', 'updated_at'];
+
+    protected $fillable = ['command', 'class_with_namespace'];
 
     public function __construct(array $attributes = [])
     {

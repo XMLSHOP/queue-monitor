@@ -7,32 +7,21 @@ namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Collection;
-use Spatie\ScheduleMonitor\Support\ScheduledTasks\Tasks\Task;
+use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\Task;
 
 class ScheduledTasks
 {
-    protected Schedule $schedule;
+    private Schedule $schedule;
 
-    protected Collection $tasks;
+    private Collection $tasks;
 
-    public static function createForSchedule()
-    {
-        $schedule = app(Schedule::class);
-
-        return new static($schedule);
-    }
-
-    public function __construct(Schedule $schedule)
+    public function __construct(Schedule $schedule, ScheduledTaskFactory $scheduledTaskFactory)
     {
         $this->schedule = $schedule;
 
         $this->tasks = collect($this->schedule->events())
-            ->filter(
-                fn (Event $event): bool => $event->runsInEnvironment(config('app.env'))
-            )
-            ->map(
-                fn (Event $event): Task => ScheduledTaskFactory::createForEvent($event)
-            );
+            ->filter(fn (Event $event): bool => $event->runsInEnvironment(config('app.env')))
+            ->map(fn (Event $event): Task => $scheduledTaskFactory->createForEvent($event));
     }
 
     public function uniqueTasks(): Collection

@@ -10,25 +10,33 @@ use Illuminate\Console\Events\{CommandFinished,
     CommandStarting,
     ScheduledTaskFailed,
     ScheduledTaskFinished,
-    ScheduledTaskSkipped,
     ScheduledTaskStarting};
+use Illuminate\Support\Collection;
 use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobProcessing, JobQueued};
 use Illuminate\Queue\QueueManager;
-use Illuminate\Support\Facades\{Event, Route};
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand};
+use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand, SyncCommand};
 use xmlshop\QueueMonitor\Repository\HostRepository;
-use xmlshop\QueueMonitor\Repository\Interfaces\{
+use xmlshop\QueueMonitor\Repository\Interfaces\{CommandRepositoryInterface,
     HostRepositoryInterface,
     JobRepositoryInterface,
+    MonitorCommandRepositoryInterface,
     MonitorQueueRepositoryInterface,
+    MonitorSchedulerRepositoryInterface,
     QueueRepositoryInterface,
     QueueSizeRepositoryInterface,
-    ExceptionRepositoryInterface
-};
-use xmlshop\QueueMonitor\Repository\{
-    JobRepository, MonitorQueueRepository, QueueRepository, QueueSizeRepository, ExceptionRepository
-};
+    ExceptionRepositoryInterface,
+    SchedulerRepositoryInterface};
+use xmlshop\QueueMonitor\Repository\{CommandRepository,
+    JobRepository,
+    MonitorCommandRepository,
+    MonitorQueueRepository,
+    MonitorSchedulerRepository,
+    QueueRepository,
+    QueueSizeRepository,
+    ExceptionRepository,
+    SchedulerRepository};
 use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
 use xmlshop\QueueMonitor\Services\{QueueMonitorService, SchedulerMonitorService, CommandMonitorService};
 
@@ -36,11 +44,27 @@ class MonitorProvider extends ServiceProvider
 {
     private Dispatcher $dispatcher;
 
+    private Collection $repositoriesToBind;
+
+    private array $repositoriesMap = [
+        MonitorQueueRepositoryInterface::class => MonitorQueueRepository::class,
+        QueueRepositoryInterface::class => QueueRepository::class,
+        HostRepositoryInterface::class => HostRepository::class,
+        JobRepositoryInterface::class => JobRepository::class,
+        QueueSizeRepositoryInterface::class => QueueSizeRepository::class,
+        ExceptionRepositoryInterface::class => ExceptionRepository::class,
+        SchedulerRepositoryInterface::class => SchedulerRepository::class,
+        MonitorSchedulerRepositoryInterface::class => MonitorSchedulerRepository::class,
+        CommandRepositoryInterface::class => CommandRepository::class,
+        MonitorCommandRepositoryInterface::class => MonitorCommandRepository::class,
+    ];
+
     public function __construct(Application $app)
     {
         parent::__construct($app);
 
         $this->dispatcher = $app->make(Dispatcher::class);
+        $this->repositoriesToBind = new Collection($this->repositoriesMap);
     }
 
     /**
@@ -105,28 +129,27 @@ class MonitorProvider extends ServiceProvider
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/settings.php', 'monitor.settings');
         }
 
-        $this->app->bind(MonitorQueueRepositoryInterface::class, MonitorQueueRepository::class);
-        $this->app->bind(QueueRepositoryInterface::class, QueueRepository::class);
-        $this->app->bind(HostRepositoryInterface::class, HostRepository::class);
-        $this->app->bind(JobRepositoryInterface::class, JobRepository::class);
-        $this->app->bind(QueueSizeRepositoryInterface::class, QueueSizeRepository::class);
-        $this->app->bind(ExceptionRepositoryInterface::class, ExceptionRepository::class);
+        $this->repositoriesToBind->each(fn ($concrete, $abstract) => $this->app->bind($abstract, $concrete));
 
         /** @phpstan-ignore-next-line */
         $this->app->bind('monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);
         $this->app->bind('monitor:clean-up', CleanUpCommand::class);
         $this->app->bind('monitor:listener', ListenerCommand::class);
+        $this->app->bind('monitor:sync-scheduler', SyncCommand::class);
 
         $this->commands([
             'monitor:aggregate-queues-sizes',
             'monitor:clean-up',
             'monitor:listener',
+            'monitor:sync-scheduler'
         ]);
     }
 
     private function listenQueues(): void
     {
+        /** @var QueueManager $queueManager */
         $queueManager = $this->app->make(QueueManager::class);
+        /** @var QueueMonitorService $queueMonitorService */
         $queueMonitorService = $this->app->make(QueueMonitorService::class);
 
         $this->dispatcher->listen(
@@ -150,6 +173,7 @@ class MonitorProvider extends ServiceProvider
 
     private function listenSchedullers(): void
     {
+        /** @var SchedulerMonitorService $schedulerMonitorService */
         $schedulerMonitorService = $this->app->make(SchedulerMonitorService::class);
 
         $this->dispatcher->listen(
@@ -166,15 +190,11 @@ class MonitorProvider extends ServiceProvider
             ScheduledTaskFailed::class,
             static fn (ScheduledTaskFailed $event) => $schedulerMonitorService->handleTaskFailed($event)
         );
-
-        $this->dispatcher->listen(
-            ScheduledTaskSkipped::class,
-            static fn (ScheduledTaskSkipped $event) => $schedulerMonitorService->handleTaskSkipped($event)
-        );
     }
 
     private function listenCommand(): void
     {
+        /** @var CommandMonitorService $commandMonitorService */
         $commandMonitorService = $this->app->make(CommandMonitorService::class);
 
         $this->dispatcher->listen(

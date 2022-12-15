@@ -29,15 +29,12 @@ class QueueRepository extends BaseRepository implements QueueRepositoryInterface
         return $this->getCollection($columns);
     }
 
-    public function firstOrCreate(?string $connection, string $queue): int
+    public function firstOrCreate(?string $connection, string $queue): Model
     {
         return $this->model->newQuery()->firstOrCreate([
             'queue_name' => $queue,
             'connection_name' => $connection ?? config('queue.default'),
-        ], [
-            'queue_name' => $queue,
-            'connection_name' => $connection ?? config('queue.default'),
-        ])->id;
+        ]);
     }
 
     public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void

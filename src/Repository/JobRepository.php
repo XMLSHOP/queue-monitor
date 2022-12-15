@@ -6,6 +6,7 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use xmlshop\QueueMonitor\Models\Job;
 use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
@@ -16,13 +17,13 @@ class JobRepository extends BaseRepository implements JobRepositoryInterface
     {
     }
 
-    public function firstOrCreate(string $name_with_namespace): int
+    public function firstOrCreate(string $name_with_namespace): Model
     {
         return $this->model->newQuery()->firstOrCreate([
             'name_with_namespace' => $name_with_namespace,
         ], [
             'name' => $this->model->getBasename($name_with_namespace),
-        ])->id;
+        ]);
     }
 
     public function getJobsStatistic(string $date_from, string $date_to): Collection

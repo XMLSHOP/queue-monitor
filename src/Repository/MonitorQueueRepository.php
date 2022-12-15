@@ -20,39 +20,50 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
 
     public function addQueued(array $data): Model
     {
-        $queue = $data['queue'];
-        $connection = $data['connection'];
-        unset($data['queue'], $data['connection']);
-        $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
+        $queueModel =  $this->queueRepository->firstOrCreate($data['connection'], $data['queue']);
 
-        return $this->create($data);
+        return $this->create([
+            'job_id' => $data['job_id'],
+            'queue_monitor_job_id' => $data['queue_monitor_job_id'],
+            'host_id' => $data['host_id'],
+            'queued_at' => $data['queued_at'],
+            'attempt' => $data['attempt'],
+            'queue_id' => $queueModel->id,
+        ]);
     }
 
     public function updateOrCreateStarted(array $data): void
     {
-        $job_id = $data['job_id'];
-        unset($data['job_id']);
-
-        $queue = $data['queue'];
-        $connection = $data['connection'];
-        unset($data['queue'], $data['connection']);
-        $data['queue_id'] = $this->queueRepository->firstOrCreate($connection, $queue);
+        $queueModel = $this->queueRepository->firstOrCreate($data['connection'], $data['queue']);
 
         /** @noinspection UnknownColumnInspection */
         $model = $this->model
             ->newQuery()
             ->orderByDesc('queued_at')
-            ->firstOrCreate(['job_id' => $job_id], $data);
+            ->firstOrCreate([
+                'job_id' => $data['job_id']
+            ], [
+                'attempt' => $data['attempt'],
+                'queue_monitor_job_id' => $data['queue_monitor_job_id'],
+                'host_id' => $data['host_id'],
+                'started_at' => $data['started_at'],
+                'queue_id' => $queueModel->id,
+            ]);
 
-        $this->queueRepository->updateWithStarted($model->queue_id, $connection, $queue);
+        $this->queueRepository->updateWithStarted($queueModel->id, $data['connection'], $data['queue']);
 
         if ($queuedAt = $model->getQueued()) {
             $timeElapsed = (float) $queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
         }
 
-        $data['time_pending_elapsed'] = $timeElapsed ?? 0.0;
-        unset($data['queue'], $data['connection']);
-        $model->update($data);
+        $model->update([
+            'attempt' => $data['attempt'],
+            'queue_monitor_job_id' => $data['queue_monitor_job_id'],
+            'host_id' => $data['host_id'],
+            'started_at' => $data['started_at'],
+            'queue_id' => $queueModel->id,
+            'time_pending_elapsed' => $timeElapsed ?? 0.0,
+        ]);
     }
 
     public function updateFinished(MonitorQueue $model, array $attributes): MonitorQueue

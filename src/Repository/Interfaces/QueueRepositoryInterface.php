@@ -13,7 +13,7 @@ interface QueueRepositoryInterface extends BaseRepositoryInterface
 
     public function select(array|string $columns = ['*']): Collection;
 
-    public function firstOrCreate(?string $connection, string $queue): int;
+    public function firstOrCreate(?string $connection, string $queue): Model;
 
     public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void;
 

@@ -12,7 +12,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Queue;
-use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
@@ -85,11 +84,14 @@ class QueueMonitorService
         /** @var string $jobQueue */
         $jobQueue = $job?->queue ?? trim(Queue::connection($jobConnection)->getQueue(null), '/');
 
+        $jobModel = $this->jobsRepository->firstOrCreate($jobClass);
+        $hostModel = $this->hostsRepository->firstOrCreate();
+
         $this->queueMonitorRepository->addQueued([
             'job_id' => (string) $jobId,
-            'queue_monitor_job_id' => $this->jobsRepository->firstOrCreate($jobClass),
+            'queue_monitor_job_id' => $jobModel->id,
             'queue' => $jobQueue,
-            'host_id' => $this->hostsRepository->firstOrCreate(),
+            'host_id' => $hostModel->id,
             'connection' => $jobConnection,
             'queued_at' => now(),
             'attempt' => 0,
@@ -105,13 +107,16 @@ class QueueMonitorService
             return;
         }
 
+        $jobModel = $this->jobsRepository->firstOrCreate($job->resolveName());
+        $hostModel = $this->hostsRepository->firstOrCreate();
+
         /** @noinspection PhpUndefinedMethodInspection */
         $this->queueMonitorRepository->updateOrCreateStarted([
             'job_id' => $this->getJobId($job),
             'attempt' => $job->attempts(),
-            'queue_monitor_job_id' => $this->jobsRepository->firstOrCreate($job->resolveName()),
+            'queue_monitor_job_id' => $jobModel->id,
             'queue' => $job->getQueue(),
-            'host_id' => $this->hostsRepository->firstOrCreate(),
+            'host_id' => $hostModel->id,
             'connection' => $job->getConnectionName(),
             'started_at' => now(),
         ]);
@@ -129,7 +134,8 @@ class QueueMonitorService
         $now = now();
 
         /** @var MonitorQueue $monitor */
-        $monitor = $this->queueMonitorRepository->findByOrderBy('job_id', $this->getJobId($job), ['*'], 'started_at');
+        $monitor = $this->queueMonitorRepository
+            ->findByOrderBy('job_id', $this->getJobId($job), ['*'], 'started_at');
 
         if (!$monitor) {
             return;
