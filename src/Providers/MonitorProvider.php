@@ -6,7 +6,9 @@ namespace xmlshop\QueueMonitor\Providers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Console\Events\{CommandFinished,
+use xmlshop\QueueMonitor\Services\System\{SystemResource, SystemResourceInterface};
+use Illuminate\Console\Events\{
+    CommandFinished,
     CommandStarting,
     ScheduledTaskFailed,
     ScheduledTaskFinished,
@@ -18,7 +20,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand, SyncCommand};
 use xmlshop\QueueMonitor\Repository\HostRepository;
-use xmlshop\QueueMonitor\Repository\Interfaces\{CommandRepositoryInterface,
+use xmlshop\QueueMonitor\Repository\Interfaces\{
+    CommandRepositoryInterface,
     HostRepositoryInterface,
     JobRepositoryInterface,
     MonitorCommandRepositoryInterface,
@@ -28,7 +31,8 @@ use xmlshop\QueueMonitor\Repository\Interfaces\{CommandRepositoryInterface,
     QueueSizeRepositoryInterface,
     ExceptionRepositoryInterface,
     SchedulerRepositoryInterface};
-use xmlshop\QueueMonitor\Repository\{CommandRepository,
+use xmlshop\QueueMonitor\Repository\{
+    CommandRepository,
     JobRepository,
     MonitorCommandRepository,
     MonitorQueueRepository,
@@ -47,6 +51,7 @@ class MonitorProvider extends ServiceProvider
     private Collection $repositoriesToBind;
 
     private array $repositoriesMap = [
+        SystemResourceInterface::class => SystemResource::class,
         MonitorQueueRepositoryInterface::class => MonitorQueueRepository::class,
         QueueRepositoryInterface::class => QueueRepository::class,
         HostRepositoryInterface::class => HostRepository::class,

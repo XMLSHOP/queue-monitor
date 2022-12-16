@@ -6,7 +6,7 @@ namespace xmlshop\QueueMonitor\Services\System;
 
 use Carbon\Carbon;
 
-class SystemResource
+class SystemResource implements SystemResourceInterface
 {
     public function getMemoryUseMb(): float
     {

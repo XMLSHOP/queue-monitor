@@ -81,8 +81,6 @@ class SchedulerMonitorService
 
     public function syncMonitoredTask(): void
     {
-        $scheduledTasks = $this->scheduledTasks
-            ->uniqueTasks()
-            ->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
+        $this->scheduledTasks->uniqueTasks()->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
     }
 }

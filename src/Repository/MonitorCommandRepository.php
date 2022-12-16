@@ -7,12 +7,12 @@ namespace xmlshop\QueueMonitor\Repository;
 use xmlshop\QueueMonitor\Models\Command;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorCommand;
-use xmlshop\QueueMonitor\Service\System\SystemResource;
+use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
 
 class MonitorCommandRepository implements MonitorCommandRepositoryInterface
 {
-    public function __construct(protected MonitorCommand $model, private SystemResources $systemResources)
+    public function __construct(private MonitorCommand $model, private SystemResourceInterface $systemResources)
     {
     }
 

@@ -8,15 +8,13 @@ use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorScheduler;
 use xmlshop\QueueMonitor\Models\Scheduler;
-use xmlshop\QueueMonitor\Service\System\SystemResource;
+use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
 
 class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 {
-    public function __construct(
-        private MonitorScheduler $model,
-        private SystemResources $systemResources,
-    ) {
+    public function __construct(private MonitorScheduler $model, private SystemResourceInterface $systemResources)
+    {
     }
 
     public function createWithSchedulerAndHost(Scheduler $scheduler, Host $host): void
