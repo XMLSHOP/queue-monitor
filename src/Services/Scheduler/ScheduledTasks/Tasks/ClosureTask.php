@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks;
+namespace xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks;
 
 use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Console\Scheduling\Event;

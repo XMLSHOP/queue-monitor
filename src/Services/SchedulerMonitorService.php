@@ -7,12 +7,13 @@ namespace xmlshop\QueueMonitor\Services;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskStarting;
+use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\ScheduledTaskFactory;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\ScheduledTasks;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\Task;
+use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\ScheduledTaskFactory;
+use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\ScheduledTasks;
+use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
 
 class SchedulerMonitorService
 {
@@ -20,6 +21,7 @@ class SchedulerMonitorService
         private SchedulerRepositoryInterface $schedulerRepository,
         private HostRepositoryInterface $hostRepository,
         private MonitorSchedulerRepositoryInterface $monitorSchedulerRepository,
+        private ExceptionRepositoryInterface $exceptionRepository,
         private ScheduledTaskFactory $scheduledTaskFactory,
         private ScheduledTasks $scheduledTasks,
     ) {
@@ -73,15 +75,12 @@ class SchedulerMonitorService
             $scheduler = $this->schedulerRepository->findByName($task->name());
         }
 
-        $this->monitorSchedulerRepository->updateFailedBySchedulerAndHost($scheduler, $host, $event->exception);
+        $exceptionModel = $this->exceptionRepository->createFromThrowable($event->exception);
+        $this->monitorSchedulerRepository->updateFailedBySchedulerAndHost($scheduler, $host, $exceptionModel);
     }
 
     public function syncMonitoredTask(): void
     {
-        $scheduledTasks = $this->scheduledTasks
-            ->uniqueTasks()
-            ->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
-
-        $this->schedulerRepository->deleteByIds($scheduledTasks->pluck('id')->toArray());
+        $this->scheduledTasks->uniqueTasks()->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
     }
 }
