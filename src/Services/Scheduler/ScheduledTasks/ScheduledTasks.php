@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks;
+namespace xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks;
 
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Collection;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\Task;
+use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
+use function collect;
+use function config;
 
 class ScheduledTasks
 {

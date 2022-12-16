@@ -7,7 +7,7 @@ namespace xmlshop\QueueMonitor\Repository;
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\Scheduler;
 use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\Task;
+use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
 
 class SchedulerRepository implements SchedulerRepositoryInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks;
+namespace xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks;
 
 use Carbon\CarbonInterface;
 use Cron\CronExpression;
@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 use Lorisleiva\CronTranslator\CronParsingException;
 use Lorisleiva\CronTranslator\CronTranslator;
+use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\MonitoredScheduledTask;
+use function config;
+use function now;
+use function optional;
 
 abstract class Task
 {
