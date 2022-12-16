@@ -36,7 +36,7 @@ class Job extends Model
         }
     }
 
-    public function assignedQueueMonitor(): HasMany
+    public function monitorQueue(): HasMany
     {
         return $this->hasMany(MonitorQueue::class, 'queue_monitor_job_id');
     }

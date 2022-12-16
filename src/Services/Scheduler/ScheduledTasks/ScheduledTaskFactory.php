@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks;
 
 use Illuminate\Console\Scheduling\Event;
+use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
 use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\ClosureTask;
 use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\CommandTask;
 use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\JobTask;
@@ -21,11 +22,16 @@ class ScheduledTaskFactory
         ShellTask::class,
     ];
 
+    public function __construct(private SchedulerRepositoryInterface $schedulerRepository)
+    {
+    }
+
+
     public function createForEvent(Event $event): Task
     {
         $taskClass = collect(self::TASKS)
             ->first(fn (string $taskClass) => $taskClass::canHandleEvent($event));
 
-        return new $taskClass($event);
+        return new $taskClass($event, $this->schedulerRepository);
     }
 }

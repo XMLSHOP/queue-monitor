@@ -35,6 +35,8 @@ class MonitorCommand extends Model
 
     public $timestamps = false;
 
+    public $with = ['command'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);

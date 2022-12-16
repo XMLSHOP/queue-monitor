@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
@@ -31,5 +32,10 @@ class Scheduler extends Model
         if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
+    }
+
+    public function monitorScheduler(): HasMany
+    {
+        return $this->hasMany(MonitorScheduler::class, 'scheduled_id');
     }
 }

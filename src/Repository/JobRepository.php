@@ -34,33 +34,33 @@ class JobRepository extends BaseRepository implements JobRepositoryInterface
             ->selectRaw('@datefrom:=?', [$date_from])
             ->selectRaw('@dateto:=?', [$date_to])
             ->withCount(relations: [
-                'assignedQueueMonitor as queued' => function (Builder $q) {
+                'monitorQueue as queued' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('queued_at', [DB::raw('@datefrom'), DB::raw('@dateto')]);
                 },
-                'assignedQueueMonitor as started' => function (Builder $q) {
+                'monitorQueue as started' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')]);
                 },
-                'assignedQueueMonitor as finished_success' => function (Builder $q) {
+                'monitorQueue as finished_success' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
                         ->whereNotNull('finished_at')
                         ->whereFailed(0);
                 },
-                'assignedQueueMonitor as hanged_on' => function (Builder $q) {
+                'monitorQueue as hanged_on' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
                         ->whereNull('finished_at');
                 },
-                'assignedQueueMonitor as finished_failed' => function (Builder $q) {
+                'monitorQueue as finished_failed' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
                         ->whereNotNull('finished_at')
                         ->whereFailed(1);
                 }
             ])
-            ->withAvg(relation: ['assignedQueueMonitor as avg_exec_time' => function (Builder $q) {
+            ->withAvg(relation: ['monitorQueue as avg_exec_time' => function (Builder $q) {
                     /** @noinspection UnknownColumnInspection */
                     $q->whereBetween('started_at', [DB::raw('@datefrom'), DB::raw('@dateto')])
                         ->whereNotNull('finished_at')

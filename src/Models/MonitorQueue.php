@@ -52,6 +52,8 @@ class MonitorQueue extends Model
 
     public $timestamps = false;
 
+    public $with = ['job'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -66,6 +68,11 @@ class MonitorQueue extends Model
     public function exception(): BelongsTo
     {
         return $this->belongsTo(Exception::class, 'exception_id', 'uuid');
+    }
+
+    public function job(): BelongsTo
+    {
+        return $this->belongsTo(Job::class, 'queue_monitor_job_id');
     }
 
     public function scopeWhereJob(Builder $query, string|int $jobId): void

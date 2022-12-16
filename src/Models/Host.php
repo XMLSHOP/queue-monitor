@@ -6,6 +6,7 @@ namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Carbon;
 
 /**
@@ -36,7 +37,17 @@ class Host extends Model
         }
     }
 
-    public function assignedQueueMonitor(): HasMany
+    public function monitorScheduler(): HasMany
+    {
+        return $this->hasMany(MonitorScheduler::class, 'host_id');
+    }
+
+    public function monitorCommand(): HasMany
+    {
+        return $this->hasMany(MonitorCommand::class, 'host_id');
+    }
+
+    public function monitorQueue(): HasMany
     {
         return $this->hasMany(MonitorQueue::class, 'host_id');
     }

@@ -9,18 +9,17 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 use Lorisleiva\CronTranslator\CronParsingException;
 use Lorisleiva\CronTranslator\CronTranslator;
-use xmlshop\QueueMonitor\Support\Scheduler\ScheduledTasks\Tasks\MonitoredScheduledTask;
+use xmlshop\QueueMonitor\Models\Scheduler;
+use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
 use function config;
 use function now;
 use function optional;
 
 abstract class Task
 {
-    protected Event $event;
-
     protected string $uniqueId;
 
-    protected ?MonitoredScheduledTask $monitoredScheduledTask = null;
+    protected ?Scheduler $monitoredScheduledTask;
 
     abstract public static function canHandleEvent(Event $event): bool;
 
@@ -28,14 +27,12 @@ abstract class Task
 
     abstract public function type(): string;
 
-    public function __construct(Event $event)
+    public function __construct(protected Event $event, protected SchedulerRepositoryInterface $schedulerRepository)
     {
-        $this->event = $event;
-
         $this->uniqueId = (string)Str::uuid();
 
         if (! empty($this->name())) {
-            $this->monitoredScheduledTask = $this->getMonitoredScheduleTaskModel()->findByName($this->name());
+            $this->monitoredScheduledTask = $schedulerRepository->findByName($this->name());
         }
     }
 
@@ -51,7 +48,7 @@ abstract class Task
 
     public function shouldMonitor(): bool
     {
-        if (! isset($this->event->doNotMonitor)) {
+        if (!isset($this->event->doNotMonitor)) {
             return true;
         }
 
@@ -125,7 +122,7 @@ abstract class Task
             ? $this->lastRunFinishedAt()
             : $this->monitoredScheduledTask->created_at;
 
-        $expectedNextRunStart = $this->nextRunAt($lastFinishedAt->subSecond());
+        $expectedNextRunStart = $this->nextRunAt($lastFinishedAt?->subSecond());
 
         $shouldHaveFinishedAt = $expectedNextRunStart->addMinutes($this->graceTimeInMinutes());
 

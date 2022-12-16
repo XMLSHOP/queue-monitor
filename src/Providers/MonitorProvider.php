@@ -48,9 +48,9 @@ class MonitorProvider extends ServiceProvider
 {
     private Dispatcher $dispatcher;
 
-    private Collection $repositoriesToBind;
+    private Collection $resourcesToBind;
 
-    private array $repositoriesMap = [
+    private array $containerResourcesMap = [
         SystemResourceInterface::class => SystemResource::class,
         MonitorQueueRepositoryInterface::class => MonitorQueueRepository::class,
         QueueRepositoryInterface::class => QueueRepository::class,
@@ -69,7 +69,7 @@ class MonitorProvider extends ServiceProvider
         parent::__construct($app);
 
         $this->dispatcher = $app->make(Dispatcher::class);
-        $this->repositoriesToBind = new Collection($this->repositoriesMap);
+        $this->resourcesToBind = new Collection($this->containerResourcesMap);
     }
 
     /**
@@ -134,7 +134,7 @@ class MonitorProvider extends ServiceProvider
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/settings.php', 'monitor.settings');
         }
 
-        $this->repositoriesToBind->each(fn ($concrete, $abstract) => $this->app->bind($abstract, $concrete));
+        $this->resourcesToBind->each(fn ($concrete, $abstract) => $this->app->bind($abstract, $concrete));
 
         /** @phpstan-ignore-next-line */
         $this->app->bind('monitor:aggregate-queues-sizes', AggregateQueuesSizesCommand::class);
