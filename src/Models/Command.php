@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -29,5 +30,10 @@ class Command extends Model
         if ($connection = config('monitor.db.connection')) {
             $this->setConnection($connection);
         }
+    }
+
+    public function monitorCommand(): HasMany
+    {
+        return $this->hasMany(MonitorCommand::class, 'command_id');
     }
 }

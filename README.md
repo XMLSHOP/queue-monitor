@@ -46,7 +46,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue-monitor:aggregate-queues-sizes')->everyMinute();
         $schedule->command('queue-monitor:clean-up')->dailyAt('01:23');
         $schedule->command('queue-monitor:listener')->everyMinute();
-        
+        $schedule->command('monitor:sync-scheduler')->daily();
         #...
     }
 }

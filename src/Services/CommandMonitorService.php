@@ -17,6 +17,7 @@ class CommandMonitorService
         'migrate:rollback',
         'migrate',
         'queue:table',
+        'vendor:publish'
     ];
 
     public function __construct(

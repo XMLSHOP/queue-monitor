@@ -35,6 +35,8 @@ class MonitorScheduler extends Model
 
     public $timestamps = false;
 
+    public $with = ['scheduler'];
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
