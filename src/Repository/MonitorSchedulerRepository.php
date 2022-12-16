@@ -21,9 +21,10 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
     {
         $this->model
             ->newQuery()
-            ->create([
+            ->updateOrInsert([
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
+            ], [
                 'started_at' => now(),
                 'time_elapsed' => 0,
                 'failed' => false,

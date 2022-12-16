@@ -24,19 +24,15 @@ class HostRepository extends BaseRepository implements HostRepositoryInterface
 
     public function getRunningNowInfo(): Collection
     {
+        $conditionsCallback = static function ($query) {
+            $query->whereNotNull('started_at')->whereNull('finished_at')->where('failed', false);
+        };
+
         return $this->model
             ->newQuery()
-            ->select(['*'])
-            ->with(['monitorScheduler', 'monitorCommand', 'monitorQueue'])
-            ->whereHas('monitorScheduler', function ($query) {
-                $query->whereNotNull('started_at')->whereNull('finished_at')->where('failed', false);
-            })
-            ->orWhereHas('monitorQueue', function ($query) {
-                $query->whereNotNull('started_at')->whereNull('finished_at')->where('failed', false);
-            })
-            ->orWhereHas('monitorCommand', function ($query) {
-                $query->whereNotNull('started_at')->whereNull('finished_at')->where('failed', false);
-            })
+            ->with(['monitorScheduler' => $conditionsCallback])
+            ->with(['monitorCommand' => $conditionsCallback])
+            ->with(['monitorQueue' => $conditionsCallback])
             ->get();
     }
 }
