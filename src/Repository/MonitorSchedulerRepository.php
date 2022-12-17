@@ -44,6 +44,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'host_id' => $host->id,
             ])
             ->whereNull('finished_at')
+            ->orderByDesc('started_at')
             ->first();
 
         if ($monitorScheduler) {

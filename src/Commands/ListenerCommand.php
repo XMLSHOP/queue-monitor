@@ -120,6 +120,7 @@ class ListenerCommand extends Command
         $message = '*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message;
         if (App::environment('local')) {
             echo $message;
+            die;
         }
 
         $this->getSlack()->send($message);
