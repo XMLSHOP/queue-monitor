@@ -22,11 +22,10 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
     {
         $this->model
             ->newQuery()
-            ->updateOrInsert([
+            ->insert([
+                'uuid' => Uuid::generate()->string, //Temporary fix
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
-            ], [
-                'uuid' => Uuid::generate()->string, //Temporary fix
                 'started_at' => now(),
                 'time_elapsed' => 0,
                 'failed' => false,
