@@ -45,6 +45,8 @@ class ListenerCommand extends Command
      */
     private ?Slack $slack = null;
 
+    private bool $_output = false;
+
     public function __construct(
         private QueueRepositoryInterface $queuesRepository,
         private JobRepositoryInterface $jobsRepository
@@ -117,13 +119,13 @@ class ListenerCommand extends Command
 
     private function sendNotification(string $message): void
     {
-        $message = '*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message;
-        if (App::environment('local')) {
-            echo $message;
-            die;
+        if (!App::environment('local')) {
+            $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
         }
 
-        $this->getSlack()->send($message);
+        if ($this->_output) {
+            echo $message;
+        }
     }
 
     private function getSlack(): Slack
