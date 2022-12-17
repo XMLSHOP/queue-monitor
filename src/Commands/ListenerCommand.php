@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Pressutto\LaravelSlack\Slack;
 use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
@@ -116,7 +117,12 @@ class ListenerCommand extends Command
 
     private function sendNotification(string $message): void
     {
-        $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
+        $message = '*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message;
+        if (App::environment('local')) {
+            echo $message;
+        }
+
+        $this->getSlack()->send($message);
     }
 
     private function getSlack(): Slack
