@@ -16,7 +16,11 @@ class QueueMonitorRoutes
     {
         return function (array $options = []) {
             /** @var Router $this */
-            $this->get('/', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')
+            $this->get('/jobs', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')
+                ->name('monitor::jobs');
+
+            /** @var Router $this */
+            $this->get('/jobs', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')
                 ->name('monitor::jobs');
 
             /** @var Router $this */

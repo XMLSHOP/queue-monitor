@@ -6,8 +6,9 @@ namespace xmlshop\QueueMonitor\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use xmlshop\QueueMonitor\Traits\Uuids;
+use Webpatser\Uuid\Uuid;
 
 /**
  * @property string $uuid
@@ -25,8 +26,6 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  */
 class MonitorScheduler extends Model
 {
-    use Uuids;
-
     protected $primaryKey = 'uuid';
 
     protected $guarded = ['uuid'];
@@ -36,6 +35,15 @@ class MonitorScheduler extends Model
     public $timestamps = false;
 
     public $with = ['scheduler'];
+
+    public function save(array $options = [])
+    {
+        //Temp workaround!
+        if (!Arr::exists($options, $this->getKeyName())) {
+            $this->{$this->getKeyName()} = Uuid::generate()->string;
+        }
+        parent::save();
+    }
 
     public function __construct(array $attributes = [])
     {

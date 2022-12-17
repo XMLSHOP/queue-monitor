@@ -50,6 +50,11 @@ class MonitorProvider extends ServiceProvider
 
     private Collection $resourcesToBind;
 
+    /**
+     * @var Application
+     */
+    protected $app;
+
     private array $containerResourcesMap = [
         SystemResourceInterface::class => SystemResource::class,
         MonitorQueueRepositoryInterface::class => MonitorQueueRepository::class,
@@ -112,7 +117,7 @@ class MonitorProvider extends ServiceProvider
             return;
         }
 
-        config('monitor.settings.active-monitor-scheduler') && $this->listenSchedullers();
+        config('monitor.settings.active-monitor-scheduler') && $this->listenSchedulers();
         config('monitor.settings.active-monitor-commands') && $this->listenCommand();
         config('monitor.settings.active-monitor-queue-jobs') && $this->listenQueues();
     }
@@ -176,7 +181,7 @@ class MonitorProvider extends ServiceProvider
         );
     }
 
-    private function listenSchedullers(): void
+    private function listenSchedulers(): void
     {
         /** @var SchedulerMonitorService $schedulerMonitorService */
         $schedulerMonitorService = $this->app->make(SchedulerMonitorService::class);

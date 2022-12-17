@@ -7,7 +7,6 @@ namespace xmlshop\QueueMonitor\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
  * @property int $id

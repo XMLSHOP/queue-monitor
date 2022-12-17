@@ -9,11 +9,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Collection;
-use xmlshop\QueueMonitor\Controllers\Payloads\Metric;
-use xmlshop\QueueMonitor\Controllers\Payloads\Metrics;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
@@ -114,87 +111,23 @@ class ShowQueueMonitorController
         /** @var Collection $jobs_list */
         $jobs_list = $jobsRepository->getCollection(['id', 'name'])->toArray();
 
-        $metrics = null;
-
-        if (config('monitor.ui.show_metrics')) {
-            $metrics = $this->collectMetrics();
-        }
-
         $summary = null;
         $job_metrics = null;
-        if (config('monitor.ui.show_summary') && is_array(config('monitor.ui.summary_conf'))) {
+        if (config('monitor.ui.summaries.queue.show') && is_array(config('monitor.ui.summaries.queue.conf'))) {
             $summary = $this->collectSummary($filters);
             if ('all' !== $filters['job']) {
                 $job_metrics = $this->collectJobMetrics($filters['job'], $filters);
             }
         }
 
-        return view('monitor::index', [
+        return view('monitor::jobs/index', [
             'jobs' => $jobs,
             'jobs_list' => $jobs_list,
             'filters' => $filters,
             'queues' => $queues,
-            'metrics' => $metrics,
             'summary' => $summary,
-            'job_metrics' => $job_metrics,
+            'job_metrics' => $job_metrics ?? [],
         ]);
-    }
-
-    public function collectMetrics(): Metrics
-    {
-        $timeFrame = config('monitor.ui.metrics_time_frame') ?? 2;
-
-        $metrics = new Metrics();
-
-        $aggregationColumns = [
-            DB::raw('COUNT(*) as count'),
-            DB::raw('SUM(time_elapsed) as total_time_elapsed'),
-            DB::raw('AVG(time_elapsed) as average_time_elapsed'),
-        ];
-
-        /** @noinspection UnknownColumnInspection */
-        $aggregatedInfo = $this->queueMonitorService
-            ->model
-            ->newQuery()
-            ->select($aggregationColumns)
-            ->where('started_at', '>=', Carbon::now()->subDays($timeFrame))
-            ->first();
-
-        /** @noinspection UnknownColumnInspection */
-        $aggregatedComparisonInfo = $this->queueMonitorService
-            ->model
-            ->newQuery()
-            ->select($aggregationColumns)
-            ->where('started_at', '>=', Carbon::now()->subDays($timeFrame * 2))
-            ->where('started_at', '<=', Carbon::now()->subDays($timeFrame))
-            ->first();
-
-        if (null === $aggregatedInfo || null === $aggregatedComparisonInfo) {
-            return $metrics;
-        }
-
-        return $metrics->push(
-            new Metric(
-                'Total Jobs Executed',
-                $aggregatedInfo->count ?? 0,
-                $aggregatedComparisonInfo->count,
-                '%d'
-            )
-        )->push(
-            new Metric(
-                'Total Execution Time',
-                $aggregatedInfo->total_time_elapsed ?? 0,
-                $aggregatedComparisonInfo->total_time_elapsed,
-                '%ds'
-            )
-        )->push(
-            new Metric(
-                'Average Execution Time',
-                $aggregatedInfo->average_time_elapsed ?? 0,
-                $aggregatedComparisonInfo->average_time_elapsed,
-                '%0.2fs'
-            )
-        );
     }
 
     /**
@@ -210,7 +143,7 @@ class ShowQueueMonitorController
         $aggregatedComparisonInfo = $builder;
 
         $subSelect = null;
-        foreach (config('monitor.ui.summary_conf') as $status) {
+        foreach (config('monitor.ui.summaries.queue.conf') as $status) {
             switch ($status) {
                 case 'running':
                     /** @noinspection UnknownColumnInspection */

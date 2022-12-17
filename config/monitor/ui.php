@@ -20,16 +20,15 @@ return [
     //Allow purging all monitor entries.
     'allow_purge' => false,
 
-    'show_metrics' => false,
-
-    'show_summary' => true,
-    'summary_conf' => [
-        'failed',
-        'succeeded',
-        'pending',
-        'running',
+    'summaries' => [
+        'queue' => [
+            'show' => true,
+            'conf' => [
+                'failed',
+                'succeeded',
+                'pending',
+                'running',
+            ],
+        ],
     ],
-
-    //Time frame used to calculate metrics values (in days).
-    'metrics_time_frame' => 14,
 ];

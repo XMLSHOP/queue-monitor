@@ -13,11 +13,16 @@ use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface
 class CommandMonitorService
 {
     private array $commandsToSkipp = [
+        null, // Appears when `php artisan` had been launched without args
         'migrate:fresh',
         'migrate:rollback',
         'migrate',
         'queue:table',
-        'vendor:publish'
+        'queue:work',
+        'schedule:work',
+        'schedule:run',
+        'vendor:publish',
+        'package:discover'
     ];
 
     public function __construct(

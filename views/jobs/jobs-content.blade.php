@@ -2,28 +2,12 @@
     @lang('Queue Monitor')
 </h1>
 
-@isset($metrics)
-
-    <div class="flex flex-wrap -mx-4 mb-2">
-
-        @foreach($metrics->all() as $metric)
-
-            @include('monitor::partials.metrics-card', [
-                'metric' => $metric,
-            ])
-
-        @endforeach
-
-    </div>
-
-@endisset
-
-@include('monitor::partials.filters', [
-    'filters'=>$filters
+@include('monitor::jobs.partials.filters', [
+    'filters' => $filters
 ])
 
-@include('monitor::partials.summary-card', [
-    'filters'=>$filters
+@include('monitor::jobs.partials.summary-card', [
+    'filters' => $filters
 ])
 
 <div class="overflow-x-auto shadow-lg">
@@ -45,9 +29,6 @@
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
             @endif
 
-            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>--}}
-            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>--}}
-            {{--            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>--}}
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Timing')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Error')</th>
 
@@ -68,6 +49,7 @@
                         <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-yellow-200 text-yellow-800">
                             @lang('Pending')
                         </div>
+
                     @elseif(!$job->isFinished())
 
                         <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-blue-200 text-blue-800">
@@ -91,7 +73,7 @@
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 font-medium border-b border-gray-200">
-                    {{ $job->getBasenameJob() }}
+                    {{ $job->job->getBasenameJob() }}
 
                     <div class="ml-1 text-xs text-gray-600">
                         #{{ $job->job_id }}

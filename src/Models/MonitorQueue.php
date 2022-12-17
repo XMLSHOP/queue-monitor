@@ -26,7 +26,7 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property int $attempt
  * @property int|null $progress
  * @property Exception|null $exception
- * @property string|null $data
+ * @property array|null $data
  *
  * @method static Builder|MonitorQueue whereJob()
  * @method static Builder|MonitorQueue ordered()
@@ -45,7 +45,8 @@ class MonitorQueue extends Model
 
     protected $casts = [
         'failed' => 'bool',
-        'queue_id' => 'int'
+        'queue_id' => 'int',
+        'data' => 'array',
     ];
 
     protected $dates = ['queued_at', 'started_at', 'finished_at'];
@@ -194,7 +195,7 @@ class MonitorQueue extends Model
      */
     public function getData(): array
     {
-        return json_decode($this->data, true) ?? [];
+        return $this->data ?? [];
     }
 
     /**
