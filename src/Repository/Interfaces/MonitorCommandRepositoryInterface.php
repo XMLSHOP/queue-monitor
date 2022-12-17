@@ -9,7 +9,7 @@ use xmlshop\QueueMonitor\Models\Host;
 
 interface MonitorCommandRepositoryInterface
 {
-    public function createOrUpdateByCommandAndHost(Command $command, Host $host): void;
+    public function createByCommandAndHost(Command $command, Host $host): void;
 
     public function updateByCommandAndHost(Command $command, Host $host): void;
 }

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Commands;
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Queue;
+use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
@@ -47,6 +49,7 @@ class AggregateQueuesSizesCommand extends Command
         foreach ($queuesIds as $value) {
             $size = Queue::connection($value['connection'])->size($value['queue']);
             $data[] = [
+                'uuid' => Uuid::generate()->string, //Temporary ,
                 'queue_id' => $value['id'],
                 'size' => $size,
                 'created_at' => $timestamp,
@@ -60,7 +63,7 @@ class AggregateQueuesSizesCommand extends Command
     /**
      * @param string|null $mode
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return mixed
      */
@@ -99,7 +102,7 @@ class AggregateQueuesSizesCommand extends Command
 
                 return $out;
             }),
-            default => throw new \Exception('Wrong [queue-sizes-retrieves.mode]!')
+            default => throw new Exception('Wrong [queue-sizes-retrieves.mode]!')
         };
     }
 }

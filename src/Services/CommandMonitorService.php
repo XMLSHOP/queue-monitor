@@ -9,6 +9,7 @@ use Illuminate\Console\Events\CommandStarting;
 use xmlshop\QueueMonitor\Repository\Interfaces\CommandRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
+use function in_array;
 
 class CommandMonitorService
 {
@@ -34,19 +35,19 @@ class CommandMonitorService
 
     public function handleCommandStarting(CommandStarting $event): void
     {
-        if (\in_array($event->command, $this->commandsToSkipp, true)) {
+        if (in_array($event->command, $this->commandsToSkipp, true)) {
             return;
         }
 
         $host = $this->hostRepository->firstOrCreate();
         $command = $this->commandRepository->firstOrCreateByEvent($event);
 
-        $this->monitorCommandRepository->createOrUpdateByCommandAndHost($command, $host);
+        $this->monitorCommandRepository->createByCommandAndHost($command, $host);
     }
 
     public function handleCommandFinished(CommandFinished $event): void
     {
-        if (\in_array($event->command, $this->commandsToSkipp, true)) {
+        if (in_array($event->command, $this->commandsToSkipp, true)) {
             return;
         }
 

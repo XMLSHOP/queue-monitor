@@ -7,6 +7,7 @@ namespace xmlshop\QueueMonitor\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
  * @property string $uuid
@@ -24,6 +25,8 @@ use Illuminate\Support\Carbon;
  */
 class MonitorScheduler extends Model
 {
+    use Uuids;
+
     protected $primaryKey = 'uuid';
 
     protected $guarded = ['uuid'];

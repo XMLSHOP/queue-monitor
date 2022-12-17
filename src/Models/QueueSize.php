@@ -7,15 +7,20 @@ namespace xmlshop\QueueMonitor\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
- * @property int $id
+ * @property string $uuid
  * @property int $queue_id
  * @property Carbon|null $created_at
  */
 class QueueSize extends Model
 {
-    protected $guarded = ['id'];
+    use Uuids;
+
+    protected $primaryKey = 'uuid';
+
+    protected $guarded = ['uuid'];
 
     protected $dates = ['created_at'];
 

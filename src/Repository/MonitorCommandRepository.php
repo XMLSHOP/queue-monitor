@@ -16,14 +16,13 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
     {
     }
 
-    public function createOrUpdateByCommandAndHost(Command $command, Host $host): void
+    public function createByCommandAndHost(Command $command, Host $host): void
     {
         $this->model
             ->newQuery()
-            ->firstOrCreate([
+            ->create([
                 'command_id' => $command->id,
                 'host_id' => $host->id,
-            ], [
                 'started_at' => now(),
                 'time_elapsed' => 0,
                 'failed' => false,
@@ -42,6 +41,7 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
                 'command_id' => $command->id,
                 'host_id' => $host->id,
             ])
+            ->whereNull('finished_at')
             ->first();
 
         if ($monitorCommand) {
@@ -52,5 +52,10 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
                 'use_cpu' => $monitorCommand->use_cpu - $this->systemResources->getCpuUse(),
             ]);
         }
+    }
+
+    public function createOrUpdateByCommandAndHost(Command $command, Host $host): void
+    {
+        // TODO: Implement createOrUpdateByCommandAndHost() method.
     }
 }

@@ -22,8 +22,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
     {
         $this->model
             ->newQuery()
-            ->insert([
-                'uuid' => Uuid::generate()->string, //Temporary fix
+            ->create([
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
                 'started_at' => now(),
@@ -44,6 +43,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
             ])
+            ->whereNull('finished_at')
             ->first();
 
         if ($monitorScheduler) {
