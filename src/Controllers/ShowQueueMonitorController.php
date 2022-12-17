@@ -116,7 +116,7 @@ class ShowQueueMonitorController
         if (config('monitor.ui.summaries.queue.show') && is_array(config('monitor.ui.summaries.queue.conf'))) {
             $summary = $this->collectSummary($filters);
             if ('all' !== $filters['job']) {
-                $job_metrics = $this->collectJobMetrics($filters['job'], $filters);
+                $job_metrics = $this->collectJobMetrics((int)$filters['job'], $filters);
             }
         }
 

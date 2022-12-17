@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
+use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorScheduler;
@@ -25,6 +26,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
             ], [
+                'uuid' => Uuid::generate()->string, //Temporary fix
                 'started_at' => now(),
                 'time_elapsed' => 0,
                 'failed' => false,

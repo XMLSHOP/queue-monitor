@@ -19,8 +19,7 @@ class CommandRepository implements CommandRepositoryInterface
     public function firstOrCreateByEvent(CommandFinished|CommandStarting $event): Command|Model
     {
         return $this->model->newQuery()->firstOrCreate([
-            'command' => $event->command,
-            'class_with_namespace' => CommandStarting::class
+            'command' => $event->command
         ]);
     }
 }

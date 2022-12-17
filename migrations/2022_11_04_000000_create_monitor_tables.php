@@ -73,7 +73,6 @@ class CreateMonitorTables extends Migration
             ->create(config('monitor.db.table.commands'), function (Blueprint $table) {
                 $table->smallIncrements('id');
                 $table->string('command', 64)->unique();
-                $table->string('class_with_namespace', 64)->nullable();
                 $table->timestamps();
             });
 
