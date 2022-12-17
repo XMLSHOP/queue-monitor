@@ -17,7 +17,7 @@ class RoutesTest extends TestCase
 
         $this->assertInstanceOf(Route::class, $route = app(Router::class)->getRoutes()->getByAction(ShowQueueMonitorController::class));
 
-        $this->assertEquals('index', $route->uri);
+        $this->assertEquals('index/jobs', $route->uri);
         $this->assertEquals('\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController', $route->getAction('controller'));
     }
 
@@ -29,7 +29,7 @@ class RoutesTest extends TestCase
 
         $this->assertInstanceOf(Route::class, $route = app(Router::class)->getRoutes()->getByAction(ShowQueueMonitorController::class));
 
-        $this->assertEquals('index', $route->uri);
+        $this->assertEquals('index/jobs', $route->uri);
         $this->assertEquals('\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController', $route->getAction('controller'));
     }
 }
