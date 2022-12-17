@@ -130,10 +130,12 @@ class ListenerCommand extends Command
 
     private function validatedAlarm(string $alarmId): bool
     {
-        $alarm = Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]);
+        $alarmAdded = false;
+        if (Arr::exists($this->alarmIdentifications, $alarmId)) {
+            $alarmAdded = Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]);
+        }
 
-        if (Arr::exists($this->alarmIdentifications, $alarmId)
-            && now()->subMinutes(4)->subSeconds(10)->gt($alarm)
+        if ($alarmAdded && now()->subMinutes(4)->subSeconds(10)->gt($alarmAdded)
         ) {
             unset($this->alarmIdentifications[$alarmId]);
         }
