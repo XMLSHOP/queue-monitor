@@ -44,8 +44,4 @@ class QueueSize extends Model
         return $this->belongsTo(Queue::class);
     }
 
-    public function getResourceUrlAttribute()
-    {
-        return url('/admin/monitor-queues-sizes/'.$this->getKey());
-    }
 }

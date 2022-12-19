@@ -54,6 +54,6 @@ class Host extends Model
 
     public function getResourceUrlAttribute()
     {
-        return url('/admin/jobs/' . $this->getKey());
+        return url('/admin/hosts/' . $this->getKey());
     }
 }

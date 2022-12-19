@@ -52,7 +52,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 
         $monitorScheduler && $monitorScheduler->update([
             'finished_at' => now(),
-            'pid' => null,
+//            'pid' => null,
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
@@ -74,7 +74,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             'exception_id' => $exceptionModel->id,
             'finished_at' => now(),
             'failed' => true,
-            'pid' => null,
+//            'pid' => null,
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),

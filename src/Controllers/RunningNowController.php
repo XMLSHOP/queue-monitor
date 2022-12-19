@@ -19,6 +19,6 @@ class RunningNowController
             return new JsonResponse(['data' => ['hosts' => $runningNow]]);
         }
 
-        return view('monitor::running-now/index', ['data' => ['hosts' => $runningNow]]);
+        return view('monitor::running-now.index', ['data' => ['hosts' => $runningNow]]);
     }
 }

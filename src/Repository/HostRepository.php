@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
+use xmlshop\QueueMonitor\Services\Data\RunningNowDataService;
 
 class HostRepository extends BaseRepository implements HostRepositoryInterface
 {
-    public function __construct(protected Host $model)
+    public function __construct(protected Host $model, protected RunningNowDataService $runningNowDataService)
     {
     }
 
@@ -28,11 +29,14 @@ class HostRepository extends BaseRepository implements HostRepositoryInterface
             $query->whereNotNull('started_at')->whereNull('finished_at')->where('failed', false);
         };
 
-        return $this->model
-            ->newQuery()
-            ->with(['monitorScheduler' => $conditionsCallback])
-            ->with(['monitorCommand' => $conditionsCallback])
-            ->with(['monitorQueue' => $conditionsCallback])
-            ->get();
+        return $this->runningNowDataService->beautifierHostSummary(
+            $this->model
+                ->newQuery()
+                ->with(['monitorScheduler' => $conditionsCallback])
+                ->with(['monitorCommand' => $conditionsCallback])
+                ->with(['monitorQueue' => $conditionsCallback])
+                ->get()
+                ->toArray()
+        );
     }
 }

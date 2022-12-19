@@ -11,7 +11,6 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $command
- * @property string|null $class_with_namespace
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -19,7 +18,7 @@ class Command extends Model
 {
     protected $dates = ['created_at', 'updated_at'];
 
-    protected $fillable = ['command', 'class_with_namespace'];
+    protected $fillable = ['command'];
 
     public function __construct(array $attributes = [])
     {

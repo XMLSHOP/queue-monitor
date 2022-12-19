@@ -56,7 +56,7 @@ class ListenerCommand extends Command
 
     public function handle(): int
     {
-        sleep(5);
+        sleep(1);
         self::$alarm_config = config('monitor.alarm');
 
         $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
