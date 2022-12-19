@@ -14,7 +14,7 @@ use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepositoryInterface
 {
     public function __construct(
-        private MonitorQueue $model,
+        protected MonitorQueue $model,
         private QueueRepositoryInterface $queueRepository,
         private SystemResourceInterface $systemResources
     ) {
