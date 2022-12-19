@@ -36,7 +36,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
     public function updateBySchedulerAndHost(Scheduler $scheduler, Host $host): void
     {
         /** @var MonitorScheduler $monitorScheduler */
-        $this->model
+        $monitorScheduler = $this->model
             ->newQuery()
             ->where([
                 'scheduled_id' => $scheduler->id,
@@ -44,33 +44,34 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             ])
             ->whereNull('finished_at')
             ->orderByDesc('started_at')
-            ->first()
-            ?->update([
-                'finished_at' => now(),
-                'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
-                'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-                'use_cpu' => $this->systemResources->getCpuUse(),
-            ]);
+            ->first();
 
+        $monitorScheduler && $monitorScheduler->update([
+            'finished_at' => now(),
+            'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
+        ]);
     }
 
     public function updateFailedBySchedulerAndHost(Scheduler $scheduler, Host $host, Exception $exceptionModel): void
     {
         /** @var MonitorScheduler $monitorScheduler */
-        $this->model
+        $monitorScheduler = $this->model
             ->newQuery()
             ->where([
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
             ])
-            ->first()
-            ?->update([
-                'exception_id' => $exceptionModel->id,
-                'finished_at' => now(),
-                'failed' => true,
-                'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
-                'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-                'use_cpu' => $this->systemResources->getCpuUse(),
-            ]);
+            ->first();
+
+        $monitorScheduler && $monitorScheduler->update([
+            'exception_id' => $exceptionModel->id,
+            'finished_at' => now(),
+            'failed' => true,
+            'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
+        ]);
     }
 }
