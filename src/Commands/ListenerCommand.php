@@ -171,6 +171,7 @@ class ListenerCommand extends Command
         $execution_time_to_previous = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.execution_time_to_previous', Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous'));
         $pending_time_to_previous_factor = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_time_to_previous_factor', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time_to_previous_factor'));
         $execution_time_to_previous_factor = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.execution_time_to_previous_factor', Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous_factor'));
+        $allowed_loadavg = Arr::get(self::$alarm_config, 'allowed_loadavg', 10);
 
         $messages = [];
         if ((int)$job['FailedCount'] > $failing_count) {
@@ -189,14 +190,15 @@ class ListenerCommand extends Command
 
         if (Arr::exists($this->jobsAvgPrev, $job['id'])) {
             $hour_job_info = $this->jobsAvgPrev[$job['id']];
-
+            $loadAvg = sys_getloadavg();
             if ($pending_time_to_previous && $hour_job_info['PendingAvg'] > 0
                 && $job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous_factor) {
                 $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
                     round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
             }
 
-            if ($execution_time_to_previous && $hour_job_info['ExecutingAvg'] > 0
+            if ($loadAvg && isset($loadAvg[0]) && $loadAvg[0] >= 0.75 * $allowed_loadavg
+                && $execution_time_to_previous && $hour_job_info['ExecutingAvg'] > 0
                 && $job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous_factor) {
                 $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
                     round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';

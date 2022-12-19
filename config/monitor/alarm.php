@@ -48,4 +48,6 @@ return [
             */
         ],
     ],
+
+    'allowed_loadavg' => env('QUEUE_THRESHOLD_LOADAVG', 10),
 ];

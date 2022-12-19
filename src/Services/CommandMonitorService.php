@@ -23,11 +23,11 @@ class CommandMonitorService
         'queue:table',
         'queue:work',
         'schedule:work',
+        'scheduler:work',
         'schedule:run',
         'vendor:publish',
         'package:discover',
         'help',
-
     ];
 
     public function __construct(
