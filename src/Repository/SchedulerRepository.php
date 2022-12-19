@@ -15,6 +15,15 @@ class SchedulerRepository implements SchedulerRepositoryInterface
     {
     }
 
+    public function create(Task $task): Scheduler
+    {
+        return $this->model->newQuery()->create([
+            'name' => $task->name(),
+            'type' => $task->type(),
+            'cron_expression' => $task->cronExpression(),
+        ]);
+    }
+
     public function findByName(string $name): ?Scheduler
     {
         return $this->model->newQuery()->where('name', $name)->first();

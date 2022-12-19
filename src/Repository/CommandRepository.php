@@ -23,7 +23,7 @@ class CommandRepository implements CommandRepositoryInterface
         ]);
     }
 
-    public function getList(?string $keyBy = null)
+    public function getList(?string $keyBy = null): array
     {
         $query = $this->model->newQuery()->get();
         if (null !== $keyBy) {

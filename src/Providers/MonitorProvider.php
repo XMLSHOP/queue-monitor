@@ -50,11 +50,6 @@ class MonitorProvider extends ServiceProvider
 
     private Collection $resourcesToBind;
 
-    /**
-     * @var Application
-     */
-    protected $app;
-
     private array $containerResourcesMap = [
         SystemResourceInterface::class => SystemResource::class,
         MonitorQueueRepositoryInterface::class => MonitorQueueRepository::class,

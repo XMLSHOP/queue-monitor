@@ -16,7 +16,7 @@ class SyncCommand extends Command
     public function handle(SchedulerMonitorService $schedulerMonitorService): int
     {
         try {
-            $schedulerMonitorService->syncMonitoredTask();
+            $schedulerMonitorService->syncMonitoredTasks();
         } catch (\Throwable $t) {
             $this->error($t->getMessage());
 

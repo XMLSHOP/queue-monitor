@@ -13,5 +13,5 @@ interface CommandRepositoryInterface
 {
     public function firstOrCreateByEvent(CommandFinished|CommandStarting $event): Command|Model;
 
-    public function getList(string $string);
+    public function getList(string $string): array;
 }

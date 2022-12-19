@@ -36,10 +36,8 @@ class SchedulerMonitorService
             return;
         }
 
-        if (!$scheduler = $this->schedulerRepository->findByName($task->name())) {
-            $this->syncMonitoredTask();
-            $scheduler = $this->schedulerRepository->findByName($task->name());
-        }
+        (!$scheduler = $this->schedulerRepository->findByName($task->name()))
+        && ($scheduler = $this->schedulerRepository->create($task));
 
         $this->monitorSchedulerRepository->createWithSchedulerAndHost($scheduler, $host);
     }
@@ -53,10 +51,8 @@ class SchedulerMonitorService
             return;
         }
 
-        if (!$scheduler = $this->schedulerRepository->findByName($task->name())) {
-            $this->syncMonitoredTask();
-            $scheduler = $this->schedulerRepository->findByName($task->name());
-        }
+        (!$scheduler = $this->schedulerRepository->findByName($task->name()))
+        && ($scheduler = $this->schedulerRepository->create($task));
 
         $this->monitorSchedulerRepository->updateBySchedulerAndHost($scheduler, $host);
     }
@@ -70,16 +66,14 @@ class SchedulerMonitorService
             return;
         }
 
-        if (!$scheduler = $this->schedulerRepository->findByName($task->name())) {
-            $this->syncMonitoredTask();
-            $scheduler = $this->schedulerRepository->findByName($task->name());
-        }
+        (!$scheduler = $this->schedulerRepository->findByName($task->name()))
+        && ($scheduler = $this->schedulerRepository->create($task));
 
         $exceptionModel = $this->exceptionRepository->createFromThrowable($event->exception);
         $this->monitorSchedulerRepository->updateFailedBySchedulerAndHost($scheduler, $host, $exceptionModel);
     }
 
-    public function syncMonitoredTask(): void
+    public function syncMonitoredTasks(): void
     {
         $this->scheduledTasks->uniqueTasks()->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
     }
