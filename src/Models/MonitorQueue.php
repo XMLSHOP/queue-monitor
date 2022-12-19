@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Throwable;
 use xmlshop\QueueMonitor\Traits\MonitorModel;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
@@ -166,6 +167,28 @@ class MonitorQueue extends Model
         }
 
         return [];
+    }
+
+    /**
+     * Recreate the exception.
+     *
+     * @param bool $rescue Wrap the exception recreation to catch exceptions
+     */
+    public function getException(bool $rescue = true): ?Throwable
+    {
+        if (null === $this->exception) {
+            return null;
+        }
+
+        if (!$rescue) {
+            return new $this->exception->exception_class($this->exception->exception_message);
+        }
+
+        try {
+            return new $this->exception->exception_class($this->exception->exception_message);
+        } catch (\Exception $exception) {
+            return null;
+        }
     }
 
     public function isPending(): bool
