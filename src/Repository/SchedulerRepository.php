@@ -34,4 +34,14 @@ class SchedulerRepository implements SchedulerRepositoryInterface
     {
         $this->model->newQuery()->whereNotIn('id', $ids)->delete();
     }
+
+    public function getList(?string $keyBy = null)
+    {
+        $query = $this->model->newQuery()->get();
+        if (null !== $keyBy) {
+            return $query->keyBy($keyBy)->toArray();
+        }
+
+        return $query->toArray();
+    }
 }

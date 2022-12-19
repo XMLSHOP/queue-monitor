@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use xmlshop\QueueMonitor\Traits\MonitorModel;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
@@ -38,6 +39,8 @@ use xmlshop\QueueMonitor\Traits\Uuids;
 class MonitorQueue extends Model
 {
     use Uuids;
+    use MonitorModel;
+
 
     protected $primaryKey = 'uuid';
 
@@ -121,25 +124,6 @@ class MonitorQueue extends Model
 
         return Carbon::parse($this->queued_at);
     }
-
-    public function getStarted(): ?Carbon
-    {
-        if (null === $this->started_at) {
-            return null;
-        }
-
-        return Carbon::parse($this->started_at);
-    }
-
-    public function getFinished(): ?Carbon
-    {
-        if (null === $this->finished_at) {
-            return null;
-        }
-
-        return Carbon::parse($this->finished_at);
-    }
-
     /**
      * Get the estimated remaining seconds. This requires a job progress to be set.
      */
@@ -168,29 +152,6 @@ class MonitorQueue extends Model
     }
 
     /**
-     * Get the currently elapsed seconds.
-     */
-    public function getElapsedSeconds(Carbon $end = null): float
-    {
-        return $this->getElapsedInterval($end)->seconds;
-    }
-
-    public function getElapsedInterval(Carbon $end = null): CarbonInterval
-    {
-        if (null === $end) {
-            $end = $this->getFinished() ?? $this->finished_at ?? Carbon::now();
-        }
-
-        $startedAt = $this->getStarted() ?? $this->started_at;
-
-        if (null === $startedAt) {
-            return CarbonInterval::seconds(0);
-        }
-
-        return $startedAt->diffAsCarbonInterval($end);
-    }
-
-    /**
      * Get any optional data that has been added to the monitor model within the job.
      */
     public function getData(): array
@@ -207,28 +168,6 @@ class MonitorQueue extends Model
         return [];
     }
 
-    /**
-     * Recreate the exception.
-     *
-     * @param bool $rescue Wrap the exception recreation to catch exceptions
-     */
-    public function getException(bool $rescue = true): ?\Throwable
-    {
-        if (null === $this->exception) {
-            return null;
-        }
-
-        if (!$rescue) {
-            return new $this->exception->exception_class($this->exception->exception_message);
-        }
-
-        try {
-            return new $this->exception->exception_class($this->exception->exception_message);
-        } catch (\Exception $exception) {
-            return null;
-        }
-    }
-
     public function isPending(): bool
     {
         return !$this->hasFailed()
@@ -237,26 +176,4 @@ class MonitorQueue extends Model
             && null === $this->finished_at;
     }
 
-    public function isFinished(): bool
-    {
-        if ($this->hasFailed()) {
-            return true;
-        }
-
-        return null !== $this->finished_at;
-    }
-
-    public function hasFailed(): bool
-    {
-        return true === $this->failed;
-    }
-
-    public function hasSucceeded(): bool
-    {
-        if (!$this->isFinished()) {
-            return false;
-        }
-
-        return !$this->hasFailed();
-    }
 }

@@ -1,5 +1,5 @@
 <h1 class="mb-6 text-5xl text-blue-900 font-bold">
-    @lang('Queue Monitor')
+    @lang('Monitor'): @lang('Jobs')
 </h1>
 
 @include('monitor::jobs.partials.filters', [
