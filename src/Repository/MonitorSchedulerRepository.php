@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
+use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorScheduler;
@@ -28,6 +30,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'ppid' => $this->systemResources->getPid(),
                 'time_elapsed' => 0,
                 'failed' => false,
+                'pid' => $this->systemResources->getPid(),
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
                 'use_cpu' => $this->systemResources->getCpuUse(),
                 'created_at' => now(),
@@ -49,6 +52,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 
         $monitorScheduler && $monitorScheduler->update([
             'finished_at' => now(),
+            'pid' => null,
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
@@ -70,6 +74,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             'exception_id' => $exceptionModel->id,
             'finished_at' => now(),
             'failed' => true,
+            'pid' => null,
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
@@ -89,23 +94,19 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
                 switch ($type) {
                     case 'running':
-                        /** @noinspection UnknownColumnInspection */
                         $builder->whereNotNull('started_at')->whereNull('finished_at');
                         break;
 
                     case 'failed':
-                        /** @noinspection UnknownColumnInspection */
                         $builder->where('failed', true)->whereNotNull('finished_at');
                         break;
 
                     case 'succeeded':
-                        /** @noinspection UnknownColumnInspection */
                         $builder->where('failed', false)->whereNotNull('finished_at');
                         break;
                 }
             })
             ->when(($scheduler_id = $filters['scheduler']) && 'all' !== $scheduler_id, static function (Builder $builder) use ($scheduler_id) {
-                /** @noinspection UnknownColumnInspection */
                 $builder->where('scheduler_id', $scheduler_id);
             })
             ->orderByDesc('started_at')

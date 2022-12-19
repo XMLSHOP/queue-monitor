@@ -86,6 +86,7 @@ class CreateMonitorTables extends Migration
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
                 $table->boolean('failed')->default(false)->index();
                 $table->string('exception_id', 36)->nullable();
+                $table->unsignedMediumInteger('pid')->nullable();
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
                 $table->float('use_cpu', 12, 6)->nullable();
                 $table->timestamp('created_at')->index();
@@ -111,6 +112,7 @@ class CreateMonitorTables extends Migration
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
                 $table->boolean('failed')->default(false)->index();
                 $table->string('exception_id', 36)->nullable();
+                $table->unsignedMediumInteger('pid')->nullable();
                 $table->unsignedMediumInteger('use_memory_mb')->nullable();
                 $table->float('use_cpu', 12, 6)->nullable();
                 $table->timestamp('created_at')->index();
