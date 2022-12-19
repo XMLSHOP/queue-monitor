@@ -13,7 +13,6 @@ use xmlshop\QueueMonitor\Models\Scheduler;
 use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
 use function config;
 use function now;
-use function optional;
 
 abstract class Task
 {
@@ -46,39 +45,21 @@ abstract class Task
         return $this->event->monitorName ?? $this->defaultName();
     }
 
-    public function shouldMonitor(): bool
-    {
-        if (!isset($this->event->doNotMonitor)) {
-            return true;
-        }
-
-        return ! $this->event->doNotMonitor;
-    }
-
     public function isBeingMonitored(): bool
     {
-        return ! is_null($this->monitoredScheduledTask);
-    }
-
-    public function isBeingMonitoredAtOhDear(): bool
-    {
-        if (! $this->isBeingMonitored()) {
-            return false;
-        }
-
-        return ! empty($this->monitoredScheduledTask->ping_url);
+        return !is_null($this->monitoredScheduledTask);
     }
 
     public function previousRunAt(): CarbonInterface
     {
-        $dateTime = CronExpression::factory($this->cronExpression())->getPreviousRunDate(now());
+        $dateTime = (new CronExpression($this->cronExpression()))->getPreviousRunDate(now());
 
         return Date::instance($dateTime);
     }
 
     public function nextRunAt(CarbonInterface $now = null): CarbonInterface
     {
-        $dateTime = CronExpression::factory($this->cronExpression())->getNextRunDate(
+        $dateTime = (new CronExpression($this->cronExpression()))->getNextRunDate(
             $now ?? now(),
             0,
             false,
@@ -90,60 +71,6 @@ abstract class Task
         $date->setTimezone(config('app.timezone'));
 
         return $date;
-    }
-
-    public function lastRunStartedAt(): ?CarbonInterface
-    {
-        return optional($this->monitoredScheduledTask)->last_started_at;
-    }
-
-    public function lastRunFinishedAt(): ?CarbonInterface
-    {
-        return optional($this->monitoredScheduledTask)->last_finished_at;
-    }
-
-    public function lastRunFailedAt(): ?CarbonInterface
-    {
-        return optional($this->monitoredScheduledTask)->last_failed_at;
-    }
-
-    public function lastRunSkippedAt(): ?CarbonInterface
-    {
-        return optional($this->monitoredScheduledTask)->last_skipped_at;
-    }
-
-    public function lastRunFinishedTooLate(): bool
-    {
-        if (! $this->isBeingMonitored()) {
-            return false;
-        }
-
-        $lastFinishedAt = $this->lastRunFinishedAt()
-            ? $this->lastRunFinishedAt()
-            : $this->monitoredScheduledTask->created_at;
-
-        $expectedNextRunStart = $this->nextRunAt($lastFinishedAt?->subSecond());
-
-        $shouldHaveFinishedAt = $expectedNextRunStart->addMinutes($this->graceTimeInMinutes());
-
-        return $shouldHaveFinishedAt->isPast();
-    }
-
-    public function lastRunFailed(): bool
-    {
-        if (! $this->isBeingMonitored()) {
-            return false;
-        }
-
-        if (! $lastRunFailedAt = $this->lastRunFailedAt()) {
-            return false;
-        }
-
-        if (! $lastRunStartedAt = $this->lastRunStartedAt()) {
-            return true;
-        }
-
-        return $lastRunFailedAt->isAfter($lastRunStartedAt->subSecond());
     }
 
     public function graceTimeInMinutes()
