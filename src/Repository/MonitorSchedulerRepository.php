@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
-use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorScheduler;
@@ -52,7 +51,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'finished_at' => now(),
                 'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-                'use_cpu' => $monitorScheduler->use_cpu - $this->systemResources->getCpuUse(),
+                'use_cpu' => $this->systemResources->getCpuUse(),
             ]);
         }
     }
@@ -75,7 +74,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'failed' => true,
                 'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-                'use_cpu' => $monitorScheduler->use_cpu - $this->systemResources->getCpuUse(),
+                'use_cpu' => $this->systemResources->getCpuUse(),
             ]);
         }
     }

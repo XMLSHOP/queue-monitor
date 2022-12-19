@@ -26,6 +26,8 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property int $attempt
  * @property int|null $progress
  * @property Exception|null $exception
+ * @property int|null $use_memory_mb
+ * @property float|null $use_cpu
  * @property string|null $data
  *
  * @method static Builder|MonitorQueue whereJob()

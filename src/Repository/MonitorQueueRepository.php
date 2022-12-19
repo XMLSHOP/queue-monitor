@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
+use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 
 class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepositoryInterface
 {
     public function __construct(
-        protected MonitorQueue $model,
-        protected QueueRepositoryInterface $queueRepository,
+        private MonitorQueue $model,
+        private QueueRepositoryInterface $queueRepository,
+        private SystemResourceInterface $systemResources
     ) {
     }
 
@@ -29,6 +31,8 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
             'queued_at' => $data['queued_at'],
             'attempt' => $data['attempt'],
             'queue_id' => $queueModel->id,
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
         ]);
     }
 
@@ -48,6 +52,8 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
                 'host_id' => $data['host_id'],
                 'started_at' => $data['started_at'],
                 'queue_id' => $queueModel->id,
+                'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+                'use_cpu' => $this->systemResources->getCpuUse(),
             ]);
 
         $this->queueRepository->updateWithStarted($queueModel->id, $data['connection'], $data['queue']);
@@ -63,12 +69,17 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
             'started_at' => $data['started_at'],
             'queue_id' => $queueModel->id,
             'time_pending_elapsed' => $timeElapsed ?? 0.0,
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
         ]);
     }
 
     public function updateFinished(MonitorQueue $model, array $attributes): MonitorQueue
     {
-        $model->update($attributes);
+        $model->update(\array_merge($attributes, [
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
+        ]));
 
         return $model;
     }

@@ -50,7 +50,7 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
                 'finished_at' => now(),
                 'time_elapsed' => $this->systemResources->getTimeElapsed($monitorCommand->started_at, now()),
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-                'use_cpu' => $monitorCommand->use_cpu - $this->systemResources->getCpuUse(),
+                'use_cpu' => $this->systemResources->getCpuUse(),
             ]);
         }
     }

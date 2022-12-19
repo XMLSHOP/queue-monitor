@@ -10,6 +10,8 @@ use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
 
 interface SchedulerRepositoryInterface
 {
+    public function create(Task $task): Scheduler;
+
     public function findByName(string $name): ?Scheduler;
 
     public function updateOrCreate(Task $task): Model;
