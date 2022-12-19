@@ -35,7 +35,7 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
     public function updateByCommandAndHost(Command $command, Host $host): void
     {
         /** @var MonitorCommand $monitorCommand */
-        $monitorCommand = $this->model
+        $this->model
             ->newQuery()
             ->where([
                 'command_id' => $command->id,
@@ -43,20 +43,12 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
             ])
             ->whereNull('finished_at')
             ->orderByDesc('started_at')
-            ->first();
-
-        if ($monitorCommand) {
-            $monitorCommand->update([
+            ->first()
+            ?->update([
                 'finished_at' => now(),
                 'time_elapsed' => $this->systemResources->getTimeElapsed($monitorCommand->started_at, now()),
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
                 'use_cpu' => $monitorCommand->use_cpu - $this->systemResources->getCpuUse(),
             ]);
-        }
-    }
-
-    public function createOrUpdateByCommandAndHost(Command $command, Host $host): void
-    {
-        // TODO: Implement createOrUpdateByCommandAndHost() method.
     }
 }
