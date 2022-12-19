@@ -20,8 +20,8 @@ class QueueMonitorRoutes
                 ->name('monitor::jobs');
 
             /** @var Router $this */
-            $this->get('/jobs', '\xmlshop\QueueMonitor\Controllers\ShowQueueMonitorController')
-                ->name('monitor::jobs');
+            $this->get('/commands', '\xmlshop\QueueMonitor\Controllers\ShowCommandMonitorController')
+                ->name('monitor::commands');
 
             /** @var Router $this */
             $this->get('queue-sizes', '\xmlshop\QueueMonitor\Controllers\QueueSizesChartsController')

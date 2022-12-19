@@ -161,7 +161,7 @@ class ListenerCommand extends Command
     private function detectedAlarm(array $job): array
     {
         if (Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore', false)) {
-            return [true, ''];
+            return [false, null];
         }
 
         $failing_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.failing_count', Arr::get(self::$alarm_config, 'jobs_thresholds.failing_count'));
