@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Models;
 
-use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -16,6 +15,7 @@ use xmlshop\QueueMonitor\Traits\Uuids;
  * @property int $scheduled_id
  * @property int $host_id
  * @property Carbon|null $started_at
+ * @property int $ppid
  * @property Carbon|null $finished_at
  * @property float $time_elapsed
  * @property bool $failed

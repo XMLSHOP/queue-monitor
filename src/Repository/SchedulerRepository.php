@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\Scheduler;
 use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
 use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
+use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 
 class SchedulerRepository implements SchedulerRepositoryInterface
 {

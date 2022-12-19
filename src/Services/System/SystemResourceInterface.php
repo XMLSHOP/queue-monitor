@@ -13,4 +13,9 @@ interface SystemResourceInterface
     public function getCpuUse(): float;
 
     public function getTimeElapsed(Carbon $startedAt, Carbon $finishedAt): float;
+
+    public function getPid(): int;
+
+    public function getPPid(): int;
+
 }

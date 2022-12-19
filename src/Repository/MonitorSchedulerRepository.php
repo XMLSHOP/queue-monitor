@@ -25,6 +25,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
                 'started_at' => now(),
+                'ppid' => $this->systemResources->getPid(),
                 'time_elapsed' => 0,
                 'failed' => false,
                 'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
@@ -115,5 +116,12 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             ->appends(
                 $request->all()
             );
+    }
+
+    public function foundByPPid(): bool
+    {
+        return $this->model->newQuery()
+            ->where('ppid', $this->systemResources->getPPid())
+            ->exists();
     }
 }

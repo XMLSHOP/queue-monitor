@@ -106,6 +106,7 @@ class CreateMonitorTables extends Migration
                 $table->unsignedSmallInteger('scheduled_id')->index();
                 $table->unsignedSmallInteger('host_id')->index();
                 $table->timestamp('started_at')->nullable()->index();
+                $table->unsignedSmallInteger('ppid');
                 $table->timestamp('finished_at')->nullable()->index();
                 $table->float('time_elapsed', 12, 6)->nullable()->index();
                 $table->boolean('failed')->default(false)->index();

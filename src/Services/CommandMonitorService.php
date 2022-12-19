@@ -9,6 +9,8 @@ use Illuminate\Console\Events\CommandStarting;
 use xmlshop\QueueMonitor\Repository\Interfaces\CommandRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
+
 use function in_array;
 
 class CommandMonitorService
@@ -23,10 +25,13 @@ class CommandMonitorService
         'schedule:work',
         'schedule:run',
         'vendor:publish',
-        'package:discover'
+        'package:discover',
+        'help',
+
     ];
 
     public function __construct(
+        private MonitorSchedulerRepositoryInterface $monitorSchedulerRepository,
         private CommandRepositoryInterface $commandRepository,
         private HostRepositoryInterface $hostRepository,
         private MonitorCommandRepositoryInterface $monitorCommandRepository,
@@ -41,6 +46,10 @@ class CommandMonitorService
 
         $host = $this->hostRepository->firstOrCreate();
         $command = $this->commandRepository->firstOrCreateByEvent($event);
+
+        if ($this->monitorSchedulerRepository->foundByPPid()) {
+            return;
+        }
 
         $this->monitorCommandRepository->createByCommandAndHost($command, $host);
     }
