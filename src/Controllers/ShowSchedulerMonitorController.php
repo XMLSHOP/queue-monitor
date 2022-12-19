@@ -8,15 +8,15 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use xmlshop\QueueMonitor\Repository\Interfaces\CommandRepositoryInterface;
-use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\SchedulerRepository;
 
 
-class ShowCommandMonitorController
+class ShowSchedulerMonitorController
 {
     public function __construct(
-        private MonitorCommandRepositoryInterface $monitorCommandRepository,
-        private CommandRepositoryInterface $commandRepository)
+        private MonitorSchedulerRepositoryInterface $monitorSchedulerRepository,
+        private SchedulerRepository $schedulerRepository)
     {
     }
 
@@ -25,21 +25,21 @@ class ShowCommandMonitorController
     ): View {
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'running', 'failed', 'succeeded'])],
-            'command' => ['nullable', 'string'],
+            'scheduler' => ['nullable', 'string'],
             'df' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
             'dt' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
         ]);
 
         $filters = [
             'type' => $data['type'] ?? 'all',
-            'command' => $data['command'] ?? 'all',
+            'scheduler' => $data['scheduler'] ?? 'all',
             'df' => $data['df'] ?? Carbon::now()->subHours(3)->toDateTimeLocalString(),
             'dt' => $data['dt'] ?? Carbon::now()->toDateTimeLocalString(),
         ];
 
-        return view('monitor::commands/index', [
-            'commands' => $this->monitorCommandRepository->getList($request, $filters),
-            'commands_list' => $this->commandRepository->getList('id'),
+        return view('monitor::schedulers/index', [
+            'schedulers' => $this->monitorSchedulerRepository->getList($request, $filters),
+            'schedulers_list' => $this->schedulerRepository->getList('id'),
             'filters' => $filters,
         ]);
     }

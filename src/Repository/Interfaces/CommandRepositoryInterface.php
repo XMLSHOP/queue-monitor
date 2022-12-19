@@ -12,4 +12,6 @@ use xmlshop\QueueMonitor\Models\Command;
 interface CommandRepositoryInterface
 {
     public function firstOrCreateByEvent(CommandFinished|CommandStarting $event): Command|Model;
+
+    public function getList(string $string): array;
 }

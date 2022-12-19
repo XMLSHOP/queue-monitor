@@ -24,6 +24,10 @@ class QueueMonitorRoutes
                 ->name('monitor::commands');
 
             /** @var Router $this */
+            $this->get('/schedulers', '\xmlshop\QueueMonitor\Controllers\ShowSchedulerMonitorController')
+                ->name('monitor::schedulers');
+
+            /** @var Router $this */
             $this->get('queue-sizes', '\xmlshop\QueueMonitor\Controllers\QueueSizesChartsController')
                 ->name('monitor::queue-sizes');
 

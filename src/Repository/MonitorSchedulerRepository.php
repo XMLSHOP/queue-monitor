@@ -74,4 +74,46 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             'use_cpu' => $this->systemResources->getCpuUse(),
         ]);
     }
+
+    public function getList(Request $request, $filters)
+    {
+        return $this->model
+            ->newQuery()
+            ->where(function ($query) use ($filters) {
+                $query
+                    ->orWhereBetween('started_at', [$filters['df'], $filters['dt']])
+                    ->orWhereBetween('finished_at', [$filters['df'], $filters['dt']]);
+            })
+            ->with(['scheduler', 'host'])
+            ->when(($type = $filters['type']) && 'all' !== $type, static function (Builder $builder) use ($type) {
+                switch ($type) {
+                    case 'running':
+                        /** @noinspection UnknownColumnInspection */
+                        $builder->whereNotNull('started_at')->whereNull('finished_at');
+                        break;
+
+                    case 'failed':
+                        /** @noinspection UnknownColumnInspection */
+                        $builder->where('failed', true)->whereNotNull('finished_at');
+                        break;
+
+                    case 'succeeded':
+                        /** @noinspection UnknownColumnInspection */
+                        $builder->where('failed', false)->whereNotNull('finished_at');
+                        break;
+                }
+            })
+            ->when(($scheduler_id = $filters['scheduler']) && 'all' !== $scheduler_id, static function (Builder $builder) use ($scheduler_id) {
+                /** @noinspection UnknownColumnInspection */
+                $builder->where('scheduler_id', $scheduler_id);
+            })
+            ->orderByDesc('started_at')
+            ->orderByDesc('finished_at')
+            ->paginate(
+                config('monitor.ui.per_page')
+            )
+            ->appends(
+                $request->all()
+            );
+    }
 }

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Models;
 
+use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use xmlshop\QueueMonitor\Traits\MonitorModel;
 use xmlshop\QueueMonitor\Traits\Uuids;
 
 /**
@@ -26,6 +28,7 @@ use xmlshop\QueueMonitor\Traits\Uuids;
 class MonitorCommand extends Model
 {
     use Uuids;
+    use MonitorModel;
 
     protected $primaryKey = 'uuid';
 
