@@ -4,10 +4,12 @@ namespace xmlshop\QueueMonitor\Commands;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Pressutto\LaravelSlack\Slack;
+use Psr\SimpleCache\InvalidArgumentException;
 use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
 use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
 
@@ -57,7 +59,7 @@ class ListenerCommand extends Command
      * Execute the console command.
      *
      * @return int
-     * @throws \Exception|\Psr\SimpleCache\InvalidArgumentException
+     * @throws Exception|InvalidArgumentException
      *
      */
     public function handle()
@@ -150,8 +152,8 @@ class ListenerCommand extends Command
     {
         if (Arr::exists($this->alarmIdentifications, $alarmId)
             && now()->subMinutes(4)->subSeconds(10)
-            ->gt(
-                Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
+                ->gt(
+                    Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
         ) {
             unset($this->alarmIdentifications[$alarmId]);
         }
@@ -169,7 +171,7 @@ class ListenerCommand extends Command
      * @param array $job
      *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      *
      */
     private function detectedAlarm(array $job): array
@@ -177,7 +179,7 @@ class ListenerCommand extends Command
         if (Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore', false)) {
             return [true, ''];
         }
-
+        $ignore_all_besides_failures = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore_all_besides_failures', false);
         $failing_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.failing_count', Arr::get(self::$alarm_config, 'jobs_thresholds.failing_count'));
         $pending_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_count', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_count'));
         $pending_time = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_time', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time'));
@@ -190,6 +192,13 @@ class ListenerCommand extends Command
         if ((int)$job['FailedCount'] > $failing_count) {
             $messages[] = 'The job ' . $this->getJobLink($job) . ' has been failed *' . $job['FailedCount'] . '* times ' .
                 'per last ' . CarbonInterval::seconds(Arr::get(self::$alarm_config, 'jobs_compare_alerts.last'))->cascade()->forHumans();
+        }
+
+        if ($ignore_all_besides_failures) {
+            return [
+                !empty($messages),
+                implode("\n", $messages),
+            ];
         }
 
         if ((int)$job['PendingCount'] > $pending_count) {

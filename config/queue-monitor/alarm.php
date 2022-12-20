@@ -47,6 +47,9 @@ return [
             'MonitoredJobWithData' => [
                 'execution_time_to_previous' => 1.1, // seconds
             ],
+            'MonitoredJobWithData' => [
+                'ignore_all_besides_failures' => true,
+            ],
             */
         ],
     ],
