@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('admin.layout.default')
 
-<head>
+@section('title', trans('Monitor'). ': '. trans('Jobs'))
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>@lang('Queue Monitor')</title>
-
+@section('styles')
     <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+@endsection
 
-</head>
-
-<body class="font-sans p-6 pb-64 bg-gray-100">
-
-@include('queue-monitor::jobs-content')
-
-</body>
-
-</html>
+@section('body')
+    @include('monitor::jobs.jobs-content')
+@endsection

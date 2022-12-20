@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Controllers;
 
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 
 class DeleteMonitorController
 {
-    public function __invoke(Request $request, QueueMonitorModel $monitor): RedirectResponse
+    public function __invoke(MonitorQueue $monitor): RedirectResponse
     {
         $monitor->delete();
 
-        return redirect()->route('queue-monitor::index');
+        return redirect()->route('monitor::index');
     }
 }

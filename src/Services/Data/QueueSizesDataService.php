@@ -6,32 +6,30 @@ namespace xmlshop\QueueMonitor\Services\Data;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
 class QueueSizesDataService
 {
-    /**
-     * @param array $requestData
-     * @return array
-     */
+    public function __construct(private QueueSizeRepositoryInterface $queueSizesRepository)
+    {
+    }
+
     public function execute(array $requestData): array
     {
-        /** @var QueueMonitorQueueSizesRepository $queuesSizeRepository */
-        $queuesSizeRepository = app(QueueMonitorQueueSizesRepository::class);
         $data = [];
 
-        foreach (config('queue-monitor.dashboard-charts.root') as $chartOptions) {
+        foreach (config('monitor.dashboard-charts.root') as $chartOptions) {
             $obj = [];
             if (Arr::exists($chartOptions, 'queues')) {
                 $obj = array_merge($obj, $chartOptions['properties']);
-                $obj['data'] =
-                    $this->transformData(
-                        $queuesSizeRepository->getDataSegment(
-                            $requestData['filter']['date_from'],
-                            $requestData['filter']['date_to'],
-                            $chartOptions['queues']
-                        )->get()
-                    );
+
+                $dataToTransform = $this->queueSizesRepository->getDataSegment(
+                    $requestData['filter']['date_from'],
+                    $requestData['filter']['date_to'],
+                    $chartOptions['queues'],
+                )->get();
+
+                $obj['data'] = $this->transformData($dataToTransform);
             }
 
             $data[] = $obj;
@@ -40,11 +38,6 @@ class QueueSizesDataService
         return $data;
     }
 
-    /**
-     * @param Collection|array $data
-     *
-     * @return array
-     */
     private function transformData(Collection|array $data): array
     {
         $queues = [];

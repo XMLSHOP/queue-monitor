@@ -1,10 +1,9 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Controllers;
 
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -12,49 +11,33 @@ use Illuminate\Support\Carbon;
 use xmlshop\QueueMonitor\Services\Data\QueuedJobsDataService;
 use xmlshop\QueueMonitor\Services\Data\QueueSizesDataService;
 
-
 class QueueSizesChartsController
 {
     private string $dtPattern = '~^\d{4}-\d{2}-\d{2}[\w|\W]\d{2}:\d{2}:\d{2}(\W)~';
 
-    /**
-     * @param Request $request
-     * @return array[]|Application|Factory|View
-     */
-    public function __invoke(Request $request)
+    public function __construct(private QueueSizesDataService $queueSizesDataExportService,)
+    {
+    }
+
+    public function __invoke(Request $request): View|array
     {
         $requestData = $request->validate([
             'filter' => ['nullable', 'array'],
         ]);
+
         $requestData = $this->getSanitized($requestData);
 
-        /** @var QueueSizesDataService $queueSizesDataExportService */
-        $queueSizesDataExportService = app(QueueSizesDataService::class);
-        /** @var QueuedJobsDataService $queuedJobsDataService */
-        $queuedJobsDataService = app(QueuedJobsDataService::class);
-
         $data = [
-            'charts' => $queueSizesDataExportService->execute($requestData),
-            'jobs' => $queuedJobsDataService->execute($requestData),
+            'charts' => $this->queueSizesDataExportService->execute($requestData),
         ];
 
-//        $request->attributes->add(['filter' => $requestData['filter'],]);
-//        $request->request->add(['filter' => $requestData['filter'],]);
-//        $request->merge(['filter' => $requestData['filter'],]);
-
-        if ($request->ajax()) {
-            return ['data' => $data];
+        if ($request->ajax() && $request->wantsJson()) {
+            return compact('data');
         }
 
-        return view('queue-monitor::queue-sizes/index', [
-            'data' => $data
-        ]);
+        return view('monitor::queue-sizes/index', compact('data'));
     }
 
-    /**
-     * @param array $sanitized
-     * @return array
-     */
     private function getSanitized(array $sanitized): array
     {
         if (!Arr::exists($sanitized, 'filter') || null === $sanitized['filter']) {

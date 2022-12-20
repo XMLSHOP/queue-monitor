@@ -69,7 +69,7 @@
             </div>
         </div>
 
-        @if($filters['job'] !== 'all' && $job_metrics && $filters['type'] !== 'failed')
+        @if($filters['job'] !== 'all' && null !== $job_metrics && $filters['type'] !== 'failed')
             <div class="w-full md:w-1/3 px-4 mb-4">
                 <div class="h-full flex flex-col justify-between p-6 bg-white rounded shadow-md">
                     <div class="font-semibold text-sm text-gray-600">Average Execution Time</div>

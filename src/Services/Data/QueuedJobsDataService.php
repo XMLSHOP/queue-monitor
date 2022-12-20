@@ -1,24 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Services\Data;
 
 use Illuminate\Database\Eloquent\Collection;
-use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
 
 class QueuedJobsDataService
 {
-    /**
-     * @param array $requestData
-     * @return Collection|array
-     */
+    public function __construct(private JobRepositoryInterface $jobRepository)
+    {
+    }
+
     public function execute(array $requestData): Collection|array
     {
-        /** @var QueueMonitorJobsRepository $queuedJobsRepository */
-        $queuedJobsRepository = app(QueueMonitorJobsRepository::class);
-        return $queuedJobsRepository->getJobsStatistic(
+        return $this->jobRepository->getJobsStatistic(
             $requestData['filter']['date_from'],
-            $requestData['filter']['date_to']
+            $requestData['filter']['date_to'],
         );
     }
 }

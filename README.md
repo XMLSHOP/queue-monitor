@@ -26,7 +26,7 @@ composer require xmlshop/laravel-queue-monitor
 Copy configuration & migration to your project:
 
 ```
-php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\QueueMonitorProvider"  --tag=config --tag=migrations
+php artisan vendor:publish --provider="xmlshop\QueueMonitor\Providers\MonitorProvider"  --tag=config --tag=migrations
 ```
 
 Migrate the Queue Monitoring table. The table name can be configured in the config file or via the published migration.
@@ -46,7 +46,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue-monitor:aggregate-queues-sizes')->everyMinute();
         $schedule->command('queue-monitor:clean-up')->dailyAt('01:23');
         $schedule->command('queue-monitor:listener')->everyMinute();
-        
+        $schedule->command('monitor:sync-scheduler')->daily();
         #...
     }
 }
@@ -93,18 +93,18 @@ class ExampleJob implements ShouldQueue
 You can enable the optional UI routes by calling `Route::queueMonitor()` inside your route file, similar to the official [ui scaffolding](https://github.com/laravel/ui).
 
 ```php
-Route::prefix('jobs')->group(function () {
+Route::prefix('monitor')->group(function () {
     Route::queueMonitor();
 });
 ```
 
 ### Routes
 
-| Route | Action              |
-| ----- | ------------------- |
-| `/`   | Show the jobs table |
+| Route          | Action              |
+|----------------| ------------------- |
+| `/monitor`     | Show the jobs table |
 
-See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/queue-monitor.php) for more information.
+See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/monitor.php) for more information.
 
 ![Preview](https://raw.githubusercontent.com/xmlshop/Laravel-Queue-Monitor/master/preview.png)
 
@@ -216,7 +216,7 @@ class CustomDataJob implements ShouldQueue
 }
 ``` 
 
-In order to show custom data on UI you need to add this line under `config/queue-monitor.php`
+In order to show custom data on UI you need to add this line under `config/monitor.php`
 ```php
 'ui' => [
     ...
@@ -249,18 +249,14 @@ class FrequentSucceedingJob implements ShouldQueue
 ### Retrieve processed Jobs
 
 ```php
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 
-$job = QueueMonitorModel::query()->first();
+$job = MonitorQueue::query()->first();
 
 // Check the current state of a job
 $job->isFinished();
 $job->hasFailed();
 $job->hasSucceeded();
-
-// Exact start & finish dates with milliseconds
-$job->getStartedAtExact();
-$job->getFinishedAtExact();
 
 // If the job is still running, get the estimated seconds remaining
 // Notice: This requires a progress to be set
@@ -277,16 +273,16 @@ $job->getBasename();
 ### Model Scopes
 
 ```php
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 
 // Filter by Status
-QueueMonitorModel::failed();
-QueueMonitorModel::succeeded();
+MonitorQueue::failed();
+MonitorQueue::succeeded();
 
 // Filter by Date
-QueueMonitorModel::lastHour();
-QueueMonitorModel::today();
+MonitorQueue::lastHour();
+MonitorQueue::today();
 
 // Chain Scopes
-QueueMonitorModel::today()->failed();
+MonitorQueue::today()->failed();
 ```

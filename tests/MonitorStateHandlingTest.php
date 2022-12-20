@@ -2,12 +2,11 @@
 
 namespace xmlshop\QueueMonitor\Tests;
 
-use xmlshop\QueueMonitor\Models\QueueMonitorJobModel;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use xmlshop\QueueMonitor\Models\Job;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Tests\Support\IntentionallyFailedException;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredFailingJob;
 use xmlshop\QueueMonitor\Tests\Support\MonitoredFailingJobWithHugeExceptionMessage;
-use xmlshop\QueueMonitor\Tests\Support\MonitoredJobWithProgressCooldownMockingTime;
 
 class MonitorStateHandlingTest extends TestCase
 {
@@ -16,16 +15,15 @@ class MonitorStateHandlingTest extends TestCase
         $this->dispatch(new MonitoredFailingJob());
         $this->workQueue();
 
-        $this->assertCount(1, QueueMonitorModel::all());
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertCount(1, MonitorQueue::all());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
+
+        $monitorModel = $this->getQueueMonitorModel(MonitoredFailingJob::class);
+
         /** @noinspection UnknownColumnInspection */
-        $this->assertEquals(
-            QueueMonitorJobModel::query()
-                ->where('name_with_namespace', '=', MonitoredFailingJob::class)
-                ->first(['id'])->id,
-            $monitor->queue_monitor_job_id);
-        $this->assertEquals(IntentionallyFailedException::class, $monitor->exception_class);
-        $this->assertEquals('Whoops', $monitor->exception_message);
+        $this->assertEquals($monitorModel->id, $monitor->queue_monitor_job_id);
+        $this->assertEquals(IntentionallyFailedException::class, $monitor->exception->exception_class);
+        $this->assertEquals('Whoops', $monitor->exception->exception_message);
         $this->assertInstanceOf(IntentionallyFailedException::class, $monitor->getException());
     }
 
@@ -34,16 +32,24 @@ class MonitorStateHandlingTest extends TestCase
         $this->dispatch(new MonitoredFailingJobWithHugeExceptionMessage());
         $this->workQueue();
 
-        $this->assertCount(1, QueueMonitorModel::all());
-        $this->assertInstanceOf(QueueMonitorModel::class, $monitor = QueueMonitorModel::query()->first());
+        $this->assertCount(1, MonitorQueue::all());
+        $this->assertInstanceOf(MonitorQueue::class, $monitor = MonitorQueue::query()->first());
+
+        $monitorModel = $this->getQueueMonitorModel(MonitoredFailingJobWithHugeExceptionMessage::class);
+
+        $maxLengthExceptionMesssage = str_repeat('x', config('monitor.db.max_length_exception_message'));
+
         /** @noinspection UnknownColumnInspection */
-        $this->assertEquals(
-            QueueMonitorJobModel::query()
-                ->where('name_with_namespace', '=', MonitoredFailingJobWithHugeExceptionMessage::class)
-                ->first(['id'])->id,
-            $monitor->queue_monitor_job_id);
-        $this->assertEquals(IntentionallyFailedException::class, $monitor->exception_class);
-        $this->assertEquals(str_repeat('x', config('queue-monitor.db.max_length_exception_message')), $monitor->exception_message);
+        $this->assertEquals($monitorModel->id, $monitor->queue_monitor_job_id);
+        $this->assertEquals(IntentionallyFailedException::class, $monitor->exception->exception_class);
+        $this->assertEquals($maxLengthExceptionMesssage, $monitor->exception->exception_message);
         $this->assertInstanceOf(IntentionallyFailedException::class, $monitor->getException());
+    }
+
+    private function getQueueMonitorModel(string $class): ?Job
+    {
+        return Job::query()
+            ->where('name_with_namespace', '=', $class)
+            ->first(['id']);
     }
 }

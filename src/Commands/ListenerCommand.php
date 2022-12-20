@@ -1,23 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Commands;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Pressutto\LaravelSlack\Slack;
-use Psr\SimpleCache\InvalidArgumentException;
-use xmlshop\QueueMonitor\Repository\QueueMonitorJobsRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 
 class ListenerCommand extends Command
 {
-    public const CACHE_KEY = 'queue-monitor-alerts';
+    public const CACHE_KEY = 'monitor-alerts';
 
-    public const DISABLE_CACHE_KEY = 'queue-monitor-alerts-disabled';
+    public const DISABLE_CACHE_KEY = 'monitor-alerts-disabled';
 
     private static ?array $alarm_config = [];
 
@@ -26,7 +27,7 @@ class ListenerCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:listener {disable=0} {hours=1}';
+    protected $signature = 'monitor:listener {disable=0} {hours=1}';
 
     /**
      * The console command description.
@@ -44,35 +45,28 @@ class ListenerCommand extends Command
      */
     private ?Slack $slack = null;
 
-    /**
-     * @param QueueMonitorQueueRepository $queuesRepository
-     * @param QueueMonitorJobsRepository $jobsRepository
-     */
+    private bool $_output = false;
+
     public function __construct(
-        private QueueMonitorQueueRepository $queuesRepository,
-        private QueueMonitorJobsRepository $jobsRepository
+        private QueueRepositoryInterface $queuesRepository,
+        private JobRepositoryInterface $jobsRepository
     ) {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws Exception|InvalidArgumentException
-     *
-     */
-    public function handle()
+    public function handle(): int
     {
-        sleep(5);
-        self::$alarm_config = config('queue-monitor.alarm');
+        sleep(1);
+        self::$alarm_config = config('monitor.alarm');
 
         $this->alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY, []);
         $cmd_disabled = Cache::store('redis')->get(self::DISABLE_CACHE_KEY, false);
+
         if ('disable' === $this->argument('disable')) {
             Cache::store('redis')->put(self::DISABLE_CACHE_KEY, true, Carbon::now()->addHours((int)$this->argument('hours')));
             $cmd_disabled = true;
         }
+
         if ('enable' === $this->argument('disable')) {
             Cache::store('redis')->forget(self::DISABLE_CACHE_KEY);
             $cmd_disabled = false;
@@ -84,10 +78,16 @@ class ListenerCommand extends Command
 
         $messages = [];
         foreach ($this->queuesRepository->getQueuesAlertInfo() as $queue) {
-            if (null !== $queue['alert_threshold'] && $queue['size'] >= $queue['alert_threshold'] && $this->validatedAlarm('q-' . $queue['id'])) {
-                $messages[] = 'Queue *[' . $queue['connection_name'] . ':' . $queue['queue_name'] . ']* exceed the threshold!' . "\n" .
+            if (null !== $queue['alert_threshold']
+                && $queue['size'] >= $queue['alert_threshold']
+                && $this->validatedAlarm('q-' . $queue['id'])
+            ) {
+                $messages[] = 'Queue *[' . $queue['connection_name'] . ':'
+                    . $queue['queue_name'] . ']* exceed the threshold!'
+                    . "\n" .
                     'Size now: *' . $queue['size'] . '*. ' .
-                    '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>' . "\n\n";
+                    '<' . Arr::get(self::$alarm_config, 'routes.queue-sizes') . '|*Queue sizes dashboard*>'
+                    . "\n\n";
             }
         }
 
@@ -117,43 +117,34 @@ class ListenerCommand extends Command
         return 0;
     }
 
-    /**
-     * @param string $message
-     *
-     * @return void
-     */
     private function sendNotification(string $message): void
     {
-//        match (config('queue-monitor.alarm.channel')) {
-//            default => $this->getSlack()->send($message)
-//        };
+        if (!App::environment('local')) {
+            $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
+        }
 
-        $this->getSlack()->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
+        if ($this->_output) {
+            echo $message;
+        }
     }
 
-    /**
-     * @return Slack
-     */
     private function getSlack(): Slack
     {
         if (null === $this->slack) {
             $this->slack = app(Slack::class);
         }
 
-        return $this->slack->to(config('queue-monitor.alarm.recipient'));
+        return $this->slack->to(config('monitor.alarm.recipient'));
     }
 
-    /**
-     * @param string $alarmId
-     *
-     * @return bool
-     */
     private function validatedAlarm(string $alarmId): bool
     {
-        if (Arr::exists($this->alarmIdentifications, $alarmId)
-            && now()->subMinutes(4)->subSeconds(10)
-                ->gt(
-                    Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]))
+        $alarmAdded = false;
+        if (Arr::exists($this->alarmIdentifications, $alarmId)) {
+            $alarmAdded = Carbon::createFromTimestamp($this->alarmIdentifications[$alarmId]);
+        }
+
+        if ($alarmAdded && now()->subMinutes(4)->subSeconds(10)->gt($alarmAdded)
         ) {
             unset($this->alarmIdentifications[$alarmId]);
         }
@@ -167,17 +158,10 @@ class ListenerCommand extends Command
         return true;
     }
 
-    /**
-     * @param array $job
-     *
-     * @return array
-     * @throws Exception
-     *
-     */
     private function detectedAlarm(array $job): array
     {
         if (Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore', false)) {
-            return [true, ''];
+            return [false, null];
         }
         $ignore_all_besides_failures = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.ignore_all_besides_failures', false);
         $failing_count = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.failing_count', Arr::get(self::$alarm_config, 'jobs_thresholds.failing_count'));
@@ -187,6 +171,7 @@ class ListenerCommand extends Command
         $execution_time_to_previous = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.execution_time_to_previous', Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous'));
         $pending_time_to_previous_factor = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.pending_time_to_previous_factor', Arr::get(self::$alarm_config, 'jobs_thresholds.pending_time_to_previous_factor'));
         $execution_time_to_previous_factor = Arr::get(self::$alarm_config, 'jobs_thresholds.exceptions.' . $job['name'] . '.execution_time_to_previous_factor', Arr::get(self::$alarm_config, 'jobs_thresholds.execution_time_to_previous_factor'));
+        $allowed_loadavg = Arr::get(self::$alarm_config, 'allowed_loadavg', 10);
 
         $messages = [];
         if ((int)$job['FailedCount'] > $failing_count) {
@@ -212,14 +197,15 @@ class ListenerCommand extends Command
 
         if (Arr::exists($this->jobsAvgPrev, $job['id'])) {
             $hour_job_info = $this->jobsAvgPrev[$job['id']];
-
+            $loadAvg = sys_getloadavg();
             if ($pending_time_to_previous && $hour_job_info['PendingAvg'] > 0
                 && $job['PendingAvg'] / $hour_job_info['PendingAvg'] >= $pending_time_to_previous_factor) {
                 $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' pending time rise on  *' .
                     round(($job['PendingAvg'] / $hour_job_info['PendingAvg'] - 1) * 100) . '%*.';
             }
 
-            if ($execution_time_to_previous && $hour_job_info['ExecutingAvg'] > 0
+            if ($loadAvg && isset($loadAvg[0]) && $loadAvg[0] >= 0.75 * $allowed_loadavg
+                && $execution_time_to_previous && $hour_job_info['ExecutingAvg'] > 0
                 && $job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] >= $execution_time_to_previous_factor) {
                 $messages[] = 'The job\'s ' . $this->getJobLink($job) . ' execution time rise on  *' .
                     round(($job['ExecutingAvg'] / $hour_job_info['ExecutingAvg'] - 1) * 100) . '%*.';

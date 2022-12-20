@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Commands;
 
 use Illuminate\Console\Command;
-use xmlshop\QueueMonitor\Repository\QueueMonitorQueueSizesRepository;
-use xmlshop\QueueMonitor\Repository\QueueMonitorRepository;
+use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 
 class CleanUpCommand extends Command
 {
@@ -13,7 +15,7 @@ class CleanUpCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue-monitor:clean-up';
+    protected $signature = 'monitor:clean-up';
 
     /**
      * The console command description.
@@ -22,29 +24,18 @@ class CleanUpCommand extends Command
      */
     protected $description = 'Command clean data in monitor an queue-sizes tables.';
 
-    /**
-     * @param QueueMonitorQueueSizesRepository $queuesSizeRepository
-     * @param QueueMonitorRepository $monitorRepository
-     */
     public function __construct(
-        private QueueMonitorQueueSizesRepository $queuesSizeRepository,
-        private QueueMonitorRepository $monitorRepository
+        private QueueSizeRepositoryInterface $queuesSizeRepository,
+        private MonitorQueueRepositoryInterface $monitorRepository
     ) {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws \Exception
-     */
-    public function handle()
+    public function handle(): int
     {
-        $this->queuesSizeRepository->purge(config('queue-monitor.db.clean_after_days'));
-        $this->monitorRepository->purge(config('queue-monitor.db.clean_after_days'));
+        $this->queuesSizeRepository->purge(config('monitor.db.clean_after_days'));
+        $this->monitorRepository->purge(config('monitor.db.clean_after_days'));
 
         return 0;
     }
-
 }
