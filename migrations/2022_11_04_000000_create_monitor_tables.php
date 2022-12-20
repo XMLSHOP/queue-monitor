@@ -36,7 +36,7 @@ class CreateMonitorTables extends Migration
                 $table->string('job_id', 36)->index();
                 $table->unsignedSmallInteger('queue_monitor_job_id')->index();
                 $table->unsignedSmallInteger('queue_id')->index();
-                $table->unsignedSmallInteger('factual_queue_id');
+                $table->unsignedSmallInteger('factual_queue_id')->nullable();
                 $table->unsignedSmallInteger('host_id')->index();
                 $table->timestamp('queued_at')->nullable()->index();
                 $table->timestamp('started_at')->nullable()->index();
