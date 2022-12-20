@@ -129,7 +129,6 @@ class MonitorProvider extends ServiceProvider
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/db.php', 'monitor.db');
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/ui.php', 'monitor.ui');
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/alarm.php', 'monitor.alarm');
-            $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/queue-sizes-retrieves.php', 'monitor.queue-sizes-retrieves');
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/dashboard-charts.php', 'monitor.dashboard-charts');
             $this->mergeConfigFrom(__DIR__ . '/../../config/monitor/settings.php', 'monitor.settings');
         }

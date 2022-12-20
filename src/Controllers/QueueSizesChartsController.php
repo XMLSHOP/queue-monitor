@@ -15,10 +15,8 @@ class QueueSizesChartsController
 {
     private string $dtPattern = '~^\d{4}-\d{2}-\d{2}[\w|\W]\d{2}:\d{2}:\d{2}(\W)~';
 
-    public function __construct(
-        private QueueSizesDataService $queueSizesDataExportService,
-        private QueuedJobsDataService $queuedJobsDataService,
-    ) {
+    public function __construct(private QueueSizesDataService $queueSizesDataExportService,)
+    {
     }
 
     public function __invoke(Request $request): View|array
@@ -31,12 +29,7 @@ class QueueSizesChartsController
 
         $data = [
             'charts' => $this->queueSizesDataExportService->execute($requestData),
-            'jobs' => $this->queuedJobsDataService->execute($requestData),
         ];
-
-//        $request->attributes->add(['filter' => $requestData['filter'],]);
-//        $request->request->add(['filter' => $requestData['filter'],]);
-//        $request->merge(['filter' => $requestData['filter'],]);
 
         if ($request->ajax() && $request->wantsJson()) {
             return compact('data');

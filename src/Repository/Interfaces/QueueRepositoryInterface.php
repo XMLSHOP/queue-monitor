@@ -15,7 +15,5 @@ interface QueueRepositoryInterface extends BaseRepositoryInterface
 
     public function firstOrCreate(?string $connection, string $queue): Model;
 
-    public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void;
-
     public function getQueuesAlertInfo(): array;
 }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Queue;
 use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
+use function last;
 
 class AggregateQueuesSizesCommand extends Command
 {
@@ -38,18 +39,17 @@ class AggregateQueuesSizesCommand extends Command
 
     public function handle(): int
     {
-        if ( ! config('monitor.settings.active') || ! config('monitor.settings.active-monitor-queue-sizes')) {
+        if (!config('monitor.settings.active') || !config('monitor.settings.active-monitor-queue-sizes')) {
             $this->error('Monitor is not active or Queue-Sizes monitor is not active.');
             return 0;
         }
-        $queuesIds = $this->getQueuesIds();
 
         $timestamp = Carbon::now()->toDateTimeLocalString();
         $data = [];
-        foreach ($queuesIds as $value) {
+        foreach ($this->getQueuesIds() as $value) {
             $size = Queue::connection($value['connection'])->size($value['queue']);
             $data[] = [
-                'uuid' => Uuid::generate()->string, //Temporary ,
+                'uuid' => Uuid::generate()->string,
                 'queue_id' => $value['id'],
                 'size' => $size,
                 'created_at' => $timestamp,
@@ -61,48 +61,23 @@ class AggregateQueuesSizesCommand extends Command
     }
 
     /**
-     * @param string|null $mode
-     *
-     * @throws Exception
-     *
-     * @return mixed
+     * @return array
      */
-    private function getQueuesIds(?string $mode = null)
+    private function getQueuesIds(): array
     {
-        return match ($mode ?? config('monitor.queue-sizes-retrieves.mode')) {
-            'db' => call_user_func(function () {
-                $out = [];
-                foreach (collect($this->queueRepository->select())->toArray() as $value) {
-                    $out[$value['connection_name'] . ':' . $value['queue_name']] = [
-                        'queue' => $value['queue_name'],
-                        'connection' => $value['connection_name'],
-                        'id' => $value['id'],
-                    ];
-                }
+        $out = [];
+        foreach (collect($this->queueRepository->select())->toArray() as $value) {
+            if (str_contains($value['queue_name'], '/')) {
+                $value['queue_name'] = last(explode('\\', $value['queue_name']));
+            }
 
-                return $out;
-            }),
-            'config' => call_user_func(function () {
-                $queues = config('monitor.queue-sizes-retrieves.config.envs.' . App::environment());
-                if (empty($queues)) {
-                    $queues = config('monitor.queue-sizes-retrieves.config.envs.default');
-                }
-                $out = $this->getQueuesIds('db');
+            $out[$value['connection_name'] . ':' . $value['queue_name']] = [
+                'queue' => $value['queue_name'],
+                'connection' => $value['connection_name'],
+                'id' => $value['id'],
+            ];
+        }
 
-                foreach ($queues as $value) {
-                    if ( ! array_key_exists($value['connection_name'] . ':' . $value['queue_name'], $out)) {
-                        $model = $this->queueRepository->addNew($value['connection_name'], $value['queue_name']);
-                        $out[$model->connection_name . ':' . $model->queue_name] = [
-                            'queue' => $value['queue_name'],
-                            'connection' => $value['connection_name'],
-                            'id' => $model->id,
-                        ];
-                    }
-                }
-
-                return $out;
-            }),
-            default => throw new Exception('Wrong [queue-sizes-retrieves.mode]!')
-        };
+        return $out;
     }
 }

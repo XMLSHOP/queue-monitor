@@ -25,9 +25,7 @@ class CreateMonitorTables extends Migration
             ->create(config('monitor.db.table.queues'), function (Blueprint $table) {
                 $table->smallIncrements('id');
                 $table->string('queue_name', 128);
-                $table->string('connection_name', 128)->nullable();
-                $table->string('queue_name_started', 128)->nullable();
-                $table->string('connection_name_started', 128)->nullable();
+                $table->string('connection_name', 128);
                 $table->unsignedSmallInteger('alert_threshold')->nullable();
                 $table->timestamps();
             });
@@ -38,6 +36,7 @@ class CreateMonitorTables extends Migration
                 $table->string('job_id', 36)->index();
                 $table->unsignedSmallInteger('queue_monitor_job_id')->index();
                 $table->unsignedSmallInteger('queue_id')->index();
+                $table->unsignedSmallInteger('factual_queue_id');
                 $table->unsignedSmallInteger('host_id')->index();
                 $table->timestamp('queued_at')->nullable()->index();
                 $table->timestamp('started_at')->nullable()->index();

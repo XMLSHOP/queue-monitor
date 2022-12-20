@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Services;
 
+use Closure;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\Events\JobExceptionOccurred;
@@ -12,12 +13,14 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Queue;
+use Throwable;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\JobRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
 use xmlshop\QueueMonitor\Traits\IsMonitored;
+use function last;
 
 class QueueMonitorService
 {
@@ -71,24 +74,24 @@ class QueueMonitorService
     /**
      * Pending Queue Monitoring for Job.
      */
-    protected function jobQueued(mixed $jobId, ?string $jobConnection, \Closure|ShouldQueue|string $job): void
+    protected function jobQueued(mixed $jobId, ?string $jobConnection, Closure|ShouldQueue|string $job): void
     {
-        if ((!$job instanceof JobContract && !$job instanceOf ShouldQueue)
+        if ((!$job instanceof JobContract && !$job instanceof ShouldQueue)
             || !self::shouldBeMonitored($job)
         ) {
             return;
         }
 
-        $jobClass = is_string($job) ? $job : get_class($job);
+        $jobClass = get_class($job); //TODO: look at it!
 
         /** @var string $jobQueue */
-        $jobQueue = $job?->queue ?? trim(Queue::connection($jobConnection)->getQueue(null), '/');
+        $jobQueue = $job?->queue ?? last(explode('/', trim(Queue::connection($jobConnection ?? $job?->getConnectionName())->getQueue(null), '/')));
 
         $jobModel = $this->jobsRepository->firstOrCreate($jobClass);
         $hostModel = $this->hostsRepository->firstOrCreate();
 
         $this->queueMonitorRepository->addQueued([
-            'job_id' => (string) $jobId,
+            'job_id' => (string)$jobId,
             'queue_monitor_job_id' => $jobModel->id,
             'queue' => $jobQueue,
             'host_id' => $hostModel->id,
@@ -125,7 +128,7 @@ class QueueMonitorService
     /**
      * Finish Queue Monitoring for Job.
      */
-    protected function jobFinished(JobContract $job, bool $failed = false, ?\Throwable $exception = null): void
+    protected function jobFinished(JobContract $job, bool $failed = false, ?Throwable $exception = null): void
     {
         if (!self::shouldBeMonitored($job)) {
             return;
@@ -142,7 +145,7 @@ class QueueMonitorService
         }
 
         if ($startedAt = $monitor->getStarted()) {
-            $timeElapsed = (float) $startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
+            $timeElapsed = (float)$startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
         }
 
         /** @noinspection PhpUndefinedMethodInspection */

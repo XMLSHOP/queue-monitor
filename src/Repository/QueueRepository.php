@@ -6,6 +6,7 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use xmlshop\QueueMonitor\Models\Queue;
 use xmlshop\QueueMonitor\Models\QueueSize;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
@@ -36,22 +37,6 @@ class QueueRepository extends BaseRepository implements QueueRepositoryInterface
             'connection_name' => $connection ?? config('queue.default'),
         ]);
     }
-
-    public function updateWithStarted(int $queue_id, ?string $connection, string $queue): void
-    {
-        /** @var Queue $model */
-        $model = $this->findById($queue_id);
-
-        if (
-            ($model->queue_name !== $queue || $model->connection_name !== $connection)
-            && (null === $model->queue_name_started && null === $model->connection_name_started)
-        ) {
-            $model->queue_name_started = $queue;
-            $model->connection_name_started = $connection ?? config('queue.default');
-            $model->save();
-        }
-    }
-
     public function getQueuesAlertInfo(): array
     {
         /** @noinspection UnknownColumnInspection */
@@ -65,7 +50,7 @@ class QueueRepository extends BaseRepository implements QueueRepositoryInterface
             ])
             ->from(config('monitor.db.table.queues'), 'mq')
             ->join(config('monitor.db.table.queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
-            ->whereIn('mqs.created_at', function (\Illuminate\Database\Query\Builder $query) {
+            ->whereIn('mqs.created_at', function (Builder $query) {
                 $query
                     ->from(with(new QueueSize())->getTable())
                     ->selectRaw('MAX(created_at)');

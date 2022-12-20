@@ -10,6 +10,7 @@ use xmlshop\QueueMonitor\Models\MonitorQueue;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorQueueRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
+use function array_merge;
 
 class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepositoryInterface
 {
@@ -22,7 +23,7 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
 
     public function addQueued(array $data): Model
     {
-        $queueModel =  $this->queueRepository->firstOrCreate($data['connection'], $data['queue']);
+        $queueModel = $this->queueRepository->firstOrCreate($data['connection'], $data['queue']);
 
         return $this->create([
             'job_id' => $data['job_id'],
@@ -56,10 +57,8 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
                 'use_cpu' => $this->systemResources->getCpuUse(),
             ]);
 
-        $this->queueRepository->updateWithStarted($queueModel->id, $data['connection'], $data['queue']);
-
         if ($queuedAt = $model->getQueued()) {
-            $timeElapsed = (float) $queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
+            $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
         }
 
         $model->update([
@@ -67,7 +66,7 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
             'queue_monitor_job_id' => $data['queue_monitor_job_id'],
             'host_id' => $data['host_id'],
             'started_at' => $data['started_at'],
-            'queue_id' => $queueModel->id,
+            'factual_queue_id' => $model->queue_id !== $queueModel->id ? $queueModel->id : null,
             'time_pending_elapsed' => $timeElapsed ?? 0.0,
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
@@ -76,7 +75,7 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
 
     public function updateFinished(MonitorQueue $model, array $attributes): MonitorQueue
     {
-        $model->update(\array_merge($attributes, [
+        $model->update(array_merge($attributes, [
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
         ]));
