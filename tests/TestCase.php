@@ -4,9 +4,8 @@ namespace xmlshop\QueueMonitor\Tests;
 
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 use Orchestra\Testbench\TestCase as BaseTestCase;
-use xmlshop\QueueMonitor\Providers\QueueMonitorProvider;
+use xmlshop\QueueMonitor\Providers\MonitorProvider;
 use xmlshop\QueueMonitor\Services\QueueMonitorService;
 use xmlshop\QueueMonitor\Tests\Support\BaseJob;
 
@@ -17,25 +16,17 @@ class TestCase extends BaseTestCase
     public function setUp(): void
     {
         QueueMonitorService::$loadMigrations = true;
-        parent::tearDown();
+
         parent::setUp();
 
         $this->withoutMockingConsoleOutput();
-//        $this->withoutExceptionHandling();
-        $this->withExceptionHandling();
+        $this->withoutExceptionHandling();
 
         try {
             $this->artisan('queue:table');
-            $this->artisan('migrate');
-        } catch (InvalidArgumentException $e) {
-            // TODO: this command fails locally but is required for travis ci
-        }
-    }
+        } catch (\Throwable) {}
 
-    public function tearDown(): void
-    {
-//        parent::tearDown();
-        return;
+        $this->artisan('migrate');
     }
 
     protected function dispatch(BaseJob $job): self
@@ -47,7 +38,6 @@ class TestCase extends BaseTestCase
 
     protected function assertDispatched(string $jobClass): self
     {
-
         $rows = DB::select('SELECT * FROM jobs');
 
         $this->assertCount(1, $rows);
@@ -61,10 +51,10 @@ class TestCase extends BaseTestCase
         $this->artisan('queue:work --once --sleep 1');
     }
 
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
-            QueueMonitorProvider::class,
+            MonitorProvider::class,
         ];
     }
 }

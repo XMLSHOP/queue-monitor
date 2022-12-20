@@ -1,29 +1,13 @@
 <h1 class="mb-6 text-5xl text-blue-900 font-bold">
-    @lang('Queue Monitor')
+    @lang('Monitor'): @lang('Jobs')
 </h1>
 
-@isset($metrics)
-
-    <div class="flex flex-wrap -mx-4 mb-2">
-
-        @foreach($metrics->all() as $metric)
-
-            @include('queue-monitor::partials.metrics-card', [
-                'metric' => $metric,
-            ])
-
-        @endforeach
-
-    </div>
-
-@endisset
-
-@include('queue-monitor::partials.filters', [
-    'filters'=>$filters
+@include('monitor::jobs.partials.filters', [
+    'filters' => $filters
 ])
 
-@include('queue-monitor::partials.summary-card', [
-    'filters'=>$filters
+@include('monitor::jobs.partials.summary-card', [
+    'filters' => $filters
 ])
 
 <div class="overflow-x-auto shadow-lg">
@@ -37,20 +21,18 @@
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Job')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Details')</th>
 
-            @if(config('queue-monitor.ui.show_custom_data'))
+            @if(config('monitor.ui.show_custom_data'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Custom Data')</th>
             @endif
 
-            @if(config('queue-monitor.ui.show_progress_column'))
+            @if(config('monitor.ui.show_progress_column'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Progress')</th>
             @endif
 
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Duration')</th>
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Queued')</th>
-            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Started')</th>
+            <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Timing')</th>
             <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Error')</th>
 
-            @if(config('queue-monitor.ui.allow_deletion'))
+            @if(config('monitor.ui.allow_deletion'))
                 <th class="px-4 py-3 font-medium text-left text-xs text-gray-600 uppercase border-b border-gray-200">@lang('Action')</th>
             @endif
         </tr>
@@ -67,6 +49,7 @@
                         <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-yellow-200 text-yellow-800">
                             @lang('Pending')
                         </div>
+
                     @elseif(!$job->isFinished())
 
                         <div class="inline-flex flex-1 px-2 text-xs font-medium leading-5 rounded-full bg-blue-200 text-blue-800">
@@ -90,8 +73,7 @@
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 font-medium border-b border-gray-200">
-
-                    {{ \xmlshop\QueueMonitor\Models\QueueMonitorJobModel::getBaseName($job->name) }}
+                    {{ $job->job->getBasenameJob() }}
 
                     <div class="ml-1 text-xs text-gray-600">
                         #{{ $job->job_id }}
@@ -102,10 +84,14 @@
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
                     <div class="text-xs">
+                        <span class="text-gray-600 font-medium">Host:</span>
+                        <span class="font-semibold">{{ $job->host }}</span>
+                    </div>
+                    <div class="text-xs">
                         <span class="text-gray-600 font-medium">@lang('Queue'):</span>
                         @if(preg_match("~https\:\/\/sqs\.(?<region>[\w-]+)\.\w+\.com\/(?<id>\w+)\/(?<name>\w+)~", $job->queue, $matches))
-                            <span class="font-semibold"><span
-                                        class="font-medium">SQS</span> {{ $matches['name'] }}</span>
+                            <span class="font-semibold">
+                                <span class="font-medium">SQS</span> {{ $matches['name'] }}</span>
                             <br/>
                             <span class="font-semibold">{{ $matches['region'] }} :: {{ $matches['id'] }}</span>
                         @else
@@ -120,7 +106,7 @@
 
                 </td>
 
-                @if(config('queue-monitor.ui.show_custom_data'))
+                @if(config('monitor.ui.show_custom_data'))
 
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
@@ -133,7 +119,7 @@
 
                 @endif
 
-                @if(config('queue-monitor.ui.show_progress_column'))
+                @if(config('monitor.ui.show_progress_column'))
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
                         @if($job->progress !== null)
@@ -158,32 +144,42 @@
                 @endif
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    {{ $job->getElapsedInterval()->format('%H:%I:%S') }}
+                    <div>
+                        Duration:
+                        <strong>
+                            @if($job->getElapsedInterval()->format('%H:%I:%S') == '00:00:00')
+                                < 1s
+                            @else
+                                {{ $job->getElapsedInterval()->format('%H:%I:%S') }}
+                            @endif
+                        </strong>
+                    </div>
+                    <div>Queued:
+                        @if(null !== $job->queued_at)
+                            {{ $job->queued_at->diffForHumans() }}
+                        @else
+                            [in batch]
+                        @endif
+                    </div>
+                    <div>
+                        Started:
+                        @if(null !== $job->started_at)
+                            {{ $job->started_at->diffForHumans() }}
+                        @else
+                            -
+                        @endif
+                    </div>
                 </td>
 
                 <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    @if(null !== $job->queued_at)
-                        {{ $job->queued_at->diffForHumans() }}
-                    @else
-                        -
-                    @endif
-                </td>
 
-                <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-                    @if(null !== $job->started_at)
-                        {{ $job->started_at->diffForHumans() }}
-                    @else
-                        -
-                    @endif
-                </td>
-
-                <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
-
-                    @if($job->hasFailed() && $job->exception_message !== null)
+                    @if($job->hasFailed() && $job->exception !== null)
 
                         <textarea rows="4" class="w-64 text-xs p-1 border rounded form-control" readonly
                                   style="resize: both"
-                        >{{ $job->exception_message }}</textarea>
+                        >
+                            {{ $job->exception->exception_message }}
+                        </textarea>
 
                     @else
                         -
@@ -191,11 +187,11 @@
 
                 </td>
 
-                @if(config('queue-monitor.ui.allow_deletion'))
+                @if(config('monitor.ui.allow_deletion'))
 
                     <td class="p-4 text-gray-800 text-sm leading-5 border-b border-gray-200">
 
-                        <form action="{{ route('queue-monitor::destroy', [$job]) }}" method="post">
+                        <form action="{{ route('monitor::destroy', [$job]) }}" method="post">
 
                             @csrf
                             @method('delete')
@@ -281,11 +277,11 @@
 
 </div>
 
-@if(config('queue-monitor.ui.allow_purge'))
+@if(config('monitor.ui.allow_purge'))
 
     <div class="mt-12">
 
-        <form action="{{ route('queue-monitor::purge') }}" method="post">
+        <form action="{{ route('monitor::purge') }}" method="post">
 
             @csrf
             @method('delete')

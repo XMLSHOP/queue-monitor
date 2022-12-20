@@ -4,7 +4,8 @@ namespace xmlshop\QueueMonitor\Tests;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use xmlshop\QueueMonitor\Models\QueueMonitorModel;
+use Webpatser\Uuid\Uuid;
+use xmlshop\QueueMonitor\Models\MonitorQueue;
 
 class MonitorTimeCalculationTest extends TestCase
 {
@@ -75,15 +76,18 @@ class MonitorTimeCalculationTest extends TestCase
         );
     }
 
-    private function createMonitor(Carbon $startedAt, int $progress = null): QueueMonitorModel
+    /**
+     * @throws \Exception
+     */
+    private function createMonitor(Carbon $startedAt, int $progress = null): MonitorQueue
     {
-        /** @var QueueMonitorModel $monitor */
-        $monitor = QueueMonitorModel::query()->create([
-            'job_id' => sha1(Str::random()),
+        /** @var MonitorQueue $monitor */
+        $monitor = MonitorQueue::query()->create([
+            'job_id' => Uuid::generate()->string,
             'queue_monitor_job_id' => rand(0, 10000),
             'queue_id' => 1,
+            'host_id' => 1,
             'started_at' => $startedAt,
-            'started_at_exact' => $startedAt,
             'progress' => $progress,
         ]);
 

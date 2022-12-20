@@ -1,199 +1,102 @@
 <?php
 
+declare(strict_types=1);
+
 namespace xmlshop\QueueMonitor\Repository;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use xmlshop\QueueMonitor\Repository\Interfaces\BaseRepositoryInterface;
 
-abstract class BaseRepository
+abstract class BaseRepository implements BaseRepositoryInterface
 {
-    /**
-     * @var Model
-     */
-    protected Model $model;
-
-    /**
-     * Retrieve model class name
-     *
-     * @return string
-     */
-    abstract public function getModelName(): string;
-
-    /**
-     * BaseRepository constructor.
-     *
-     * @return void
-     * @throws \Exception
-     */
-    public function __construct()
-    {
-        $this->makeModel();
-    }
-
-    /**
-     * @param Model $model
-     * @return bool
-     */
-    public function save(Model $model): bool
-    {
-        return $model->save();
-    }
-
-    /** @inheritdoc */
-    public function makeModel(): void
-    {
-        $model = app($this->getModelName());
-
-        if (!$model instanceof Model) {
-            throw new \Exception("Class $model must be an instance of Illuminate\Database\Eloquent\Model");
-        }
-
-        $this->model = $model;
-    }
-
-    /** @inheritdoc */
     public function create(array $data = []): Model
     {
-        return $this->model->create($data);
+        return $this->model->newQuery()->create($data);
     }
 
-    /** @inheritdoc */
-    public function getFillableFields(): array
+    public function getCollection(array $columns = ['*']): Collection
     {
-        $fillable = $this->model->getFillable();
-        if (\is_callable([$this->model, 'getNotFillable'])) {
-            $fillable = array_diff($fillable, $this->model->getNotFillable());
-        }
-        return $fillable;
+        return $this->model->newQuery()->get($columns);
     }
 
-    /** @inheritdoc */
-    public function getCollection(array $columns = ['*'])
+    public function getCollectionByIds(array $ids, array $columns = ['*']): Collection
     {
-        return $this->model::get($columns);
+        return $this->model->newQuery()->findMany($ids, $columns);
     }
 
-    /** @inheritdoc */
-    public function getCollectionByIds(array $ids, array $columns = ['*'])
-    {
-        return $this->model::findMany($ids, $columns);
-    }
-
-    /** @inheritdoc */
     public function update(int $id, string $attribute = 'id', array $data = []): bool
     {
-        $model = $this->model::where($attribute, '=', $id)->first();
-
-        if (!$model) {
+        if (!$locatedModel = $this->model->newQuery()->where($attribute, '=', $id)->first()) {
             return false;
         }
 
-        $model->fill($data);
-
-        return $model->save();
+        return $locatedModel->fill($data)->save();
     }
 
-    /** @inheritdoc */
     public function updateMany(array $ids, array $data): int
     {
-        return $this->model::whereIn('id', $ids)->update($data);
+        return $this->model->newQuery()->whereIn('id', $ids)->update($data);
     }
 
-    /** @inheritdoc */
     public function delete($ids): int
     {
-        return $this->model::destroy($ids);
+        return $this->model->newQuery()->destroy($ids);
     }
 
-    /** @inheritdoc */
-    public function findById(int $id, array $columns = ['*'], array $with = [])
+    public function findById(int $id, array $columns = ['*'], array $with = []): Model
     {
-        return $this->model::with($with)->findOrFail($id, $columns);
+        return $this->model->newQuery()->with($with)->findOrFail($id, $columns);
     }
 
-    /** @inheritdoc */
-    public function findOneByAttribute(string $attribute, string $value, array $columns = ['*'])
+    public function findOneByAttribute(string $attribute, string $value, array $columns = ['*']): Model
     {
-        return $this->model::where($attribute, '=', $value)->firstOrFail($columns);
+        return $this->model->newQuery()->where($attribute, '=', $value)->firstOrFail($columns);
     }
 
-    /** @inheritdoc */
-    public function getCollectionWhereIn(string $attribute, array $values, array $columns = ['*'])
+    public function getCollectionWhereIn(string $attribute, array $values, array $columns = ['*']): Collection
     {
-        return $this->model::whereIn($attribute, $values)->get($columns);
+        return $this->model->newQuery()->whereIn($attribute, $values)->get($columns);
     }
 
-    /** @inheritdoc */
     public function getCollectionWhereBetween(string $attribute, array $values, array $columns = ['*']): Collection
     {
-        return $this->whereBetween($attribute, $values)->get($columns);
+        return $this->model->newQuery()->whereBetween($attribute, $values)->get($columns);
     }
 
-
-    /** @inheritdoc */
     public function count(): int
     {
-        return $this->model::count();
+        return $this->model->newQuery()->count();
     }
 
-    /**
-     * @param $id
-     * @param string[] $columns
-     * @return Collection|Model|Model[]|mixed|null
-     */
-    public function load($id, $columns = ['*'])
+    public function load(int|string $id, array $columns = ['*']): Model
     {
-        return $this->model->find($id, $columns);
+        return $this->model->newQuery()->find($id, $columns);
     }
 
-    /**
-     * @param Model $model
-     * @param array $relations
-     */
     public function loadRelations(Model $model, array $relations): void
     {
         $model->load($relations);
     }
 
-    /**
-     * Throw repository internal exception
-     *
-     * @param string $message
-     * @param int $code
-     *
-     * @throws \Exception
-     */
-    protected function exception(string $message, int $code = 0): void
-    {
-        throw new \Exception($message, $code);
-    }
-
-    /**
-     * @param string $field
-     * @param mixed $value
-     * @param array $columns
-     * @param string $orderBy
-     * @param string $orderDirection
-     * @return Builder|Model|object|null
-     */
-    public function findByOrderBy(string $field, mixed $value, array $columns = ['*'], string $orderBy = 'id', string $orderDirection = 'DESC')
-    {
+    public function findByOrderBy(
+        string $field,
+        mixed $value,
+        array $columns = ['*'],
+        string $orderBy = 'id',
+        string $orderDirection = 'DESC'
+    ): Model {
         return $this->model::query()
-            ->orderBy($orderBy, strtoupper($orderDirection) == 'ASC' ? 'ASC' : 'DESC')
+            ->select($columns)
+            ->orderBy($orderBy, strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC')
             ->where($field, '=', $value)
             ->first();
     }
 
     /**
      * Find records by attribute.
-     *
-     * @param string $name
-     * @param array $arguments
-     *
-     * @return mixed
      */
-    public function __call(string $name, array $arguments)
+    public function __call(string $name, array $arguments): mixed
     {
         return \call_user_func_array([$this->model, $name], $arguments);
     }
