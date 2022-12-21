@@ -16,5 +16,5 @@ interface MonitorSchedulerRepositoryInterface
 
     public function updateFailedBySchedulerAndHost(Scheduler $scheduler, Host $host, Exception $exceptionModel): void;
 
-    public function foundByPPid(): bool;
+    public function foundByParentProcessId(): bool;
 }

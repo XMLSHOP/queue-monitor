@@ -47,7 +47,7 @@ class CommandMonitorService
         $host = $this->hostRepository->firstOrCreate();
         $command = $this->commandRepository->firstOrCreateByEvent($event);
 
-        if ($this->monitorSchedulerRepository->foundByPPid()) {
+        if ($this->monitorSchedulerRepository->foundByParentProcessId()) {
             return;
         }
 
