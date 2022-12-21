@@ -22,10 +22,8 @@ class CLIFailureHandler
         /** @var MonitorSchedulerRepositoryInterface $monitorSchedulerRepository */
         $monitorSchedulerRepository = app(MonitorSchedulerRepositoryInterface::class);
         if($monitorSchedulerRepository->foundByParentProcessId()) {
-            echo '$monitorSchedulerRepository'."\n";
             $monitorSchedulerRepository->updateFailedExternally($command_name, $e);
         } else {
-            echo '$monitorCommandRepository'."\n";
             /** @var MonitorCommandRepositoryInterface $monitorCommandRepository */
             $monitorCommandRepository = app(MonitorCommandRepositoryInterface::class);
             $monitorCommandRepository->updateFailedExternally($command_name, $e);
