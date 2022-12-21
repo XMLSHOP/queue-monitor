@@ -39,13 +39,17 @@ class SystemResource implements SystemResourceInterface
         return posix_getpid();
     }
 
-    public function getParentProcessId(): int
+    public function getParentProcessId(): int|false
     {
         return posix_getpgid(posix_getppid());
     }
 
     public function isParentProcessScheduler(): bool
     {
+        if(!$this->getParentProcessId()) {
+            return false;
+        }
+
         $output = explode("\n", $this->execCmd('ps -f -p ' . $this->getParentProcessId()));
         if (count($output) > 1 && str_contains(last(preg_split('/ +/', $output[1])), 'schedule')) {
             return true;

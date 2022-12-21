@@ -16,7 +16,7 @@ interface SystemResourceInterface
 
     public function getProcessId(): int;
 
-    public function getParentProcessId(): int;
+    public function getParentProcessId(): int|false;
 
     public function getHost(): string;
 
