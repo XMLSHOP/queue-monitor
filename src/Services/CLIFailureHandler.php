@@ -9,19 +9,11 @@ use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterfa
 
 class CLIFailureHandler
 {
-    public function handle(Throwable $e)
+    public function handle(string $command_name, Throwable $e)
     {
-        $command_name = null;
-        foreach (request()->server('argv') as $arg) {
-            if (Str::contains($arg, ':')) {
-                $command_name = $arg;
-                break;
-            }
-        }
-
         /** @var MonitorSchedulerRepositoryInterface $monitorSchedulerRepository */
         $monitorSchedulerRepository = app(MonitorSchedulerRepositoryInterface::class);
-        if($monitorSchedulerRepository->foundByParentProcessId()) {
+        if ($monitorSchedulerRepository->foundByParentProcessId()) {
             $monitorSchedulerRepository->updateFailedExternally($command_name, $e);
         } else {
             /** @var MonitorCommandRepositoryInterface $monitorCommandRepository */
