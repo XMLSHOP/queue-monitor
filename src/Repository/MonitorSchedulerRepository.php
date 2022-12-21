@@ -134,7 +134,7 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
         return
             $this->systemResources->isParentProcessScheduler()
             || $this->systemResources->getParentProcessId()
-            && $this->model->newQuery()->where('ppid', $this->systemResources->getParentProcessId())->exists();
+            && $this->model->newQuery()->where('ppid', $this->systemResources->getParentProcessId())->first();
     }
 
     public function getListRunning(): Collection
