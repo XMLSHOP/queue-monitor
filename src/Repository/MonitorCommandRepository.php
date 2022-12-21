@@ -5,17 +5,28 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Throwable;
 use xmlshop\QueueMonitor\Models\Command;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorCommand;
+use xmlshop\QueueMonitor\Repository\Interfaces\CommandRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
 
 class MonitorCommandRepository implements MonitorCommandRepositoryInterface
 {
-    public function __construct(private MonitorCommand $model, private SystemResourceInterface $systemResources)
-    {
+    public function __construct(
+        private MonitorCommand $model,
+        private SystemResourceInterface $systemResources,
+        private CommandRepositoryInterface $commandRepository,
+        private HostRepositoryInterface $hostRepository,
+        private ExceptionRepositoryInterface $exceptionRepository
+    ) {
     }
 
     public function createByCommandAndHost(Command $command, Host $host): void
@@ -51,8 +62,8 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
         $monitorCommand && $monitorCommand->update([
             'finished_at' => now(),
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorCommand->started_at, now()),
-            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-            'use_cpu' => $this->systemResources->getCpuUse(),
+            'use_memory_mb' => max([$monitorCommand->use_memory_mb, $this->systemResources->getMemoryUseMb()]),
+            'use_cpu' => max([$monitorCommand->use_cpu, $this->systemResources->getCpuUse()]),
         ]);
     }
 
@@ -96,5 +107,43 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
             ->appends(
                 $request->all()
             );
+    }
+
+    public function getListRunning(): Collection
+    {
+        return $this->model
+            ->newQuery()
+            ->select(['uuid', 'started_at', 'pid'])
+            ->whereRelation('host', 'name', $this->systemResources->getHost())
+            ->whereNotNull('started_at')
+            ->whereNull('finished_at')
+            ->get();
+    }
+
+    public function updateFailedExternally(string $command_name, Throwable $exception): void
+    {
+        $command = $this->commandRepository->findByName($command_name);
+        $host = $this->hostRepository->firstOrCreate();
+        $exceptionModel = $this->exceptionRepository->createFromThrowable($exception);
+
+        /** @var MonitorCommand $monitorCommand */
+        $monitorCommand = $this->model
+            ->newQuery()
+            ->where([
+                'command_id' => $command->id,
+                'host_id' => $host->id,
+            ])
+            ->orderByDesc('started_at')
+            ->first();
+
+        $monitorCommand && $monitorCommand->update([
+            'exception_id' => $exceptionModel->uuid,
+            'finished_at' => now(),
+            'failed' => true,
+            'pid' => $this->systemResources->getProcessId(),
+            'time_elapsed' => $this->systemResources->getTimeElapsed($monitorCommand->started_at, now()),
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
+        ]);
     }
 }

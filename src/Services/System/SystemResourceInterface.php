@@ -18,4 +18,8 @@ interface SystemResourceInterface
 
     public function getParentProcessId(): int;
 
+    public function getHost(): string;
+
+    public function isProcessIdRunning(int $pid): bool;
+
 }

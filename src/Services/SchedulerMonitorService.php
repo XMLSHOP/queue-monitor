@@ -44,8 +44,14 @@ class SchedulerMonitorService
 
     public function handleTaskFinished(ScheduledTaskFinished $event): void
     {
+
         $host = $this->hostRepository->firstOrCreate();
         $task = $this->scheduledTaskFactory->createForEvent($event->task);
+
+        $output = implode('', explode("\n", $event->task->output));
+        if(str_contains(strtolower($output), 'exception')) {
+
+        }
 
         if (!$task->name()) {
             return;
@@ -59,9 +65,11 @@ class SchedulerMonitorService
 
     public function handleTaskFailed(ScheduledTaskFailed $event): void
     {
+
         $host = $this->hostRepository->firstOrCreate();
         $task = $this->scheduledTaskFactory->createForEvent($event->task);
-
+        echo "ScheduledTaskFailed" . "\n";
+        echo $task->name() . ': $task->name()' . "\n";
         if (!$task->name()) {
             return;
         }
@@ -75,6 +83,6 @@ class SchedulerMonitorService
 
     public function syncMonitoredTasks(): void
     {
-        $this->scheduledTasks->uniqueTasks()->map(fn (Task $task) => $this->schedulerRepository->updateOrCreate($task));
+        $this->scheduledTasks->uniqueTasks()->map(fn(Task $task) => $this->schedulerRepository->updateOrCreate($task));
     }
 }

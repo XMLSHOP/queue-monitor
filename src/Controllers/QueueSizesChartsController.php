@@ -35,7 +35,7 @@ class QueueSizesChartsController
             return compact('data');
         }
 
-        return view('monitor::queue-sizes/index', compact('data'));
+        return view('monitor::queue-sizes.index', compact('data'));
     }
 
     private function getSanitized(array $sanitized): array

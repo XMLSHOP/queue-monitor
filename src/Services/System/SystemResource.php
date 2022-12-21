@@ -54,14 +54,19 @@ class SystemResource implements SystemResourceInterface
         return false;
     }
 
-    function execCmd($cmd)
+    function execCmd($cmd): string
     {
-        $output = trim(shell_exec("$cmd 2>&1"));
-        if ($output !== "") {
-            echo "> " . $cmd . "\n";
-            echo $output;
-        }
-        return $output;
+        return trim(shell_exec("$cmd 2>&1"));
     }
 
+    public function getHost(): string
+    {
+        $host = gethostname();
+        return false !== $host ? $host : 'unknown';
+    }
+
+    public function isProcessIdRunning(int $pid): bool
+    {
+        return count(explode("\n", $this->execCmd('ps -f -p ' . $pid))) > 1;
+    }
 }

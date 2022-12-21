@@ -37,7 +37,7 @@ class ShowCommandMonitorController
             'dt' => $data['dt'] ?? Carbon::now()->toDateTimeLocalString(),
         ];
 
-        return view('monitor::commands/index', [
+        return view('monitor::commands.index', [
             'commands' => $this->monitorCommandRepository->getList($request, $filters),
             'commands_list' => $this->commandRepository->getList('id'),
             'filters' => $filters,

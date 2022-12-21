@@ -23,6 +23,11 @@ class CommandRepository implements CommandRepositoryInterface
         ]);
     }
 
+    public function findByName(string $name): ?Command
+    {
+        return $this->model->newQuery()->where('command', $name)->first();
+    }
+
     public function getList(?string $keyBy = null): array
     {
         $query = $this->model->newQuery()->get();

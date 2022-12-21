@@ -18,7 +18,11 @@ use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobP
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand, SyncCommand};
+use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand,
+    CleanUpCommand,
+    ListenerCommand,
+    MonitorPidCheckerCommand,
+    SyncCommand};
 use xmlshop\QueueMonitor\Repository\HostRepository;
 use xmlshop\QueueMonitor\Repository\Interfaces\{
     CommandRepositoryInterface,
@@ -140,12 +144,14 @@ class MonitorProvider extends ServiceProvider
         $this->app->bind('monitor:clean-up', CleanUpCommand::class);
         $this->app->bind('monitor:listener', ListenerCommand::class);
         $this->app->bind('monitor:sync-scheduler', SyncCommand::class);
+        $this->app->bind('monitor:pid-checker', MonitorPidCheckerCommand::class);
 
         $this->commands([
             'monitor:aggregate-queues-sizes',
             'monitor:clean-up',
             'monitor:listener',
-            'monitor:sync-scheduler'
+            'monitor:sync-scheduler',
+            'monitor:pid-checker'
         ]);
     }
 

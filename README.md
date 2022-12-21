@@ -47,6 +47,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue-monitor:clean-up')->dailyAt('01:23');
         $schedule->command('queue-monitor:listener')->everyMinute();
         $schedule->command('monitor:sync-scheduler')->daily();
+        $schedule->command('monitor:pid-checker')->everyMinute(); #for each node, if >1
         #...
     }
 }
@@ -58,6 +59,35 @@ After the listener automatically will be launched `queue-monitor:listener`. It m
 php artisan queue-monitor:listener disable 24 #disables alert-launcher for a day. By default 1 hour
 php artisan queue-monitor:listener enable #enables that back
 ```
+
+Application Error handler have to be replaced at your application
+Please add custom error handler:
+```php
+
+final class Handler extends \Illuminate\Foundation\Exceptions\Handler implements \Illuminate\Contracts\Debug\ExceptionHandler
+{
+    /**
+     * Render an exception to the console.
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param \Throwable $e
+     * @return void
+     */
+    final public function renderForConsole($output, Throwable $e)
+    {
+        if (class_exists('xmlshop\QueueMonitor\Services\CLIFailureHandler')) {
+            app('xmlshop\QueueMonitor\Services\CLIFailureHandler')->handle($e);
+        }
+
+        parent::renderForConsole($output, $e);
+    }
+}
+```
+And please register that in ApplicationProvider
+```php
+$this->app->bind(\Illuminate\Contracts\Debug\ExceptionHandler::class, \App\Exceptions\Handler::class);
+```
+
 
 ## Alert function
 1. Listener looks into database in the `x_queue_monitoring_queue_sizes` table and comparing current amount with amount mentioned in field `alert_threshold`. If exceed - alert.

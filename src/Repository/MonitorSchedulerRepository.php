@@ -6,17 +6,27 @@ namespace xmlshop\QueueMonitor\Repository;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Throwable;
 use xmlshop\QueueMonitor\Models\Exception;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Models\MonitorScheduler;
 use xmlshop\QueueMonitor\Models\Scheduler;
 use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
+use xmlshop\QueueMonitor\Repository\Interfaces\SchedulerRepositoryInterface;
 
 class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 {
-    public function __construct(private MonitorScheduler $model, private SystemResourceInterface $systemResources)
-    {
+    public function __construct(
+        private MonitorScheduler $model,
+        private SystemResourceInterface $systemResources,
+        private SchedulerRepositoryInterface $schedulerRepository,
+        private HostRepositoryInterface $hostRepository,
+        private ExceptionRepositoryInterface $exceptionRepository
+    ) {
     }
 
     public function createWithSchedulerAndHost(Scheduler $scheduler, Host $host): void
@@ -53,8 +63,8 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             'finished_at' => now(),
             'pid' => $this->systemResources->getProcessId(),
             'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
-            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
-            'use_cpu' => $this->systemResources->getCpuUse(),
+            'use_memory_mb' => max([$monitorScheduler->use_memory_mb, $this->systemResources->getMemoryUseMb()]),
+            'use_cpu' => max([$monitorScheduler->use_cpu, $this->systemResources->getCpuUse()]),
         ]);
     }
 
@@ -67,10 +77,11 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 'scheduled_id' => $scheduler->id,
                 'host_id' => $host->id,
             ])
+            ->orderByDesc('started_at')
             ->first();
 
         $monitorScheduler && $monitorScheduler->update([
-            'exception_id' => $exceptionModel->id,
+            'exception_id' => $exceptionModel->uuid,
             'finished_at' => now(),
             'failed' => true,
             'pid' => $this->systemResources->getProcessId(),
@@ -123,5 +134,43 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
         return
             $this->model->newQuery()->where('ppid', $this->systemResources->getParentProcessId())->exists()
             || $this->systemResources->isParentProcessScheduler();
+    }
+
+    public function getListRunning(): Collection
+    {
+        return $this->model
+            ->newQuery()
+            ->select(['uuid', 'started_at', 'pid'])
+            ->whereRelation('host', 'name', $this->systemResources->getHost())
+            ->whereNotNull('started_at')
+            ->whereNull('finished_at')
+            ->get();
+    }
+
+    public function updateFailedExternally(string $scheduler_name, Throwable $exception): void
+    {
+        $scheduler = $this->schedulerRepository->findByName($scheduler_name);
+        $host = $this->hostRepository->firstOrCreate();
+        $exceptionModel = $this->exceptionRepository->createFromThrowable($exception);
+
+        /** @var MonitorScheduler $monitorScheduler */
+        $monitorScheduler = $this->model
+            ->newQuery()
+            ->where([
+                'scheduled_id' => $scheduler->id,
+                'host_id' => $host->id,
+            ])
+            ->orderByDesc('started_at')
+            ->first();
+
+        $monitorScheduler && $monitorScheduler->update([
+            'exception_id' => $exceptionModel->uuid,
+            'finished_at' => now(),
+            'failed' => true,
+            'pid' => $this->systemResources->getProcessId(),
+            'time_elapsed' => $this->systemResources->getTimeElapsed($monitorScheduler->started_at, now()),
+            'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
+            'use_cpu' => $this->systemResources->getCpuUse(),
+        ]);
     }
 }
