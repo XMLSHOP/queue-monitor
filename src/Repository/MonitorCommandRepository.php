@@ -7,6 +7,7 @@ namespace xmlshop\QueueMonitor\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Throwable;
 use xmlshop\QueueMonitor\Models\Command;
@@ -145,5 +146,13 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
             'use_memory_mb' => $this->systemResources->getMemoryUseMb(),
             'use_cpu' => $this->systemResources->getCpuUse(),
         ]);
+    }
+
+    public function purge(int $days): void
+    {
+        $this->model
+            ->newQuery()
+            ->where('started_at', '<=', Carbon::now()->subDays($days))
+            ->delete();
     }
 }

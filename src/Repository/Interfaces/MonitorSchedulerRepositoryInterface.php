@@ -25,4 +25,6 @@ interface MonitorSchedulerRepositoryInterface
     public function updateFailedExternally(string $scheduler_name, Throwable $exception): void;
 
     public function getFailed(): Collection;
+
+    public function purge(int $days): void;
 }

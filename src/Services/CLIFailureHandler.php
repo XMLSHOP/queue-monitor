@@ -2,7 +2,6 @@
 
 namespace xmlshop\QueueMonitor\Services;
 
-use Illuminate\Support\Str;
 use Throwable;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;

@@ -85,6 +85,6 @@ class CacheChecker
 
     public function isEnabledAlarm(): bool
     {
-        return Cache::store(self::$_driver)->get(self::DISABLE_CACHE_KEY . config('app.name', false));
+        return (bool)Cache::store(self::$_driver)->get(self::DISABLE_CACHE_KEY . config('app.name', ''), false);
     }
 }

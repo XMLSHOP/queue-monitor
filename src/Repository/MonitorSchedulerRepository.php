@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Repository;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -131,6 +132,9 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 
     public function foundByParentProcessId(): bool
     {
+        dd(
+            $this->systemResources->getParentProcessId()
+        );
         return
             $this->systemResources->isParentProcessScheduler()
             || $this->systemResources->getParentProcessId()
@@ -185,5 +189,13 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                 now(),
             ])
             ->get();
+    }
+
+    public function purge(int $days): void
+    {
+        $this->model
+            ->newQuery()
+            ->where('started_at', '<=', Carbon::now()->subDays($days))
+            ->delete();
     }
 }

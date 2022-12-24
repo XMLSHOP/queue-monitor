@@ -58,7 +58,7 @@ class SystemResource implements SystemResourceInterface
         return false;
     }
 
-    function execCmd($cmd): string
+    public function execCmd($cmd): string
     {
         return trim(shell_exec("$cmd 2>&1"));
     }

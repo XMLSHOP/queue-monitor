@@ -21,4 +21,6 @@ interface MonitorCommandRepositoryInterface
     public function getListRunning(): Collection;
 
     public function updateFailedExternally(string $command_name, Throwable $exception): void;
+
+    public function purge(int $days): void;
 }
