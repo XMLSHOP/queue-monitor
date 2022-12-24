@@ -68,8 +68,7 @@ class SchedulerMonitorService
 
         $host = $this->hostRepository->firstOrCreate();
         $task = $this->scheduledTaskFactory->createForEvent($event->task);
-        echo "ScheduledTaskFailed" . "\n";
-        echo $task->name() . ': $task->name()' . "\n";
+
         if (!$task->name()) {
             return;
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Services\System;
 
 use Carbon\Carbon;
+use Exception;
 use function getrusage;
 use function last;
 use function memory_get_usage;
@@ -46,13 +47,13 @@ class SystemResource implements SystemResourceInterface
 
     public function isParentProcessScheduler(): bool
     {
-        if (!$this->getParentProcessId()) {
-            return false;
-        }
+        try {
+            $proc = file_get_contents('/proc/' . $this->getParentProcessId() . '/cmdline');
+            if(str_contains($proc, 'schedule') && str_contains($proc, 'artisan')) {
+                return true;
+            }
+        } catch (Exception $e) {
 
-        $output = explode("\n", $this->execCmd('ps -f -p ' . $this->getParentProcessId()));
-        if (count($output) > 1 && str_contains(last(preg_split('/ +/', $output[1])), 'schedule')) {
-            return true;
         }
 
         return false;

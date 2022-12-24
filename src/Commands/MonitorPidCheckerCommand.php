@@ -39,9 +39,9 @@ class MonitorPidCheckerCommand extends Command
     {
         /** @var MonitorCommand $command */
         foreach ($this->monitorCommandRepository->getListRunning() as $command) {
-            if(!$this->systemResource->isProcessIdRunning($command->pid)) {
+            if (!$this->systemResource->isProcessIdRunning($command->pid)) {
                 $command->finished_at = now();
-                $command->time_elapsed = $this->systemResource->getTimeElapsed($command->started_at,  now());
+                $command->time_elapsed = $this->systemResource->getTimeElapsed($command->started_at, now());
                 $command->failed = 1;
 
                 $monitorException = $this->exceptionRepository->createFromThrowable(new Exception('No closing event.'));
@@ -51,9 +51,9 @@ class MonitorPidCheckerCommand extends Command
         }
 
         foreach ($this->monitorSchedulerRepository->getListRunning() as $scheduler) {
-            if(!$this->systemResource->isProcessIdRunning($scheduler->pid)) {
+            if (!$this->systemResource->isProcessIdRunning($scheduler->pid)) {
                 $scheduler->finished_at = now();
-                $scheduler->time_elapsed = $this->systemResource->getTimeElapsed($scheduler->started_at,  now());
+                $scheduler->time_elapsed = $this->systemResource->getTimeElapsed($scheduler->started_at, now());
                 $scheduler->failed = 1;
 
                 $monitorException = $this->exceptionRepository->createFromThrowable(new Exception('No closing event.'));
