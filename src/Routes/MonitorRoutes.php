@@ -7,12 +7,12 @@ namespace xmlshop\QueueMonitor\Routes;
 use Closure;
 use Illuminate\Routing\Router;
 
-class QueueMonitorRoutes
+class MonitorRoutes
 {
     /**
      * Scaffold the Queue Monitor UI routes.
      */
-    public function queueMonitor(): Closure
+    public function monitor(): Closure
     {
         return function (array $options = []) {
             /** @var Router $this */

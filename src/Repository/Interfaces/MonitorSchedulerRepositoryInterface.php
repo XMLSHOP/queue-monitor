@@ -23,4 +23,6 @@ interface MonitorSchedulerRepositoryInterface
     public function getListRunning(): Collection;
 
     public function updateFailedExternally(string $scheduler_name, Throwable $exception): void;
+
+    public function getFailed(): Collection;
 }

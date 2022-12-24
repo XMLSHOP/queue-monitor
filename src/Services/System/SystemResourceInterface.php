@@ -22,4 +22,5 @@ interface SystemResourceInterface
 
     public function isProcessIdRunning(int $pid): bool;
 
+    public function getLoadAverage(int $last = -1): float;
 }

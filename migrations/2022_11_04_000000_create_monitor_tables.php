@@ -18,6 +18,13 @@ class CreateMonitorTables extends Migration
                 $table->smallIncrements('id');
                 $table->string('name', 64)->unique();
                 $table->string('name_with_namespace')->unique();
+                $table->unsignedSmallInteger('failures_amount_threshold')->nullable();
+                $table->unsignedSmallInteger('pending_amount_threshold')->nullable();
+                $table->unsignedSmallInteger('pending_time_threshold')->nullable();
+                $table->float('pending_time_to_previous_factor', 12, 6)->nullable();
+                $table->float('execution_time_to_previous_factor', 12, 6)->nullable();
+                $table->boolean('ignore')->default(false);
+                $table->boolean('ignore_all_besides_failures')->default(false);
                 $table->timestamps();
             });
 

@@ -29,6 +29,7 @@ class QueueSizesChartsController
 
         $data = [
             'charts' => $this->queueSizesDataExportService->execute($requestData),
+            'jobs' => collect([]),
         ];
 
         if ($request->ajax() && $request->wantsJson()) {

@@ -7,12 +7,7 @@ return [
 
     'time_between_alerts' => 5 * 60, // seconds
 
-    'recipient' => '#notifications',
-
-    'routes' => [
-        'jobs' => 'https://{domain}}/monitor/jobs',
-        'queue-sizes' => 'https://{domain}}/monitor/queue-sizes',
-    ],
+    'recipient' => env('SLACK_WEBHOOK_CHANNEL', '#notifications'),
 
     'jobs_compare_alerts' => [
         'last' => 5 * 60, // seconds

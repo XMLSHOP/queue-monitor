@@ -82,13 +82,17 @@ class QueueMonitorService
             return;
         }
 
-        $jobClass = get_class($job); //TODO: look at it!
+        $jobClass = is_string($job) ? $job : get_class($job);
+        if (in_array(last(explode('/', $jobClass)), config('monitor.settings.jobsToSkipQueued'))) {
+            return;
+        }
 
         /** @var string $jobQueue */
         $jobQueue = $job?->queue ?? last(explode('/', trim(Queue::connection($jobConnection ?? $job?->getConnectionName())->getQueue(null), '/')));
 
         $jobModel = $this->jobsRepository->firstOrCreate($jobClass);
         $hostModel = $this->hostsRepository->firstOrCreate();
+
 
         $this->queueMonitorRepository->addQueued([
             'job_id' => (string)$jobId,

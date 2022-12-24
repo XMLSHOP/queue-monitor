@@ -174,4 +174,16 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
             'use_cpu' => $this->systemResources->getCpuUse(),
         ]);
     }
+
+    public function getFailed(): Collection
+    {
+        return $this->model
+            ->newQuery()
+            ->where('failed', true)
+            ->whereBetween('finished_at', [
+                now()->subMinute(),
+                now(),
+            ])
+            ->get();
+    }
 }

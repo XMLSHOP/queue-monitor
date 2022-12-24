@@ -45,7 +45,7 @@ use xmlshop\QueueMonitor\Repository\{
     QueueSizeRepository,
     ExceptionRepository,
     SchedulerRepository};
-use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
+use xmlshop\QueueMonitor\Routes\MonitorRoutes;
 use xmlshop\QueueMonitor\Services\{QueueMonitorService, SchedulerMonitorService, CommandMonitorService};
 
 class MonitorProvider extends ServiceProvider
@@ -83,7 +83,6 @@ class MonitorProvider extends ServiceProvider
      */
     public function boot()
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         if ($this->app->runningInConsole()) {
             if (QueueMonitorService::$loadMigrations) {
                 $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
@@ -110,7 +109,7 @@ class MonitorProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../views', 'monitor');
 
         /** @phpstan-ignore-next-line */
-        Route::mixin(new QueueMonitorRoutes());
+        Route::mixin(new MonitorRoutes());
 
         if (!config('monitor.settings.active')) {
             return;

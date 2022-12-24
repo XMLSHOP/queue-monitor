@@ -46,7 +46,7 @@ class SystemResource implements SystemResourceInterface
 
     public function isParentProcessScheduler(): bool
     {
-        if(!$this->getParentProcessId()) {
+        if (!$this->getParentProcessId()) {
             return false;
         }
 
@@ -69,8 +69,34 @@ class SystemResource implements SystemResourceInterface
         return false !== $host ? $host : 'unknown';
     }
 
-    public function isProcessIdRunning(int $pid): bool
+    public function isProcessIdRunning(?int $pid): bool
     {
+        if (null !== $pid) {
+            return false;
+        }
+
         return count(explode("\n", $this->execCmd('ps -f -p ' . $pid))) > 1;
+    }
+
+    /**
+     * Int might be 5 or 15 (last 5 or 15 minutes)
+     * By default - last minute index
+     *
+     * @param int $last
+     * @return float
+     */
+    public function getLoadAverage(int $last = 1): float
+    {
+        $loadAvg = sys_getloadavg();
+
+        if (!$loadAvg) {
+            return 0;
+        }
+
+        return match ($last) {
+            15 => $loadAvg[2],
+            5 => $loadAvg[1],
+            default => $loadAvg[0],
+        };
     }
 }

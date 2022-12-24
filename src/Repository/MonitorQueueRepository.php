@@ -44,7 +44,6 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
         /** @noinspection UnknownColumnInspection */
         $model = $this->model
             ->newQuery()
-            ->orderByDesc('queued_at')
             ->firstOrCreate([
                 'job_id' => $data['job_id']
             ], [
