@@ -132,9 +132,6 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
 
     public function foundByParentProcessId(): bool
     {
-        dd(
-            $this->systemResources->getParentProcessId()
-        );
         return
             $this->systemResources->isParentProcessScheduler()
             || $this->systemResources->getParentProcessId()
