@@ -75,8 +75,16 @@ final class Handler extends \Illuminate\Foundation\Exceptions\Handler implements
      */
     final public function renderForConsole($output, Throwable $e)
     {
-        if (class_exists('xmlshop\QueueMonitor\Services\CLIFailureHandler')) {
-            app('xmlshop\QueueMonitor\Services\CLIFailureHandler')->handle($e);
+        $command_name = null;
+        foreach (request()->server('argv') as $arg) {
+            if (Str::contains($arg, ':')) {
+                $command_name = $arg;
+                break;
+            }
+        }
+
+        if (null !== $command_name && class_exists('xmlshop\QueueMonitor\Services\CLIFailureHandler')) {
+            app('xmlshop\QueueMonitor\Services\CLIFailureHandler')->handle($command_name, $e);
         }
 
         parent::renderForConsole($output, $e);
