@@ -46,12 +46,12 @@ class ListenerCommand extends Command
     {
         $status = 'enabled';
 
-        if ('enable' === $this->argument('disable')) {
+        if ('enable' === $this->argument('action')) {
             $this->cacheChecker->enableAlarm();
             return $status;
         }
 
-        if ('disable' === $this->argument('disable')) {
+        if ('disable' === $this->argument('action')) {
             $this->cacheChecker->disableAlarm((int)$this->argument('hours'));
 
             $status = 'disabled';
