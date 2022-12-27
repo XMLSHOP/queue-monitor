@@ -117,8 +117,8 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                         break;
                 }
             })
-            ->when(($scheduler_id = $filters['scheduler']) && 'all' !== $scheduler_id, static function (Builder $builder) use ($scheduler_id) {
-                $builder->where('scheduler_id', $scheduler_id);
+            ->when(($scheduled_id = $filters['scheduler']) && 'all' !== $scheduled_id, static function (Builder $builder) use ($scheduled_id) {
+                $builder->where('scheduled_id', $scheduled_id);
             })
             ->orderByDesc('started_at')
             ->orderByDesc('finished_at')
