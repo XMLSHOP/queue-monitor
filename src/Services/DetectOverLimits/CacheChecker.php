@@ -29,7 +29,7 @@ class CacheChecker
                 self::$_alarmIdentifications = Cache::store('redis')->get(self::CACHE_KEY . config('app.name', ''), []);
                 self::$_driver = 'redis';
             } catch (Exception $e) {
-                self::$_alarmIdentifications = Cache::store()->get(self::CACHE_KEY . config('app.name', ''), []);
+                self::$_alarmIdentifications = Cache::store('file')->get(self::CACHE_KEY . config('app.name', ''), []);
                 self::$_driver = null;
             }
         }
