@@ -72,7 +72,7 @@ class SystemResource implements SystemResourceInterface
 
     public function isProcessIdRunning(?int $pid): bool
     {
-        if (null !== $pid) {
+        if (null === $pid) {
             return false;
         }
 
