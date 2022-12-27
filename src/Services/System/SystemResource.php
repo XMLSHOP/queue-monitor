@@ -49,7 +49,7 @@ class SystemResource implements SystemResourceInterface
     {
         try {
             $proc = file_get_contents('/proc/' . $this->getParentProcessId() . '/cmdline');
-            if(str_contains($proc, 'schedule') && str_contains($proc, 'artisan')) {
+            if (str_contains($proc, 'schedule') && str_contains($proc, 'artisan')) {
                 return true;
             }
         } catch (Exception $e) {
@@ -76,7 +76,7 @@ class SystemResource implements SystemResourceInterface
             return false;
         }
 
-        return count(explode("\n", $this->execCmd('ps -f -p ' . $pid))) > 1;
+        return (bool)file_get_contents('/proc/' . $pid . '/cmdline');
     }
 
     /**
