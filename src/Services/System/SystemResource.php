@@ -72,11 +72,12 @@ class SystemResource implements SystemResourceInterface
 
     public function isProcessIdRunning(?int $pid): bool
     {
-        if (null === $pid) {
+        $pid_file = '/proc/' . $pid . '/cmdline';
+        if (null === $pid || !file_exists($pid_file)) {
             return false;
         }
 
-        return (bool)file_get_contents('/proc/' . $pid . '/cmdline');
+        return true;
     }
 
     /**
