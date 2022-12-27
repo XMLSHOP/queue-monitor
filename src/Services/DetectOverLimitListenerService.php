@@ -106,7 +106,7 @@ class DetectOverLimitListenerService
     {
         return
             '<' . route('monitor::schedulers', [
-                'type' => 'all',
+                'type' => 'failed',
                 'scheduler' => $scheduler->id,
                 'df' => Carbon::now()
                     ->subSeconds(config('monitor.alarm.jobs_compare_alerts.last'))
