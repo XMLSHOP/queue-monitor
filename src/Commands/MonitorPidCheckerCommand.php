@@ -5,6 +5,7 @@ namespace xmlshop\QueueMonitor\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use xmlshop\QueueMonitor\Models\MonitorCommand;
+use xmlshop\QueueMonitor\Models\Scheduler;
 use xmlshop\QueueMonitor\Repository\Interfaces\ExceptionRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorCommandRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\MonitorSchedulerRepositoryInterface;
@@ -50,7 +51,12 @@ class MonitorPidCheckerCommand extends Command
             }
         }
 
+        /** @var Scheduler $scheduler */
         foreach ($this->monitorSchedulerRepository->getListRunning() as $scheduler) {
+            if($scheduler->name !='monitor:pid-checker') {
+                continue;
+            }
+
             if (!$this->systemResource->isProcessIdRunning($scheduler->pid)) {
                 $scheduler->finished_at = now();
                 $scheduler->time_elapsed = $this->systemResource->getTimeElapsed($scheduler->started_at, now());
