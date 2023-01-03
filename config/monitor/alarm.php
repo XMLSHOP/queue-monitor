@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 return [
+    'is_active' => true,
+
     'channel' => 'slack',
+
+    'mutex_cache_driver' => 'file',
 
     'time_between_alerts' => 5 * 60, // seconds
 
