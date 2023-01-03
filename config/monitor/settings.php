@@ -14,4 +14,18 @@ return [
 
     'jobsToSkipQueued' => [],
 
+    'commandsToSkipMonitor' => [
+        null, // Appears when `php artisan` had been launched without args
+        'migrate:fresh',
+        'migrate:rollback',
+        'migrate',
+        'queue:table',
+        'queue:work',
+        'schedule:work',
+        'scheduler:work',
+        'schedule:run',
+        'vendor:publish',
+        'package:discover',
+        'help',
+    ],
 ];

@@ -15,20 +15,7 @@ use function in_array;
 
 class CommandMonitorService
 {
-    private array $commandsToSkipp = [
-        null, // Appears when `php artisan` had been launched without args
-        'migrate:fresh',
-        'migrate:rollback',
-        'migrate',
-        'queue:table',
-        'queue:work',
-        'schedule:work',
-        'scheduler:work',
-        'schedule:run',
-        'vendor:publish',
-        'package:discover',
-        'help',
-    ];
+    private array $commandsToSkipp = [];
 
     public function __construct(
         private MonitorSchedulerRepositoryInterface $monitorSchedulerRepository,
@@ -36,6 +23,7 @@ class CommandMonitorService
         private HostRepositoryInterface $hostRepository,
         private MonitorCommandRepositoryInterface $monitorCommandRepository,
     ) {
+        $this->commandsToSkipp = config('monitor.settings.commandsToSkipMonitor');
     }
 
     public function handleCommandStarting(CommandStarting $event): void
