@@ -27,7 +27,7 @@ class CacheChecker
         if (null === self::$_alarmIdentifications) {
             try {
                 self::$_alarmIdentifications = Cache::store(config('monitor.alarm.mutex_cache_driver'))->get(self::CACHE_KEY . config('app.name', ''), []);
-                self::$_driver = 'redis';
+                self::$_driver = config('monitor.alarm.mutex_cache_driver');
             } catch (Exception $e) {
                 self::$_alarmIdentifications = Cache::store('file')->get(self::CACHE_KEY . config('app.name', ''), []);
                 self::$_driver = null;
