@@ -17,6 +17,11 @@ use xmlshop\QueueMonitor\Services\Scheduler\ScheduledTasks\Tasks\Task;
 
 class SchedulerMonitorService
 {
+    /**
+     * @var ScheduledTasks|null
+     */
+    private ?ScheduledTasks $scheduledTasks = null;
+
     public function __construct(
         private SchedulerRepositoryInterface $schedulerRepository,
         private HostRepositoryInterface $hostRepository,
