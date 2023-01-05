@@ -23,7 +23,6 @@ class SchedulerMonitorService
         private MonitorSchedulerRepositoryInterface $monitorSchedulerRepository,
         private ExceptionRepositoryInterface $exceptionRepository,
         private ScheduledTaskFactory $scheduledTaskFactory,
-        private ScheduledTasks $scheduledTasks,
     ) {
     }
 
@@ -49,7 +48,7 @@ class SchedulerMonitorService
         $task = $this->scheduledTaskFactory->createForEvent($event->task);
 
         $output = implode('', explode("\n", $event->task->output));
-        if(str_contains(strtolower($output), 'exception')) {
+        if (str_contains(strtolower($output), 'exception')) {
 
         }
 
@@ -82,6 +81,10 @@ class SchedulerMonitorService
 
     public function syncMonitoredTasks(): void
     {
+        if (null === $this->scheduledTasks) {
+            $this->scheduledTasks = app(ScheduledTasks::class);
+        }
+
         $this->scheduledTasks->uniqueTasks()->map(fn(Task $task) => $this->schedulerRepository->updateOrCreate($task));
     }
 }
