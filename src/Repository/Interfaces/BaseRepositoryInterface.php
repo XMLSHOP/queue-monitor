@@ -41,7 +41,7 @@ interface BaseRepositoryInterface
         array $columns = ['*'],
         string $orderBy = 'id',
         string $orderDirection = 'DESC'
-    ): Model;
+    ): ?Model;
 
     public function __call(string $name, array $arguments): mixed;
 }
