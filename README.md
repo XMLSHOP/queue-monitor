@@ -144,9 +144,9 @@ Route::prefix('monitor')->group(function () {
 |----------------| ------------------- |
 | `/monitor`     | Show the jobs table |
 
-See the [full configuration file](https://github.com/xmlshop/Queue-Monitor/blob/master/config/monitor.php) for more information.
+See the [configuration files](https://github.com/XMLSHOP/queue-monitor/tree/master/config/monitor) for more information.
 
-![Preview](https://raw.githubusercontent.com/xmlshop/Queue-Monitor/master/preview.png)
+![Preview](https://raw.githubusercontent.com/xmlshop/queue-monitor/master/preview.png)
 
 
 ## Extended usage
