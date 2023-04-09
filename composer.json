@@ -1,5 +1,5 @@
 {
-    "name": "xmlshop/laravel-queue-monitor",
+    "name": "xmlshop/queue-monitor",
     "description": "Queue Monitoring for Laravel Database Job Queue",
     "type": "library",
     "license": "MIT",

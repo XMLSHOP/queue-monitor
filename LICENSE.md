@@ -1,6 +1,6 @@
 The MIT License
 
-Copyright (c) 2020 Roman Zipp
+Copyright (c) 2023 Roman Zipp & Artem Negri
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
