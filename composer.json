@@ -1,5 +1,5 @@
 {
-    "name": "xmlshop/laravel-queue-monitor",
+    "name": "xmlshop/queue-monitor",
     "description": "Queue Monitoring for Laravel Database Job Queue",
     "type": "library",
     "license": "MIT",
@@ -18,6 +18,7 @@
         "php": "^8.0",
         "ext-json": "*",
         "ext-mbstring": "*",
+        "ext-posix": "*",
         "gpressutto5/laravel-slack": "^2.0",
         "illuminate/database": "^5.5|^6.0|^7.0|^8.0|^9.0",
         "illuminate/queue": "^5.5|^6.0|^7.0|^8.0|^9.0",

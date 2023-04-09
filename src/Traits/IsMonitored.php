@@ -30,7 +30,7 @@ trait IsMonitored
     {
         $progress = min(100, max(0, $progress));
 
-        if ( ! $monitor = $this->getQueueMonitor()) {
+        if (!$monitor = $this->getQueueMonitor()) {
             return;
         }
 
@@ -51,7 +51,7 @@ trait IsMonitored
      */
     public function queueProgressChunk(int $collectionCount, int $perChunk): void
     {
-        $this->queueProgress(++$this->progressCurrentChunk * $perChunk / $collectionCount * 100);
+        $this->queueProgress(intval(++$this->progressCurrentChunk * $perChunk / $collectionCount * 100));
     }
 
     /**
@@ -92,7 +92,7 @@ trait IsMonitored
 
     protected function deleteQueueMonitor(): void
     {
-        if ( ! $monitor = $this->getQueueMonitor()) {
+        if (!$monitor = $this->getQueueMonitor()) {
             return;
         }
 

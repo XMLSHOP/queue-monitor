@@ -1,11 +1,13 @@
-# Laravel Queue Monitor
+# Queue Monitor
+## For Laravel framework
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![Total Downloads](https://img.shields.io/packagist/dt/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![License](https://img.shields.io/packagist/l/xmlshop/laravel-queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/laravel-queue-monitor)
-[![Code analyse](https://github.com/XMLSHOP/Laravel-Queue-Monitor/actions/workflows/push-build.yml/badge.svg)](https://github.com/XMLSHOP/Laravel-Queue-Monitor/actions/workflows/push-build.yml)
+[![Latest Stable Version](https://img.shields.io/packagist/v/xmlshop/queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/queue-monitor)
+[![Total Downloads](https://img.shields.io/packagist/dt/xmlshop/queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/queue-monitor)
+[![License](https://img.shields.io/packagist/l/xmlshop/queue-monitor.svg?style=flat-square)](https://packagist.org/packages/xmlshop/queue-monitor)
 
 This package offers monitoring like [Laravel Horizon](https://laravel.com/docs/horizon) for database queue.
+
+This package initially forked from [Laravel-Queue-Monitor](https://github.com/romanzipp/Laravel-Queue-Monitor).
 
 ## Features
 
@@ -18,7 +20,7 @@ This package offers monitoring like [Laravel Horizon](https://laravel.com/docs/h
 ## Installation
 
 ```
-composer require xmlshop/laravel-queue-monitor
+composer require xmlshop/queue-monitor
 ```
 
 ## Configuration
@@ -47,6 +49,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue-monitor:clean-up')->dailyAt('01:23');
         $schedule->command('queue-monitor:listener')->everyMinute();
         $schedule->command('monitor:sync-scheduler')->daily();
+        $schedule->command('monitor:pid-checker')->everyMinute(); #for each node, if >1
         #...
     }
 }
@@ -58,6 +61,43 @@ After the listener automatically will be launched `queue-monitor:listener`. It m
 php artisan queue-monitor:listener disable 24 #disables alert-launcher for a day. By default 1 hour
 php artisan queue-monitor:listener enable #enables that back
 ```
+
+Application Error handler have to be replaced at your application
+Please add custom error handler:
+```php
+
+final class Handler extends \Illuminate\Foundation\Exceptions\Handler implements \Illuminate\Contracts\Debug\ExceptionHandler
+{
+    /**
+     * Render an exception to the console.
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param \Throwable $e
+     * @return void
+     */
+    final public function renderForConsole($output, Throwable $e)
+    {
+        $command_name = null;
+        foreach (request()->server('argv') as $arg) {
+            if (Str::contains($arg, ':')) {
+                $command_name = $arg;
+                break;
+            }
+        }
+
+        if (null !== $command_name && class_exists('xmlshop\QueueMonitor\Services\CLIFailureHandler')) {
+            app('xmlshop\QueueMonitor\Services\CLIFailureHandler')->handle($command_name, $e);
+        }
+
+        parent::renderForConsole($output, $e);
+    }
+}
+```
+And please register that in ApplicationProvider
+```php
+$this->app->bind(\Illuminate\Contracts\Debug\ExceptionHandler::class, \App\Exceptions\Handler::class);
+```
+
 
 ## Alert function
 1. Listener looks into database in the `x_queue_monitoring_queue_sizes` table and comparing current amount with amount mentioned in field `alert_threshold`. If exceed - alert.
@@ -86,7 +126,7 @@ class ExampleJob implements ShouldQueue
 }
 ```
 
-**Important!** You need to implement the `Illuminate\Contracts\Queue\ShouldQueue` interface to your job class. Otherwise, Laravel will not dispatch any events containing status information for monitoring the job.
+**Important!** You need to implement the `Illuminate\Contracts\Queue\ShouldQueue` interface to your job class. Otherwise, Laravel framework will not dispatch any events containing status information for monitoring the job.
 
 ## UI
 
@@ -104,9 +144,9 @@ Route::prefix('monitor')->group(function () {
 |----------------| ------------------- |
 | `/monitor`     | Show the jobs table |
 
-See the [full configuration file](https://github.com/xmlshop/Laravel-Queue-Monitor/blob/master/config/monitor.php) for more information.
+See the [configuration files](https://github.com/XMLSHOP/queue-monitor/tree/master/config/monitor) for more information.
 
-![Preview](https://raw.githubusercontent.com/xmlshop/Laravel-Queue-Monitor/master/preview.png)
+![Preview](https://raw.githubusercontent.com/xmlshop/queue-monitor/master/preview.png)
 
 
 ## Extended usage

@@ -12,7 +12,7 @@ class RoutesTest extends TestCase
     public function testBasicRouteCreation()
     {
         RouteFacade::prefix('index')->group(function () {
-            RouteFacade::queueMonitor();
+            RouteFacade::monitor();
         });
 
         $this->assertInstanceOf(Route::class, $route = app(Router::class)->getRoutes()->getByAction(ShowQueueMonitorController::class));
@@ -24,7 +24,7 @@ class RoutesTest extends TestCase
     public function testRouteCreationInNamespace()
     {
         RouteFacade::namespace('App\Http')->prefix('index')->group(function () {
-            RouteFacade::queueMonitor();
+            RouteFacade::monitor();
         });
 
         $this->assertInstanceOf(Route::class, $route = app(Router::class)->getRoutes()->getByAction(ShowQueueMonitorController::class));

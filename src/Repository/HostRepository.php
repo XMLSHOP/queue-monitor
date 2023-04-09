@@ -9,17 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Models\Host;
 use xmlshop\QueueMonitor\Repository\Interfaces\HostRepositoryInterface;
 use xmlshop\QueueMonitor\Services\Data\RunningNowDataService;
+use xmlshop\QueueMonitor\Services\System\SystemResourceInterface;
 
 class HostRepository extends BaseRepository implements HostRepositoryInterface
 {
-    public function __construct(protected Host $model, protected RunningNowDataService $runningNowDataService)
+    public function __construct(
+        protected Host $model,
+        protected RunningNowDataService $runningNowDataService,
+        protected SystemResourceInterface $systemResource)
     {
     }
 
     public function firstOrCreate(): Model|Host
     {
         return $this->model->newQuery()->firstOrCreate([
-            'name' => gethostname(),
+            'name' => $this->systemResource->getHost(),
         ]);
     }
 

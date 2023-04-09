@@ -3,16 +3,15 @@
 declare(strict_types=1);
 
 return [
+    'is_active' => true,
+
     'channel' => 'slack',
+
+    'mutex_cache_driver' => 'file',
 
     'time_between_alerts' => 5 * 60, // seconds
 
-    'recipient' => '#notifications',
-
-    'routes' => [
-        'jobs' => 'https://{domain}}/monitor/jobs',
-        'queue-sizes' => 'https://{domain}}/monitor/queue-sizes',
-    ],
+    'recipient' => env('SLACK_WEBHOOK_CHANNEL', '#notifications'),
 
     'jobs_compare_alerts' => [
         'last' => 5 * 60, // seconds
@@ -44,6 +43,9 @@ return [
             ],
             'MonitoredJobWithData' => [
                 'execution_time_to_previous' => 1.1, // seconds
+            ],
+            'MonitoredJobWithData' => [
+                'ignore_all_besides_failures' => true,
             ],
             */
         ],

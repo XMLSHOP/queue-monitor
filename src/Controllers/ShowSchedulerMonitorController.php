@@ -37,7 +37,7 @@ class ShowSchedulerMonitorController
             'dt' => $data['dt'] ?? Carbon::now()->toDateTimeLocalString(),
         ];
 
-        return view('monitor::schedulers/index', [
+        return view('monitor::schedulers.index', [
             'schedulers' => $this->monitorSchedulerRepository->getList($request, $filters),
             'schedulers_list' => $this->schedulerRepository->getList('id'),
             'filters' => $filters,

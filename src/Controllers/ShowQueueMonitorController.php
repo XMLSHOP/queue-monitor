@@ -120,7 +120,7 @@ class ShowQueueMonitorController
             }
         }
 
-        return view('monitor::jobs/index', [
+        return view('monitor::jobs.index', [
             'jobs' => $jobs,
             'jobs_list' => $jobs_list,
             'filters' => $filters,

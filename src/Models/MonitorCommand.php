@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace xmlshop\QueueMonitor\Models;
 
-use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -39,6 +38,10 @@ class MonitorCommand extends Model
     public $timestamps = false;
 
     public $with = ['command'];
+
+    protected $casts = [
+        'failed' => 'bool',
+    ];
 
     public function __construct(array $attributes = [])
     {

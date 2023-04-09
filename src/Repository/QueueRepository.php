@@ -37,6 +37,7 @@ class QueueRepository extends BaseRepository implements QueueRepositoryInterface
             'connection_name' => $connection ?? config('queue.default'),
         ]);
     }
+
     public function getQueuesAlertInfo(): array
     {
         /** @noinspection UnknownColumnInspection */
@@ -50,6 +51,7 @@ class QueueRepository extends BaseRepository implements QueueRepositoryInterface
             ])
             ->from(config('monitor.db.table.queues'), 'mq')
             ->join(config('monitor.db.table.queues_sizes') . ' as mqs', 'mq.id', '=', 'mqs.queue_id')
+            ->whereNotNull(['alert_threshold'])
             ->whereIn('mqs.created_at', function (Builder $query) {
                 $query
                     ->from(with(new QueueSize())->getTable())

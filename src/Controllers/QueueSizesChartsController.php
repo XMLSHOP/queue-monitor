@@ -29,13 +29,14 @@ class QueueSizesChartsController
 
         $data = [
             'charts' => $this->queueSizesDataExportService->execute($requestData),
+            'jobs' => collect([]),
         ];
 
         if ($request->ajax() && $request->wantsJson()) {
             return compact('data');
         }
 
-        return view('monitor::queue-sizes/index', compact('data'));
+        return view('monitor::queue-sizes.index', compact('data'));
     }
 
     private function getSanitized(array $sanitized): array

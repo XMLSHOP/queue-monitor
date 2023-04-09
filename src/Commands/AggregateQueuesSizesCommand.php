@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace xmlshop\QueueMonitor\Commands;
 
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Queue;
 use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;

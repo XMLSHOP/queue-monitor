@@ -14,8 +14,13 @@ interface SystemResourceInterface
 
     public function getTimeElapsed(Carbon $startedAt, Carbon $finishedAt): float;
 
-    public function getPid(): int;
+    public function getProcessId(): int;
 
-    public function getPPid(): int;
+    public function getParentProcessId(): int|false;
 
+    public function getHost(): string;
+
+    public function isProcessIdRunning(int $pid): bool;
+
+    public function getLoadAverage(int $last = -1): float;
 }

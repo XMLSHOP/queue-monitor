@@ -7,6 +7,7 @@ namespace xmlshop\QueueMonitor\Repository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use xmlshop\QueueMonitor\Repository\Interfaces\BaseRepositoryInterface;
+use function call_user_func_array;
 
 abstract class BaseRepository implements BaseRepositoryInterface
 {
@@ -85,7 +86,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
         array $columns = ['*'],
         string $orderBy = 'id',
         string $orderDirection = 'DESC'
-    ): Model {
+    ): ?Model {
         return $this->model::query()
             ->select($columns)
             ->orderBy($orderBy, strtoupper($orderDirection) === 'ASC' ? 'ASC' : 'DESC')
@@ -98,6 +99,6 @@ abstract class BaseRepository implements BaseRepositoryInterface
      */
     public function __call(string $name, array $arguments): mixed
     {
-        return \call_user_func_array([$this->model, $name], $arguments);
+        return call_user_func_array([$this->model, $name], $arguments);
     }
 }

@@ -13,5 +13,5 @@ interface JobRepositoryInterface extends BaseRepositoryInterface
 
     public function getJobsStatistic(string $date_from, string $date_to): Collection;
 
-    public function getJobsAlertInfo(int $period_seconds, int $offset_seconds): Collection;
+    public function getJobsAlertInfo(int $period_seconds, int $offset_seconds, bool $with_checkers): Collection;
 }

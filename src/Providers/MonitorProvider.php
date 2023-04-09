@@ -18,7 +18,11 @@ use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobP
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand, CleanUpCommand, ListenerCommand, SyncCommand};
+use xmlshop\QueueMonitor\Commands\{AggregateQueuesSizesCommand,
+    CleanUpCommand,
+    ListenerCommand,
+    MonitorPidCheckerCommand,
+    SyncCommand};
 use xmlshop\QueueMonitor\Repository\HostRepository;
 use xmlshop\QueueMonitor\Repository\Interfaces\{
     CommandRepositoryInterface,
@@ -41,7 +45,7 @@ use xmlshop\QueueMonitor\Repository\{
     QueueSizeRepository,
     ExceptionRepository,
     SchedulerRepository};
-use xmlshop\QueueMonitor\Routes\QueueMonitorRoutes;
+use xmlshop\QueueMonitor\Routes\MonitorRoutes;
 use xmlshop\QueueMonitor\Services\{QueueMonitorService, SchedulerMonitorService, CommandMonitorService};
 
 class MonitorProvider extends ServiceProvider
@@ -79,7 +83,6 @@ class MonitorProvider extends ServiceProvider
      */
     public function boot()
     {
-        /** @noinspection PhpUndefinedMethodInspection */
         if ($this->app->runningInConsole()) {
             if (QueueMonitorService::$loadMigrations) {
                 $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
@@ -106,7 +109,7 @@ class MonitorProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../views', 'monitor');
 
         /** @phpstan-ignore-next-line */
-        Route::mixin(new QueueMonitorRoutes());
+        Route::mixin(new MonitorRoutes());
 
         if (!config('monitor.settings.active')) {
             return;
@@ -140,12 +143,14 @@ class MonitorProvider extends ServiceProvider
         $this->app->bind('monitor:clean-up', CleanUpCommand::class);
         $this->app->bind('monitor:listener', ListenerCommand::class);
         $this->app->bind('monitor:sync-scheduler', SyncCommand::class);
+        $this->app->bind('monitor:pid-checker', MonitorPidCheckerCommand::class);
 
         $this->commands([
             'monitor:aggregate-queues-sizes',
             'monitor:clean-up',
             'monitor:listener',
-            'monitor:sync-scheduler'
+            'monitor:sync-scheduler',
+            'monitor:pid-checker'
         ]);
     }
 
