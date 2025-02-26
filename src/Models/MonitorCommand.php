@@ -33,14 +33,15 @@ class MonitorCommand extends Model
 
     protected $guarded = ['uuid'];
 
-    protected $dates = ['created_at', 'started_at', 'finished_at'];
-
     public $timestamps = false;
 
     public $with = ['command'];
 
     protected $casts = [
         'failed' => 'bool',
+        'created_at' => 'datetime',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
     ];
 
     public function __construct(array $attributes = [])
