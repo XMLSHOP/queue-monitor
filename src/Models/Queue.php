@@ -21,7 +21,10 @@ class Queue extends Model
 
     public $timestamps = true;
 
-    protected $dates = ['created_at', 'updated_at',];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     protected $appends = ['resource_url'];
 
