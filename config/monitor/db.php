@@ -29,4 +29,5 @@ return [
 
     //Purge monitor & queue_sizes tables after days
     'clean_after_days' => 14,
+    'purge_chunk_size' => 10000,
 ];
