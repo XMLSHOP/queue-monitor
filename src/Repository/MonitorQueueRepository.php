@@ -89,11 +89,15 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
 
     public function purge(int $days): void
     {
-        /** @noinspection UnknownColumnInspection */
-        $this->model
-            ->newQuery()
-            ->where('queued_at', '<=', Carbon::now()->subDays($days))
-            ->orWhere('started_at', '<=', Carbon::now()->subDays($days))
-            ->delete();
+        $chunkSize = config('monitor.db.purge_chunk_size') ?: 10000;
+        do {
+            /** @noinspection UnknownColumnInspection */
+            $deletedCount = $this->model
+                ->newQuery()
+                ->where('queued_at', '<=', Carbon::now()->subDays($days))
+                ->orWhere('started_at', '<=', Carbon::now()->subDays($days))
+                ->limit($chunkSize)
+                ->delete();
+        } while ($deletedCount > 0);
     }
 }
