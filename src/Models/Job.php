@@ -33,8 +33,6 @@ class Job extends Model
 
     protected $fillable = ['name', 'name_with_namespace'];
 
-    protected $dates = ['created_at', 'updated_at'];
-
     protected $appends = ['resource_url'];
 
     protected $casts = [
@@ -47,7 +45,9 @@ class Job extends Model
         'ignore' => 'bool',
         'failures_amount' => 'int',
         'pending_amount' => 'int',
-        'pending_time' => 'double'
+        'pending_time' => 'double',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function __construct(array $attributes = [])

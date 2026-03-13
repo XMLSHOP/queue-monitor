@@ -26,8 +26,8 @@ class ShowSchedulerMonitorController
         $data = $request->validate([
             'type' => ['nullable', 'string', Rule::in(['all', 'running', 'failed', 'succeeded'])],
             'scheduler' => ['nullable', 'string'],
-            'df' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
-            'dt' => ['nullable', 'date_format:Y-m-d\TH:i:s'],
+            'df' => ['nullable', 'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/'],
+            'dt' => ['nullable', 'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/'],
         ]);
 
         $filters = [

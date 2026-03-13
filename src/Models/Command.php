@@ -16,7 +16,10 @@ use Illuminate\Support\Carbon;
  */
 class Command extends Model
 {
-    protected $dates = ['created_at', 'updated_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     protected $fillable = ['command'];
 

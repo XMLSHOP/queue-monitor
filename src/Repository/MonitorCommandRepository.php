@@ -131,7 +131,7 @@ class MonitorCommandRepository implements MonitorCommandRepositoryInterface
         $monitorCommand = $this->model
             ->newQuery()
             ->where([
-                'command_id' => $command->id,
+                'command_id' => $command?->id,
                 'host_id' => $host->id,
             ])
             ->orderByDesc('started_at')

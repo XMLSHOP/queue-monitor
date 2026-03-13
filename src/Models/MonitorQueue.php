@@ -53,9 +53,10 @@ class MonitorQueue extends Model
         'failed' => 'bool',
         'queue_id' => 'int',
         'data' => 'json',
+        'queued_at' => 'datetime',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
     ];
-
-    protected $dates = ['queued_at', 'started_at', 'finished_at'];
 
     public $timestamps = false;
 

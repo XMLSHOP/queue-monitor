@@ -117,9 +117,12 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
                         break;
                 }
             })
-            ->when(($scheduled_id = $filters['scheduler']) && 'all' !== $scheduled_id, static function (Builder $builder) use ($scheduled_id) {
-                $builder->where('scheduled_id', $scheduled_id);
-            })
+            ->when(
+                ($scheduled_id = $filters['scheduler']) && 'all' !== $scheduled_id,
+                static function (Builder $builder) use ($scheduled_id) {
+                    $builder->where('scheduled_id', $scheduled_id);
+                }
+            )
             ->orderByDesc('started_at')
             ->orderByDesc('finished_at')
             ->paginate(
@@ -154,6 +157,10 @@ class MonitorSchedulerRepository implements MonitorSchedulerRepositoryInterface
         $scheduler = $this->schedulerRepository->findByName($scheduler_name);
         $host = $this->hostRepository->firstOrCreate();
         $exceptionModel = $this->exceptionRepository->createFromThrowable($exception);
+        if (!$scheduler) {
+            echo $scheduler_name . ' failed!';
+            return;
+        }
 
         /** @var MonitorScheduler $monitorScheduler */
         $monitorScheduler = $this->model
