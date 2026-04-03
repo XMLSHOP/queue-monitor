@@ -13,7 +13,7 @@ class DropUniqueIndexFromXJobsName extends Migration
      */
     public function up(): void
     {
-        Schema::connection('logs')
+        Schema::connection(config('monitor.db.connection'))
             ->table('x_jobs', function (Blueprint $table) {
                 $table->dropUnique('x_jobs_name_unique');
             });
@@ -26,7 +26,7 @@ class DropUniqueIndexFromXJobsName extends Migration
      */
     public function down(): void
     {
-        Schema::connection('logs')
+        Schema::connection(config('monitor.db.connection'))
             ->table('x_jobs', function (Blueprint $table) {
                 $table->unique('name');
             });
