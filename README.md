@@ -17,6 +17,11 @@ This package initially forked from [Laravel-Queue-Monitor](https://github.com/ro
 - Get an estimated time remaining for a job
 - Store additional data for a job monitoring
 
+## Requirements
+
+- PHP >= 8.2
+- Laravel 10, 11 or 12
+
 ## Installation
 
 ```

@@ -28,7 +28,7 @@ class Exception extends Model
 
     protected $guarded = ['uuid'];
 
-    protected $dates = ['created_at'];
+    protected $casts = ['created_at' => 'datetime'];
 
     public $timestamps = false;
 
