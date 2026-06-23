@@ -149,7 +149,7 @@ class QueueMonitorService
         }
 
         if ($startedAt = $monitor->getStarted()) {
-            $timeElapsed = (float)$startedAt->diffInSeconds($now) + $startedAt->diff($now)->f;
+            $timeElapsed = (float)$startedAt->diffInSeconds($now);
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
