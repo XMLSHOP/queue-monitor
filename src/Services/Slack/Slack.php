@@ -2,11 +2,11 @@
 
 namespace xmlshop\QueueMonitor\Services\Slack;
 
-use Illuminate\Notifications\Messages\SlackMessage;
+use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static void         send(string|SlackMessage $message)
+ * @method static void         send(string|SlackMessage|array $message)
  * @method static SlackService to($recipient)
  */
 class Slack extends Facade

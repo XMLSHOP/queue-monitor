@@ -2,7 +2,7 @@
 
 namespace xmlshop\QueueMonitor\Services\Slack;
 
-use Illuminate\Notifications\Messages\SlackMessage;
+use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
 
 class SimpleSlack extends Notification
