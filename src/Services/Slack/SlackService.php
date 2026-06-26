@@ -83,7 +83,7 @@ class SlackService
         }
 
         if (is_array($message)) {
-            while ($msg = array_shift($message)) {
+            foreach ($message as $msg) {
                 $slackMessage->sectionBlock(fn (SectionBlock $block) => $block->text($msg)->markdown());
                 $slackMessage->dividerBlock();
             }

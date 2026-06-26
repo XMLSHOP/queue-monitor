@@ -14,12 +14,11 @@ class Notifier
 
     public function send(string|array $message): void
     {
+        if (!is_array($message)) {
+            $message = [$message];
+        }
+
         if (!App::environment('local')) {
-
-            if (!is_array($message)) {
-                $message = [$message];
-            }
-
             Slack::to(config('monitor.alarm.recipient'))->send($message);
         }
 
