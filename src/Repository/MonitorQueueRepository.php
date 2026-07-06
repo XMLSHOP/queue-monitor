@@ -57,7 +57,7 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
             ]);
 
         if ($queuedAt = $model->getQueued()) {
-            $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']) + $queuedAt->diff($data['started_at'])->f;
+            $timeElapsed = (float)$queuedAt->diffInSeconds($data['started_at']);
         }
 
         $model->update([

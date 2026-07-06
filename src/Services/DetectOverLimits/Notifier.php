@@ -12,15 +12,18 @@ class Notifier
     {
     }
 
-    public function send(string $message): void
+    public function send(string|array $message): void
     {
+        if (!is_array($message)) {
+            $message = [$message];
+        }
+
         if (!App::environment('local')) {
-            Slack::to(config('monitor.alarm.recipient'))
-                ->send('*[GMT ' . now()->format('H:i') . ']*' . "\n" . $message);
+            Slack::to(config('monitor.alarm.recipient'))->send($message);
         }
 
         if (!$this->systemResource->isParentProcessScheduler()) {
-            echo $message;
+            echo implode("\n", $message);
         }
     }
 

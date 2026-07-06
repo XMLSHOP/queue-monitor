@@ -4,16 +4,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Slack Webhook URL
+    | Bot User OAuth Token
     |--------------------------------------------------------------------------
     |
-    | Incoming Webhooks are a simple way to post messages from external sources
-    | into Slack. You can read more about it and how to create yours
-    | here: https://api.slack.com/incoming-webhooks
+    | The OAuth token for your Slack bot user. This is used to authenticate
+    | API requests made on behalf of your bot. You can find or generate this
+    | token in your Slack app's OAuth & Permissions settings page.
     |
     */
 
-    'slack_webhook_url' => env('SLACK_WEBHOOK_URL', ''),
+    'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN', ''),
 
     /*
     |--------------------------------------------------------------------------

@@ -43,7 +43,7 @@ class DetectOverLimitListenerService
         $this->checker->complete();
 
         if (!empty($messages)) {
-            $this->getNotifier()->send(implode("\n", $messages));
+            $this->getNotifier()->send($messages);
         }
 
     }

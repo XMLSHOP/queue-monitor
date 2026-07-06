@@ -32,7 +32,7 @@ class SystemResource implements SystemResourceInterface
 
     public function getTimeElapsed(Carbon $startedAt, Carbon $finishedAt): float
     {
-        return (float)$startedAt->diffInSeconds($finishedAt) + $startedAt->diff($finishedAt)->f;
+        return (float)$startedAt->diffInSeconds($finishedAt);
     }
 
     public function getProcessId(): int

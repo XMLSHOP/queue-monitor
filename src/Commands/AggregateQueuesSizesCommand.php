@@ -7,7 +7,7 @@ namespace xmlshop\QueueMonitor\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Queue;
-use Webpatser\Uuid\Uuid;
+use Illuminate\Support\Str;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueRepositoryInterface;
 use xmlshop\QueueMonitor\Repository\Interfaces\QueueSizeRepositoryInterface;
 use function last;
@@ -47,7 +47,7 @@ class AggregateQueuesSizesCommand extends Command
         foreach ($this->getQueuesIds() as $value) {
             $size = Queue::connection($value['connection'])->size($value['queue']);
             $data[] = [
-                'uuid' => Uuid::generate()->string,
+                'uuid' => Str::uuid()->toString(),
                 'queue_id' => $value['id'],
                 'size' => $size,
                 'created_at' => $timestamp,

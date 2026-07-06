@@ -4,7 +4,6 @@ namespace xmlshop\QueueMonitor\Tests;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use Webpatser\Uuid\Uuid;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
 
 class MonitorTimeCalculationTest extends TestCase
@@ -83,8 +82,8 @@ class MonitorTimeCalculationTest extends TestCase
     {
         /** @var MonitorQueue $monitor */
         $monitor = MonitorQueue::query()->create([
-            'job_id' => Uuid::generate()->string,
-            'queue_monitor_job_id' => rand(0, 10000),
+            'job_id' => Str::uuid()->toString(),
+            'queue_monitor_job_id' => random_int(0, 10000),
             'queue_id' => 1,
             'host_id' => 1,
             'started_at' => $startedAt,

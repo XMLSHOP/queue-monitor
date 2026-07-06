@@ -3,7 +3,10 @@
 namespace xmlshop\QueueMonitor\Services\Slack;
 
 use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Messages\SlackMessage;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\ContextBlock;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
+use Illuminate\Notifications\Slack\SlackMessage;
+use Illuminate\Notifications\Slack\SlackRoute;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 
@@ -11,11 +14,11 @@ class SlackService
 {
     /** @var array<string,string> */
     private array $config;
-    /** @var string[] */
-    private array $recipients;
-    private ?string $from;
+    /** @var AnonymousNotifiable[] */
+    private array $notifiables;
     private ?string $image;
-    private AnonymousNotifiable $anonymousNotifiable;
+    private ?string $oauthKey;
+    private string $applicationName;
 
     /**
      * @param array<string,string>|null $config
@@ -23,22 +26,18 @@ class SlackService
     public function __construct(?array $config = null)
     {
         $this->config = $config ?? config('monitor.laravel-slack');
-        $this->anonymousNotifiable = Notification::route('slack', $this->config['slack_webhook_url']);
-        $this->from = $this->config['application_name'];
+        $this->oauthKey = $this->config['bot_user_oauth_token'];
         $this->image = $this->config['application_image'];
-        $this->recipients = [$this->config['default_channel']];
+        $this->applicationName = $this->config['application_name'] ?: '';
+        $this->notifiables = [$this->buildNotifiable($this->config['default_channel'])];
     }
 
-    public function send(string|SlackMessage $message): void
+    public function send(string|SlackMessage|array $message): void
     {
         try {
-            $slackMessages = $this->getSlackMessageArray($message);
-
-            foreach ($slackMessages as $slackMessage) {
-                $this->notify($slackMessage);
-            }
+            Notification::send($this->notifiables, new SimpleSlack($this->buildSlackMessage($message)));
         } finally {
-            $this->recipients = [$this->config['default_channel']];
+            $this->notifiables = [$this->buildNotifiable($this->config['default_channel'])];
         }
     }
 
@@ -50,46 +49,48 @@ class SlackService
 
         $recipients = is_array($recipient) ? $recipient : func_get_args();
 
-        $this->recipients = array_map(
-            static function ($recipient) {
-                if (is_object($recipient)) {
-                    return $recipient->slack_channel;
+        $this->notifiables = array_map(
+            function ($recipient) {
+                if (is_object($recipient)) { // todo: questionable. how do I know this property?
+                    $recipient = $recipient->slack_channel;
                 }
 
-                return $recipient;
+                return $this->buildNotifiable($recipient);
             }, $recipients
         );
 
         return $this;
     }
 
-    protected function notify(SlackMessage $slackMessage): void
+    protected function buildNotifiable(string $recipient): AnonymousNotifiable
     {
-        $this->anonymousNotifiable->notify(new SimpleSlack($slackMessage));
+        return Notification::route('slack', new SlackRoute($recipient, $this->oauthKey));
     }
 
-    protected function getSlackMessageArray(string|SlackMessage $message): array
+    protected function buildSlackMessage(string|SlackMessage|array $message): SlackMessage
     {
         if ($message instanceof SlackMessage) {
-            return [$message];
+            return $message;
         }
 
-        $slackMessageArray = [];
-        $slackMessage = (new SlackMessage())->content($message);
-
-        if ($this->from) {
-            $slackMessage->from($this->from);
-        }
+        $slackMessage = (new SlackMessage())
+            ->headerBlock('Queue Monitor | ' . $this->applicationName)
+            ->text(is_array($message) ? implode("\n", $message) : $message)
+            ->contextBlock(fn (ContextBlock $block) => $block->text(now()->toCookieString()));
 
         if ($this->image) {
-            $slackMessage->image($this->image);
+            $slackMessage->imageBlock($this->image, 'Queue Monitor | IMAGE');
         }
 
-        foreach ($this->recipients as $recipient) {
-            $messageClone = clone $slackMessage;
-            $slackMessageArray[] = $messageClone->to($recipient);
+        if (is_array($message)) {
+            foreach ($message as $msg) {
+                $slackMessage->sectionBlock(fn (SectionBlock $block) => $block->text($msg)->markdown());
+                $slackMessage->dividerBlock();
+            }
+        } else {
+            $slackMessage->sectionBlock(fn (SectionBlock $block) => $block->text($message)->markdown());
         }
 
-        return $slackMessageArray;
+        return $slackMessage;
     }
 }
