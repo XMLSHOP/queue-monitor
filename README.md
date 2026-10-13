@@ -19,8 +19,8 @@ This package initially forked from [Laravel-Queue-Monitor](https://github.com/ro
 
 ## Requirements
 
-- PHP >= 8.2
-- Laravel 10, 11 or 12
+- PHP >= 8.2 (PHP >= 8.3 for Laravel 13)
+- Laravel 10, 11, 12 or 13
 
 ## Installation
 

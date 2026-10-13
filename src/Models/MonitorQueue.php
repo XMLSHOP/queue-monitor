@@ -131,12 +131,12 @@ class MonitorQueue extends Model
     /**
      * Get the estimated remaining seconds. This requires a job progress to be set.
      */
-    public function getRemainingSeconds(Carbon $now = null): float
+    public function getRemainingSeconds(?Carbon $now = null): float
     {
         return $this->getRemainingInterval($now)->totalSeconds;
     }
 
-    public function getRemainingInterval(Carbon $now = null): CarbonInterval
+    public function getRemainingInterval(?Carbon $now = null): CarbonInterval
     {
         if (null === $now) {
             $now = Carbon::now();
