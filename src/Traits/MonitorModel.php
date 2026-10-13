@@ -51,12 +51,12 @@ trait MonitorModel
     /**
      * Get the currently elapsed seconds.
      */
-    public function getElapsedSeconds(Carbon $end = null): float
+    public function getElapsedSeconds(?Carbon $end = null): float
     {
         return $this->getElapsedInterval($end)->seconds;
     }
 
-    public function getElapsedInterval(Carbon $end = null): CarbonInterval
+    public function getElapsedInterval(?Carbon $end = null): CarbonInterval
     {
         if (null === $end) {
             $end = $this->getFinished() ?? $this->finished_at ?? Carbon::now();
