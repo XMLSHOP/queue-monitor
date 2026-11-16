@@ -60,11 +60,11 @@ class QueueMonitorService
         $this->jobFinished($jobException->job, true, $jobException->exception);
     }
 
-    public function getJobId(JobContract $job): string|int
+    public function getJobId(JobContract $job): string
     {
         /** @noinspection PhpUndefinedMethodInspection */
         if ($jobId = $job->getJobId()) {
-            return $jobId;
+            return (string)$jobId;
         }
 
         /** @noinspection PhpUndefinedMethodInspection */
