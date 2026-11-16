@@ -44,6 +44,7 @@ class MonitorQueueRepository extends BaseRepository implements MonitorQueueRepos
         /** @noinspection UnknownColumnInspection */
         $model = $this->model
             ->newQuery()
+            ->useWritePdo()
             ->firstOrCreate([
                 'job_id' => $data['job_id']
             ], [

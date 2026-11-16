@@ -49,6 +49,12 @@ class MonitorQueue extends Model
 
     protected $guarded = ['uuid'];
 
+    protected $fillable = [
+        'job_id', 'queue_monitor_job_id', 'queue_id', 'factual_queue_id', 'host_id',
+        'queued_at', 'started_at', 'time_pending_elapsed', 'finished_at', 'time_elapsed',
+        'failed', 'attempt', 'progress', 'exception_id', 'use_memory_mb', 'use_cpu', 'data',
+    ];
+
     protected $casts = [
         'failed' => 'bool',
         'queue_id' => 'int',
