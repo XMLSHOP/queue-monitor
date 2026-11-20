@@ -78,7 +78,7 @@ class MonitorTimeCalculationTest extends TestCase
     /**
      * @throws \Exception
      */
-    private function createMonitor(Carbon $startedAt, int $progress = null): MonitorQueue
+    private function createMonitor(Carbon $startedAt, ?int $progress = null): MonitorQueue
     {
         /** @var MonitorQueue $monitor */
         $monitor = MonitorQueue::query()->create([
