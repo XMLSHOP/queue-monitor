@@ -12,6 +12,8 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Events\JobQueued;
+use Illuminate\Queue\Events\JobTimedOut;
+use Illuminate\Queue\TimeoutExceededException;
 use Illuminate\Support\Facades\Queue;
 use Throwable;
 use xmlshop\QueueMonitor\Models\MonitorQueue;
@@ -58,6 +60,23 @@ class QueueMonitorService
     public function handleJobExceptionOccurred(JobExceptionOccurred $jobException): void
     {
         $this->jobFinished($jobException->job, true, $jobException->exception);
+    }
+
+    public function handleJobTimedOut(JobTimedOut $jobTimedOut): void
+    {
+        $job = $jobTimedOut->job;
+
+        // The worker has already failed the job on timeout, and handleJobFailed() has recorded it.
+        if ($job->hasFailed()) {
+            return;
+        }
+
+        // This runs in the worker's SIGALRM handler: an escaping exception would be thrown into the job and skip the kill
+        try {
+            $this->jobFinished($job, true, new TimeoutExceededException($job->resolveName() . ' has timed out.'));
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function getJobId(JobContract $job): string
