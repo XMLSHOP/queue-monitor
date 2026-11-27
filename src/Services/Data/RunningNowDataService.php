@@ -2,71 +2,40 @@
 
 namespace xmlshop\QueueMonitor\Services\Data;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 class RunningNowDataService
 {
-
-    public function beautifierHostSummary(array $data): Collection
+    /**
+     * @param array<int, array<string, mixed>> $hosts
+     * @param array<string, iterable<object>> $summaries Running monitors keyed by group (schedulers, commands, jobs),
+     *                                                   one row per host and name: host_id, name, amount, cpu, memory
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function beautifierHostSummary(array $hosts, array $summaries): Collection
     {
-        foreach ($data as $key => $host) {
-            $schedulers = [];
-            $commands = [];
-            $jobs = [];
+        $data = [];
 
-            $total_host = [
-                'cpu' => 0,
-                'memory' => 0,
-            ];
-
-            foreach ($host['monitor_command'] as $command) {
-                if (!Arr::exists($commands, $command['command']['command'])) {
-                    $commands[$command['command']['command']] = ['amount' => 0, 'cpu' => 0, 'memory' => 0,];
-                }
-
-                $commands[$command['command']['command']]['amount']++;
-                $commands[$command['command']['command']]['cpu'] += $command['use_cpu'];
-                $commands[$command['command']['command']]['memory'] += $command['use_memory_mb'];
-
-                $total_host['cpu'] += $command['use_cpu'];
-                $total_host['memory'] += $command['use_memory_mb'];
-            }
-
-            foreach ($host['monitor_scheduler'] as $scheduler) {
-                if (!Arr::exists($schedulers, $scheduler['scheduler']['name'])) {
-                    $schedulers[$scheduler['scheduler']['name']] = ['amount' => 0, 'cpu' => 0, 'memory' => 0,];
-                }
-
-                $schedulers[$scheduler['scheduler']['name']]['amount']++;
-                $schedulers[$scheduler['scheduler']['name']]['cpu'] += $scheduler['use_cpu'];
-                $schedulers[$scheduler['scheduler']['name']]['memory'] += $scheduler['use_memory_mb'];
-
-                $total_host['cpu'] += $scheduler['use_cpu'];
-                $total_host['memory'] += $scheduler['use_memory_mb'];
-            }
-
-            foreach ($host['monitor_queue'] as $job) {
-
-                if (!Arr::exists($jobs, $job['job']['name'])) {
-                    $jobs[$job['job']['name']] = ['amount' => 0, 'cpu' => 0, 'memory' => 0,];
-                }
-
-                $jobs[$job['job']['name']]['amount']++;
-                $jobs[$job['job']['name']]['cpu'] += $job['use_cpu'];
-                $jobs[$job['job']['name']]['memory'] += $job['use_memory_mb'];
-
-                $total_host['cpu'] += $job['use_cpu'];
-                $total_host['memory'] += $job['use_memory_mb'];
-            }
-
-            $data[$key]['schedulers'] = $schedulers;
-            $data[$key]['commands'] = $commands;
-            $data[$key]['jobs'] = $jobs;
-            unset($data[$key]['monitor_scheduler'], $data[$key]['monitor_command'], $data[$key]['monitor_queue']);
-            $data[$key]['total'] = $total_host;
+        foreach ($hosts as $host) {
+            $data[$host['id']] = $host
+                + array_fill_keys(array_keys($summaries), [])
+                + ['total' => ['cpu' => 0, 'memory' => 0]];
         }
 
-        return collect($data);
+        foreach ($summaries as $group => $rows) {
+            foreach ($rows as $row) {
+                if (!isset($data[$row->host_id])) {
+                    continue;
+                }
+
+                $usage = ['amount' => (int)$row->amount, 'cpu' => (float)$row->cpu, 'memory' => (int)$row->memory];
+
+                $data[$row->host_id][$group][$row->name] = $usage;
+                $data[$row->host_id]['total']['cpu'] += $usage['cpu'];
+                $data[$row->host_id]['total']['memory'] += $usage['memory'];
+            }
+        }
+
+        return collect(array_values($data));
     }
 }

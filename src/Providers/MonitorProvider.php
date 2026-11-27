@@ -14,7 +14,7 @@ use Illuminate\Console\Events\{
     ScheduledTaskFinished,
     ScheduledTaskStarting};
 use Illuminate\Support\Collection;
-use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobProcessing, JobQueued};
+use Illuminate\Queue\Events\{JobExceptionOccurred, JobFailed, JobProcessed, JobProcessing, JobQueued, JobTimedOut};
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -177,6 +177,10 @@ class MonitorProvider extends ServiceProvider
         );
         $queueManager->exceptionOccurred(
             static fn (JobExceptionOccurred $event) => $queueMonitorService->handleJobExceptionOccurred($event)
+        );
+        $this->dispatcher->listen(
+            JobTimedOut::class,
+            static fn (JobTimedOut $event) => $queueMonitorService->handleJobTimedOut($event)
         );
     }
 
